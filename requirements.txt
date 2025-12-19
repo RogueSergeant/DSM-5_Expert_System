@@ -1,0 +1,26 @@
+# Core dependencies
+python-dotenv>=1.0.0
+
+# LLM Provider SDKs
+openai>=1.0.0
+anthropic>=0.40.0
+ollama>=0.4.0
+
+# Prolog integration
+pyswip>=0.2.11
+
+# Jupyter and data science
+jupyter>=1.0.0
+jupyterlab>=4.0.0
+notebook>=7.0.0
+pandas>=2.0.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+
+# Utilities
+tqdm>=4.65.0
+requests>=2.31.0
+
+# Development (optional)
+pytest>=7.0.0
+black>=23.0.0

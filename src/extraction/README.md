@@ -12,12 +12,145 @@ data/dsm5_text/<disorder>.txt     -->  [LLM Extraction]  -->  src/prolog/gold_st
                               src/prolog/schema.pl (predicate reference)
 ```
 
+## Quick Start
+
+### 1. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Configure API keys
+```bash
+cp .env.example .env
+# Edit .env with your API keys
+```
+
+### 3. Run extraction
+```bash
+# Using Ollama (local) with thinking
+python -m src.extraction.run_extraction --disorder ptsd --provider ollama --model gpt-oss:20b --think high
+
+# Using OpenAI GPT-5 with reasoning
+python -m src.extraction.run_extraction --disorder ptsd --provider openai --model gpt-5.2 --reasoning-effort high
+
+# Using Claude with extended thinking
+python -m src.extraction.run_extraction --disorder ptsd --provider anthropic --model claude-sonnet-4-5 --thinking-budget 10000
+
+# Test all providers
+python -m src.extraction.run_extraction --disorder ptsd --all --save
+```
+
+### 4. List available Ollama models
+```bash
+python -m src.extraction.run_extraction --list-models
+```
+
+## Module Structure
+
+```
+src/extraction/
+├── __init__.py           # Package exports
+├── base.py               # Base classes and utilities
+├── config.py             # Configuration management
+├── evaluate.py           # .pl file validation
+├── run_extraction.py     # CLI entry point
+├── README.md             # This file
+└── providers/
+    ├── __init__.py       # Provider factory
+    ├── openai_provider.py    # OpenAI GPT-5 with reasoning_effort
+    ├── anthropic_provider.py # Claude with extended thinking
+    └── ollama_provider.py    # Ollama with think parameter
+```
+
+## Providers
+
+| Provider | SDK | API Key Required | Thinking Parameter |
+|----------|-----|------------------|-------------------|
+| OpenAI | `openai>=1.0.0` | `OPENAI_API_KEY` | `reasoning_effort` |
+| Anthropic | `anthropic>=0.40.0` | `ANTHROPIC_API_KEY` | `thinking` (budget_tokens) |
+| Ollama | `ollama>=0.4.0` | None (local) | `think` |
+
+## Models & Thinking Parameters
+
+### OpenAI GPT-5 Series (December 2025)
+
+| Model | Description | Reasoning Effort Levels |
+|-------|-------------|------------------------|
+| gpt-5.2 | Latest flagship with enhanced reasoning | none, minimal, low, medium, high, xhigh |
+| gpt-5.1 | Previous generation, stable | none, minimal, low, medium, high |
+| gpt-5 | Original GPT-5 release | minimal, low, medium, high |
+
+**Reasoning Effort Parameter:**
+```python
+from src.extraction.providers import OpenAIProvider
+provider = OpenAIProvider(
+    model="gpt-5.2",
+    reasoning_effort="high",  # none, minimal, low, medium, high, xhigh
+)
+```
+
+CLI usage:
+```bash
+python -m src.extraction.run_extraction --provider openai --reasoning-effort high
+```
+
+### Anthropic Claude (December 2025)
+
+| Model | Description | Thinking Budget Range |
+|-------|-------------|----------------------|
+| claude-sonnet-4-5 | Balanced speed/quality (recommended) | 1024 - 128000 |
+| claude-opus-4-5 | Most capable, complex tasks | 1024 - 128000 |
+| claude-haiku-3-5 | Fastest, simple extractions | 1024 - 128000 |
+
+**Extended Thinking Parameter:**
+```python
+from src.extraction.providers import AnthropicProvider
+provider = AnthropicProvider(
+    model="claude-sonnet-4-5",
+    thinking_budget=10000,  # 0 to disable, 1024+ to enable
+)
+```
+
+Budget guidelines:
+- 1024-5000: Light thinking for straightforward tasks
+- 5000-15000: Moderate thinking (recommended for extraction)
+- 15000-50000: Deep thinking for complex criteria
+- 50000+: Maximum thinking for difficult edge cases
+
+CLI usage:
+```bash
+python -m src.extraction.run_extraction --provider anthropic --thinking-budget 15000
+```
+
+### Ollama Local Models
+
+| Model | Parameters | Think Support |
+|-------|------------|---------------|
+| gpt-oss:20b | 20B | "low", "medium", "high" |
+| deepseek-r1:7b/14b/32b | 7-32B | True/False |
+| qwq:32b | 32B | True/False |
+| llama3.1:8b/70b | 8-70B | Not supported |
+
+**Think Parameter:**
+```python
+from src.extraction.providers import OllamaProvider
+provider = OllamaProvider(
+    model="gpt-oss:20b",
+    think="high",  # None, True, "low", "medium", "high"
+)
+```
+
+CLI usage:
+```bash
+python -m src.extraction.run_extraction --provider ollama --model gpt-oss:20b --think high
+```
+
 ## Models Tested
 
-| Model | Provider | Parameters | Status | Notes |
-|-------|----------|------------|--------|-------|
-| gpt-oss:20b | Ollama (local) | 20B | Testing | Initial test for PTSD |
-| | | | | |
+| Model | Provider | Parameters | Thinking | Status | Notes |
+|-------|----------|------------|----------|--------|-------|
+| gpt-oss:20b | Ollama | 20B | high | Testing | Initial test for PTSD |
+| | | | | | |
 
 ## Prompt Strategy
 
@@ -28,9 +161,27 @@ The prompt provides:
 
 ### Prompt Template
 ```
-Following the guidance in the README.md file attached, create the content
-of the <disorder>.pl file based on the <DISORDER>.txt content from the
-DSM-5 I have sent here. Also attached is the schema.pl file for reference.
+You are an expert in both clinical psychology (DSM-5 diagnostic criteria) and Prolog programming.
+
+Your task is to extract the diagnostic criteria from the DSM-5 text provided and convert it into a structured Prolog file following the template guide.
+
+## Template Guide (how to structure the .pl file):
+{template_guide}
+
+## DSM-5 Text to Extract From:
+{dsm5_text}
+
+## Instructions:
+1. Create a complete Prolog file for the disorder with ID: `{disorder_id}`
+2. Follow the template guide exactly for predicate structure
+3. Include ALL multifile declarations at the top
+4. Extract ALL symptoms, grouping them by category
+5. Include ALL exclusion criteria
+6. Include duration and onset requirements
+7. Add subjective criteria for clinical significance
+8. Add relevant specifiers and differential features
+
+Output ONLY the Prolog code, no explanations.
 ```
 
 ## Evaluation Criteria
@@ -41,6 +192,11 @@ DSM-5 I have sent here. Also attached is the schema.pl file for reference.
 | Completeness | All criteria (A-F) captured | Compare against DSM-5 text |
 | Accuracy | Symptoms/exclusions match DSM-5 | Manual review |
 | Schema compliance | Correct predicate structure | `validate_disorder(<id>, Issues)` |
+
+The `evaluate.py` module automates these checks:
+- Syntax validation via SWI-Prolog
+- Schema compliance via `validate_disorder/2`
+- Comparison with gold standards (MDD, GAD, ADHD)
 
 ## Test Log
 
@@ -55,8 +211,46 @@ DSM-5 I have sent here. Also attached is the schema.pl file for reference.
 
 ---
 
-## Future Work
-- Test with different model sizes (7B, 13B, 70B)
-- Test with Claude API for comparison
-- Develop automated validation pipeline
-- Measure extraction accuracy vs hand-coded gold standards (MDD, GAD, ADHD)
+## Output Files
+
+Extracted files are saved to `outputs/extractions/` with:
+- `{disorder}_{provider}_{model}_{timestamp}.pl` - The extracted Prolog file
+- `{disorder}_{provider}_{model}_{timestamp}.json` - Metadata and validation results
+
+## CLI Reference
+
+```bash
+python -m src.extraction.run_extraction [OPTIONS]
+
+Required:
+  --disorder TEXT         Disorder ID to extract (e.g., ptsd, asd)
+
+Provider Selection:
+  --provider {openai,anthropic,ollama}  LLM provider to use
+  --model TEXT            Specific model to use (overrides default)
+  --all                   Test all available providers
+
+Thinking Parameters:
+  --reasoning-effort {none,minimal,low,medium,high,xhigh}
+                          OpenAI GPT-5 reasoning effort level
+  --thinking-budget INT   Anthropic extended thinking budget (1024+)
+  --think {low,medium,high}
+                          Ollama thinking level for supported models
+
+Output:
+  --save                  Save extracted .pl file to outputs directory
+  --no-schema             Don't include schema.pl as reference
+
+Utilities:
+  --init-env              Create .env.example template file
+  --list-models           List available Ollama models
+```
+
+## API Documentation
+
+- [OpenAI Platform](https://platform.openai.com/docs/api-reference/chat)
+- [OpenAI Reasoning Guide](https://platform.openai.com/docs/guides/reasoning)
+- [Anthropic Docs](https://docs.anthropic.com/en/docs/)
+- [Anthropic Extended Thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+- [Ollama API](https://github.com/ollama/ollama/blob/main/docs/api.md)
+- [Ollama Python SDK](https://github.com/ollama/ollama-python)
