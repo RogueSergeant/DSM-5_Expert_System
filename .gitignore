@@ -68,6 +68,10 @@ logs/
 *.pkl
 *.pickle
 
+# Extraction outputs (keep findings, ignore artifacts)
+outputs/extractions/*.pl
+outputs/extractions/*.json
+
 # Testing
 .pytest_cache/
 .coverage
