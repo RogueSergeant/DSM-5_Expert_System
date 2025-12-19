@@ -154,6 +154,8 @@ class AnthropicProvider(ExtractionProvider):
         disorder_id: str,
         template_guide: str,
         schema_reference: Optional[str] = None,
+        custom_prompt: Optional[str] = None,
+        custom_system_prompt: Optional[str] = None,
     ) -> ExtractionResult:
         """
         Extract Prolog diagnostic criteria from DSM-5 text.
@@ -197,11 +199,11 @@ class AnthropicProvider(ExtractionProvider):
         start_time = time.time()
 
         try:
-            # Build prompts using base class methods
-            prompt = self.build_prompt(
+            # Use custom prompts if provided, otherwise build from base class
+            prompt = custom_prompt or self.build_prompt(
                 dsm5_text, disorder_id, template_guide, schema_reference
             )
-            system_prompt = self.build_system_prompt()
+            system_prompt = custom_system_prompt or self.build_system_prompt()
 
             # Build API request parameters
             # See: https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking

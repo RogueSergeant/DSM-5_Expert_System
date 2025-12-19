@@ -55,6 +55,8 @@ class ExtractionProvider(ABC):
         disorder_id: str,
         template_guide: str,
         schema_reference: Optional[str] = None,
+        custom_prompt: Optional[str] = None,
+        custom_system_prompt: Optional[str] = None,
     ) -> ExtractionResult:
         """
         Extract Prolog criteria from DSM-5 text.
@@ -64,6 +66,8 @@ class ExtractionProvider(ABC):
             disorder_id: Short identifier (e.g., 'ptsd', 'asd')
             template_guide: Content of gold_standard/README.md
             schema_reference: Optional content of schema.pl
+            custom_prompt: Optional custom prompt (overrides build_prompt)
+            custom_system_prompt: Optional custom system prompt
 
         Returns:
             ExtractionResult with the extracted .pl content

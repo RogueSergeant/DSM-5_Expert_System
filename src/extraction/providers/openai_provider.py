@@ -151,6 +151,8 @@ class OpenAIProvider(ExtractionProvider):
         disorder_id: str,
         template_guide: str,
         schema_reference: Optional[str] = None,
+        custom_prompt: Optional[str] = None,
+        custom_system_prompt: Optional[str] = None,
     ) -> ExtractionResult:
         """
         Extract Prolog diagnostic criteria from DSM-5 text.
@@ -167,6 +169,8 @@ class OpenAIProvider(ExtractionProvider):
                             the expected Prolog structure.
             schema_reference: Optional content of schema.pl for additional
                               context about predicate signatures.
+            custom_prompt: Optional custom prompt (overrides build_prompt).
+            custom_system_prompt: Optional custom system prompt.
 
         Returns:
             ExtractionResult containing:
@@ -193,11 +197,11 @@ class OpenAIProvider(ExtractionProvider):
         start_time = time.time()
 
         try:
-            # Build prompts using base class methods
-            prompt = self.build_prompt(
+            # Use custom prompts if provided, otherwise build from base class
+            prompt = custom_prompt or self.build_prompt(
                 dsm5_text, disorder_id, template_guide, schema_reference
             )
-            system_prompt = self.build_system_prompt()
+            system_prompt = custom_system_prompt or self.build_system_prompt()
 
             # Make API request with reasoning effort parameter
             # See: https://platform.openai.com/docs/guides/reasoning

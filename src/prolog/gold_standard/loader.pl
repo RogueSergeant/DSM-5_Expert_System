@@ -24,9 +24,9 @@
 gold_standard_disorder_files([
     'mdd',
     'gad',
-    'adhd'
-    % 'ptsd',
-    % 'asd'
+    'adhd',
+    'ptsd'
+    % 'asd' - not yet created
 ]).
 
 %% Load a single disorder file using absolute path
