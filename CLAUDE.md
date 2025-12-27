@@ -2,16 +2,34 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Always Remember
+
+It is 2025
+
 ## Project Overview
 
-Hybrid diagnostic decision support system combining Prolog-based symbolic reasoning with LLM-assisted knowledge extraction. The system uses DSM-5 diagnostic criteria encoded in Prolog to perform explainable diagnostic reasoning.
+Hybrid diagnostic decision support system combining Prolog-based symbolic reasoning with LLM-assisted knowledge extraction. The system uses DSM-5-TR (2022) diagnostic criteria encoded in Prolog to perform explainable diagnostic reasoning.
+
+**DSM Version Note**: The reference standard is DSM-5-TR (2022), not DSM-5 (2013). See `data/DSM_VERSION_NOTES.md` for version differences and their impact on each disorder.
+
+## Data Flow
+
+```
+data/dsm5_text/{DISORDER}.txt  →  LLM Extraction  →  src/prolog/extracted/{disorder}.pl
+                                       ↓
+                    gold_standard/README.md (template guide)
+                    src/prolog/schema.pl (predicate reference)
+                                       ↓
+                              Syntax validation via SWI-Prolog
+                              Schema validation via validate_disorder/2
+```
 
 ## Architecture
 
 ```
 src/prolog/
 ├── schema.pl              # Core diagnostic inference engine (knowledge base + rules)
-├── gold_standard/         # Hand-curated disorder definitions (mdd.pl, gad.pl, adhd.pl)
+├── gold_standard/         # Hand-curated disorder definitions (mdd.pl, gad.pl, adhd.pl, ptsd.pl)
 │   ├── loader.pl         # Loads all gold standard files
 │   └── README.md         # Template guide for .pl file structure
 └── extracted/            # LLM-extracted disorder definitions (production output)
@@ -26,10 +44,16 @@ src/extraction/           # LLM extraction pipeline
     ├── anthropic_provider.py # Claude with extended thinking
     └── ollama_provider.py    # Local models with think parameter
 
-data/dsm5_text/          # Source DSM-5 criteria text files ({DISORDER}.txt)
+data/dsm5_text/          # Source DSM-5-TR criteria text files ({DISORDER}.txt)
 outputs/extractions/     # Timestamped extraction results with metadata
-notebooks/main.ipynb     # Interactive experiments
+notebooks/main.ipynb     # Interactive experiments with pyswip
 ```
+
+## Prerequisites
+
+- Python 3.10+
+- SWI-Prolog (`brew install swi-prolog` on macOS) - required for pyswip and syntax validation
+- API keys for OpenAI/Anthropic (or local Ollama)
 
 ## Key Commands
 
@@ -48,18 +72,25 @@ python -m src.extraction.run_extraction --disorder ptsd --provider openai --reas
 # Save extraction to production location
 python -m src.extraction.run_extraction --disorder ptsd --provider anthropic --thinking-budget 15000 --production
 
+# Test all providers at once
+python -m src.extraction.run_extraction --disorder ptsd --all --save
+
 # List available Ollama models
 python -m src.extraction.run_extraction --list-models
 
-# Prolog testing (SWI-Prolog)
-swipl -g "[schema], ['gold_standard/loader']"
+# Prolog REPL (run from src/prolog/ directory)
+cd src/prolog && swipl -g "[schema], ['gold_standard/loader']"
 # In Prolog REPL:
 # ?- disorder(X, Name, Category).          % List all disorders
 # ?- symptom(mdd, S, Cat, Desc).           % List symptoms
 # ?- validate_disorder(mdd, Issues).       % Validate a disorder
+# ?- full_diagnosis(pt001, mdd, Result).   % Run full diagnosis
 
 # Run tests
-pytest
+pytest                          # All tests
+pytest -v                       # Verbose output
+pytest tests/test_foo.py        # Single file
+pytest -k "test_extraction"     # Pattern matching
 ```
 
 ## Prolog Predicate Structure
@@ -87,7 +118,7 @@ Diagnostic inference predicates:
 
 ## Adding New Disorders
 
-1. Create DSM-5 source: `data/dsm5_text/{DISORDER}.txt`
+1. Create DSM-5-TR source: `data/dsm5_text/{DISORDER}.txt`
 2. Extract with LLM: `python -m src.extraction.run_extraction --disorder {id} --provider anthropic --production`
 3. Or manually create: `src/prolog/gold_standard/{disorder_id}.pl` following the template guide
 4. Register in `gold_standard/loader.pl` if gold standard

@@ -89,8 +89,13 @@ the (often uneven) intellectual profile of a child or adult with autism spectrum
 disorder is necessary for interpreting diagnostic features. Separate estimates of verbal and
 nonverbal skill are necessary (e.g., using untimed nonverbal tests to assess potential
 strengths in individuals with limited language).
+**TABLE 2 Severity levels for autism spectrum disorder**
 
-
+| Severity level | Social communication | Restricted, repetitive behaviors |
+|----------------|----------------------|----------------------------------|
+| **Level 3** "Requiring very substantial support" | Severe deficits in verbal and nonverbal social communication skills cause severe impairments in functioning, very limited initiation of social interactions, and minimal response to social overtures from others. For example, a person with few words of intelligible speech who rarely initiates interaction and, when he or she does, makes unusual approaches to meet needs only and responds to only very direct social approaches. | Inflexibility of behavior, extreme difficulty coping with change, or other restricted/repetitive behaviors markedly interfere with functioning in all spheres. Great distress/difficulty changing focus or action. |
+| **Level 2** "Requiring substantial support" | Marked deficits in verbal and nonverbal social communication skills; social impairments apparent even with supports in place; limited initiation of social interactions; and reduced or abnormal responses to social overtures from others. For example, a person who speaks simple sentences, whose interaction is limited to narrow special interests, and who has markedly odd nonverbal communication. | Inflexibility of behavior, difficulty coping with change, or other restricted/repetitive behaviors appear frequently enough to be obvious to the casual observer and interfere with functioning in a variety of contexts. Distress and/or difficulty changing focus or action. |
+| **Level 1** "Requiring support" | Without supports in place, deficits in social communication cause noticeable impairments. Difficulty initiating social interactions, and clear examples of atypical or unsuccessful responses to social overtures of others. May appear to have decreased interest in social interactions. For example, a person who is able to speak in full sentences and engages in communication but whose to-and-fro conversation with others fails, and whose attempts to make friends are odd and typically unsuccessful. | Inflexibility of behavior causes significant interference with functioning in one or more contexts. Difficulty switching between activities. Problems of organization and planning hamper independence. |
 To use the specifier "with or without accompanying language impairment," the current
 level of verbal functioning should be assessed and described. Examples of the specific
 descriptions for "with accompanying language impairment" might include no intelligible

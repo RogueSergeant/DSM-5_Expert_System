@@ -1,0 +1,11 @@
+{
+  "disorder_id": "asd",
+  "provider": "anthropic",
+  "model": "claude-opus-4-5-20251101",
+  "extracted_at": "2025-12-19T18:57:54.737755",
+  "duration_seconds": 67.39898777008057,
+  "input_tokens": 22062,
+  "output_tokens": 3510,
+  "syntax_valid": true,
+  "validation_issues": []
+}
