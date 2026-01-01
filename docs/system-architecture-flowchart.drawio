@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" version="29.2.9">
   <diagram name="DSM-5 Diagnostic System Architecture" id="CESzAv9LJ3PBc3to7uUC">
-    <mxGraphModel dx="501" dy="341" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="697" dy="475" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -306,7 +306,8 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="csXt-jjbGVEFcjzIKpza-97" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-95" target="csXt-jjbGVEFcjzIKpza-61" value="YES&#xa;(more questions)">
-          <mxGeometry relative="1" as="geometry">
+          <mxGeometry relative="1" x="0.0011" as="geometry">
+            <mxPoint as="offset" />
             <Array as="points">
               <mxPoint x="200" y="360" />
               <mxPoint x="80" y="360" />
@@ -318,6 +319,16 @@
         </mxCell>
         <mxCell id="csXt-jjbGVEFcjzIKpza-99" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-95" target="csXt-jjbGVEFcjzIKpza-98" value="NO&#xa;(ready)">
           <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-136" parent="csXt-jjbGVEFcjzIKpza-60" style="text;whiteSpace=wrap;html=1;align=center;labelBackgroundColor=default;fontColor=default;verticalAlign=top;" value="&lt;span style=&quot;caret-color: rgb(255, 255, 255); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; white-space: nowrap; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration: none; float: none; display: inline !important;&quot;&gt;YES&lt;/span&gt;&lt;br style=&quot;padding: 0px; margin: 0px; caret-color: rgb(255, 255, 255); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; white-space: nowrap; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-line: none; text-decoration-thickness: auto; text-decoration-style: solid; box-shadow: none !important;&quot;&gt;&lt;span style=&quot;caret-color: rgb(255, 255, 255); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; white-space: nowrap; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration: none; float: none; display: inline !important;&quot;&gt;(no more questions)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="40" width="120" x="170" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-131" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-98" style="strokeWidth=2;strokeColor=#82b366;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="csXt-jjbGVEFcjzIKpza-136">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="230" y="430" />
+            </Array>
+          </mxGeometry>
         </mxCell>
         <mxCell id="csXt-jjbGVEFcjzIKpza-100" parent="1" style="swimlane;fontSize=13;fontStyle=1;fillColor=#e6ffe6;strokeColor=#82b366;startSize=40;" value="PHASE 5: DIAGNOSIS GENERATION" vertex="1">
           <mxGeometry height="710" width="1280" x="280" y="1760" as="geometry" />
@@ -442,11 +453,11 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="csXt-jjbGVEFcjzIKpza-131" edge="1" parent="1" source="csXt-jjbGVEFcjzIKpza-98" style="strokeWidth=2;strokeColor=#82b366;" target="csXt-jjbGVEFcjzIKpza-101">
+        <mxCell id="csXt-jjbGVEFcjzIKpza-137" edge="1" parent="1" source="csXt-jjbGVEFcjzIKpza-136" style="rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=light-dark(#2D7600, #436e2c);fillColor=#60a917;strokeWidth=2;curved=0;" target="csXt-jjbGVEFcjzIKpza-101">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="510" y="1680" />
-              <mxPoint x="400" y="1680" />
+              <mxPoint x="510" y="1690" />
+              <mxPoint x="400" y="1690" />
             </Array>
           </mxGeometry>
         </mxCell>
