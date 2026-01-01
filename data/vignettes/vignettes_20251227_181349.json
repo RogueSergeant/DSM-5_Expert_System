@@ -1,0 +1,29 @@
+[
+  {
+    "id": "vig_1349_0_gad",
+    "ground_truth": "gad",
+    "difficulty": "CLEAR",
+    "demographics": "34-year-old woman, married, two children, works full-time as an elementary school teacher; no military history; lives with spouse and children.",
+    "clinical_text": "Ms. A is a 34-year-old elementary school teacher who presents for evaluation due to persistent, hard-to-control worry that has been present most days for the past 10\u201311 months. She reports that the worry spans multiple areas of life, including her job performance (\"I\u2019m constantly thinking I\u2019m going to mess up a lesson or forget something important\"), her children\u2019s safety (\"If they cough, my mind goes straight to something serious\"), finances (\"Even when the bills are paid, I keep running the numbers\"), and health concerns for herself and family members. She describes the worry as excessive compared with the actual circumstances and states that attempts to reassure herself provide only brief relief: \"I tell myself it\u2019s fine, but five minutes later I\u2019m worrying again.\" She notes difficulty controlling the worry and says it is present both at work and at home.\n\nAssociated symptoms include feeling keyed up and restless (\"I can\u2019t relax\u2014I\u2019m always on edge\"), easy fatigue by late afternoon, irritability (\"I snap at my husband over little things\"), muscle tension in the neck and shoulders with frequent headaches, and difficulty concentrating (\"I reread the same email three times\"). Sleep is disturbed by prolonged sleep onset due to rumination and frequent nighttime awakenings; she reports averaging 5\u20136 hours per night and feeling unrefreshed.\n\nThe symptoms have caused clinically significant distress and impairment. She reports reduced efficiency at work, increased checking behaviors related to lesson planning (repeatedly reviewing materials because she fears forgetting something), and diminished enjoyment of family time due to persistent mental preoccupation. She has avoided taking on a leadership role at school because she fears she will not cope with added responsibilities.\n\nShe denies discrete episodes of sudden intense fear with palpitations, choking sensations, or fear of dying. She does not describe avoidance related to social scrutiny; she is comfortable speaking with parents and colleagues despite her generalized worries. She denies intrusive, unwanted thoughts with repetitive rituals aimed at neutralizing them, and she denies trauma-related flashbacks or nightmares. Mood is described as \"stressed\" but not persistently depressed; she denies loss of interest, hopelessness, or suicidal ideation. There is no history of manic or hypomanic episodes.\n\nShe reports drinking one cup of coffee in the morning and denies energy drinks. She denies alcohol or illicit drug use. She is not taking stimulants, thyroid medication, or corticosteroids. Medical history is notable only for seasonal allergies; she denies weight loss, heat intolerance, tremor, or other symptoms suggesting hyperthyroidism. She has no known cardiac or pulmonary disease. Family history is notable for an \"anxious\" mother.\n\nMental status examination: She is cooperative and appropriately groomed. Psychomotor activity is mildly increased with fidgeting. Speech is normal rate and tone. Mood is \"anxious\" with congruent affect. Thought process is linear but preoccupied with future-oriented worries. No delusions or hallucinations. Cognition is intact though attention is mildly impaired by worry. Insight and judgment are fair.\n\nOverall, her presentation is characterized by excessive, pervasive worry across multiple domains for nearly a year, difficulty controlling the worry, associated physical and cognitive symptoms, and functional impairment, without evidence that the symptoms are attributable to substances, another medical condition, or another primary psychiatric syndrome.",
+    "symptom_checklist": {
+      "excessive_worry_multiple_domains": "present",
+      "duration_6_months_or_more": "present",
+      "difficulty_controlling_worry": "present",
+      "restlessness_keyed_up": "present",
+      "fatigue": "present",
+      "concentration_difficulty_mind_going_blank": "present",
+      "irritability": "present",
+      "muscle_tension": "present",
+      "sleep_disturbance": "present",
+      "clinically_significant_distress_or_impairment": "present",
+      "substance_or_medical_cause": "absent",
+      "better_explained_by_other_mental_disorder": "absent",
+      "panic_attacks_recurrent_unexpected": "absent",
+      "social_evaluation_fear_primary": "absent",
+      "ocd_intrusions_compulsions_primary": "absent",
+      "ptsd_reexperiencing_avoidance_hyperarousal_trauma_linked": "absent",
+      "major_depressive_episode_primary": "absent",
+      "mania_hypomania_history": "absent"
+    }
+  }
+]
