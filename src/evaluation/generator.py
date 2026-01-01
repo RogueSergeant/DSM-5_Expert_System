@@ -56,8 +56,14 @@ def generate_vignettes(provider, count: int, output_dir: Path):
     
     print(f"Generating {count} vignettes...")
     
+    print(f"Generating {count} vignettes...")
+    
     for i in range(count):
-        disorder = random.choice(DISORDERS)
+        # Cycle through disorders if count covers multiples
+        disorder = DISORDERS[i % len(DISORDERS)]
+        
+        # Difficulty: Weighted choice? Or verify diverse difficulties?
+        # For now, random difficulty is fine, or we can cycle too.
         difficulty = random.choice(TYPES)
         
         print(f"[{i+1}/{count}] Generating {disorder.upper()} ({difficulty})...")

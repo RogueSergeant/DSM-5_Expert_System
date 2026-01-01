@@ -250,13 +250,15 @@ meets_symptom_criteria(PatientID, DisorderID) :-
     ).
 
 %% category_satisfied/6 - Helper for symptom category checking
-category_satisfied(PatientID, _DisorderID, _CategoryID, SymptomList, RequiredCount, at_least) :-
+category_satisfied(PatientID, DisorderID, CategoryID, SymptomList, BaseRequiredCount, at_least) :-
+    get_required_count(PatientID, DisorderID, CategoryID, BaseRequiredCount, AdjustedRequiredCount),
     count_present_symptoms(PatientID, SymptomList, Count),
-    Count >= RequiredCount.
+    Count >= AdjustedRequiredCount.
 
-category_satisfied(PatientID, _DisorderID, _CategoryID, SymptomList, RequiredCount, exactly) :-
+category_satisfied(PatientID, DisorderID, CategoryID, SymptomList, BaseRequiredCount, exactly) :-
+    get_required_count(PatientID, DisorderID, CategoryID, BaseRequiredCount, AdjustedRequiredCount),
     count_present_symptoms(PatientID, SymptomList, Count),
-    Count =:= RequiredCount.
+    Count =:= AdjustedRequiredCount.
 
 category_satisfied(PatientID, _DisorderID, _CategoryID, SymptomList, _RequiredCount, all) :-
     forall(

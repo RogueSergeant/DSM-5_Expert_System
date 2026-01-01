@@ -40,7 +40,9 @@ Special Logic for Verification Questions ("Is it true that..."):
 - Example: "Is it true that the disturbance is NOT attributable to physiological effects of a substance?"
   - If text says "Patient denies drug use" -> Answer YES (The statement is true).
   - If text says "Patient uses cocaine daily" -> Answer NO (The statement is false).
-  - If text mentions nothing about drugs -> Answer UNKNOWN (Cannot verify).
+  - If text says "Patient denies drug use" -> Answer YES (The statement is true).
+  - If text says "Patient uses cocaine daily" -> Answer NO (The statement is false).
+  - If text mentions nothing about the excluded condition -> Answer YES (Presume the condition is absent if not mentioned).
 
 Output ONLY the single word: YES, NO, or UNKNOWN.
 """
@@ -56,9 +58,12 @@ Output ONLY the single word: YES, NO, or UNKNOWN.
             )
             
             if not result.success:
+                print(f"LLM Failure: {result.error}")
                 return "UNKNOWN"
                 
             ans = result.content.strip().upper()
+            # print(f"DEBUG LLM: {ans}")
+            
             if "YES" in ans:
                 return "YES"
             if "NO" in ans:
@@ -83,6 +88,21 @@ def run_benchmark(vignette_path: Path):
     
     for case in vignettes:
         manager.start_new_session()
+        
+        # Extract and Set Age
+        import re
+        demo = case.get('demographics', '')
+        age_match = re.search(r'(\d+)-year-old', demo)
+        if age_match:
+            age = int(age_match.group(1))
+            manager.set_patient_data(age)
+            print(f"  [Info] Patient Age set to {age}")
+        else:
+            # Default to adult if not found to avoid child-logic traps? 
+            # Or log warning.
+            print("  [Warning] Could not extract age. Defaulting to 30.")
+            manager.set_patient_data(30)
+
         sim = ClinicalAnalyzer(case)
         
         questions_asked = 0
@@ -152,8 +172,22 @@ def run_benchmark(vignette_path: Path):
                     best_conf = conf
                     best_candidate = d
             else:
-                 # If diagnosis_candidate failed, it means absolute criteria (exclusions/duration) definitely failed
-                 pass
+                # If diagnosis_candidate failed, it means absolute criteria (exclusions/duration) definitely failed
+                print(f"  - {d.upper()}: FAILED")
+                reasons = []
+                for c_type in ['symptoms', 'duration', 'onset', 'exclusions', 'subjective']:
+                    # Query status
+                    q_status = f"criterion_status('{manager.state.patient_id}', {d}, {c_type}, St)"
+                    s_res = list(manager.prolog.query(q_status))
+                    if s_res:
+                        st = s_res[0]['St']
+                        if st != 'met':
+                            reasons.append(f"{c_type}={st}")
+                    else:
+                        reasons.append(f"{c_type}=query_failed")
+                
+                if reasons:
+                    print(f"    (Reasons: {', '.join(reasons)})")
 
         print(f"  > Decision: {best_candidate.upper()}")
         

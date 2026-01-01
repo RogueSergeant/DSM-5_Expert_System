@@ -49,6 +49,15 @@ class SessionManager:
         # Assuming run from project root
         self.prolog.consult("src/prolog/schema.pl")
         self.prolog.consult("src/prolog/gold_standard/loader.pl")
+        
+    def set_patient_data(self, age: int, gender: str = 'unknown'):
+        self.state.age = age
+        self.state.gender = gender
+        list(self.prolog.query(f"assertz(patient_context({self.state.patient_id}, age, {age}))"))
+        list(self.prolog.query(f"assertz(patient_context({self.state.patient_id}, gender, '{gender}'))"))
+        # Also assert patient_age if needed for legacy/other checks? 
+        # schema.pl seems to use patient_context for age adjustments.
+        # But patient_onset_age is different.
     
     def start_new_session(self):
         """Reset state for a new patient."""
@@ -101,6 +110,35 @@ class SessionManager:
             q_ass = f"assertz(subjective_assessment({self.state.patient_id}, {question_id}, {status}, 0.9))"
             list(self.prolog.query(q_ass))
         
+        elif "_onset_age_check" in question_id:
+            # Onset Age Check
+            # Question: "Did symptoms appear before age X?"
+            disorder = question_id.replace("_onset_age_check", "")
+            q_req = f"onset_requirement({disorder}, before_age, MaxAge)"
+            res = list(self.prolog.query(q_req))
+            if res:
+                max_age = int(res[0]['MaxAge'])
+                if ans == 'YES':
+                    # Assert an age that meets criteria (e.g. MaxAge - 1)
+                    q_ass = f"assertz(patient_onset_age({self.state.patient_id}, {max_age - 1}))"
+                    list(self.prolog.query(q_ass))
+                elif ans == 'NO':
+                    # Assert an age that fails criteria (e.g. MaxAge + 1)
+                    q_ass = f"assertz(patient_onset_age({self.state.patient_id}, {max_age + 5}))"
+                    list(self.prolog.query(q_ass))
+
+        elif "_onset_event_check" in question_id:
+            # Onset Event Check
+            # Question: "Did this occur after [Event]?"
+            disorder = question_id.replace("_onset_event_check", "")
+            q_req = f"onset_requirement({disorder}, after_event, Type)"
+            res = list(self.prolog.query(q_req))
+            if res:
+                event_type = str(res[0]['Type'])
+                status = 'present' if ans == 'YES' else 'absent'
+                q_ass = f"assertz(patient_context({self.state.patient_id}, {event_type}, {status}))"
+                list(self.prolog.query(q_ass))
+
         else:
             # Standard Symptom
             status = 'unknown'
@@ -134,14 +172,51 @@ class SessionManager:
         list(self.prolog.query(query))
 
     def _update_diagnostic_status(self):
-        """Query Prolog to see if any diagnoses are confirmed or excluded."""
-        # This is a simplification. The A* search needs to function based on 'potential'
-        # but the manager tracks 'actual'.
+        """
+        Prune candidates that are strictly ruled out.
+        - Exclusions met (status='excluded')
+        - Core symptoms definitively absent (all cores = absent)
+        """
+        # We must iterate over a copy since we modify the list
+        current_candidates = list(self.state.active_candidates)
+        remaining_candidates = []
         
-        # Check confirmed
-        # diagnosis_candidate returns confidence. If > threshold?
-        # For strict criteria: uses meets_symptom_criteria etc.
-        pass
+        for d in current_candidates:
+            keep = True
+            
+            # 1. Check Exclusion Status
+            # If any exclusion is 'excluded' (meaning the exclusion criteria applies), drop it.
+            # e.g. patient_exclusion_status(P, ExcID, excluded).
+            q_ex = f"exclusion_criterion({d}, ExcID, _, _), patient_exclusion_status({self.state.patient_id}, ExcID, excluded)"
+            if list(self.prolog.query(q_ex)):
+                 print(f"  [Pruning] Dropping {d}: Exclusion met.")
+                 keep = False
+                 
+            # 2. Check Core Symptom Failure
+            # Only prune if ALL core symptoms are ABSENT.
+            # Get core symptoms for this disorder
+            if keep:
+                q_core = f"symptom({d}, SID, Category, _), member(Category, [core, criterion_a, essential])"
+                core_symptoms = [str(sol['SID']) for sol in self.prolog.query(q_core)]
+                
+                if core_symptoms:
+                    # Check if ALL are absent
+                    all_absent = True
+                    for s in core_symptoms:
+                        # Check absence
+                        q_abs = f"patient_symptom({self.state.patient_id}, {s}, absent, _)"
+                        if not list(self.prolog.query(q_abs)):
+                            all_absent = False # At least one is not absent (present or unknown)
+                            break
+                    
+                    if all_absent:
+                        print(f"  [Pruning] Dropping {d}: All core symptoms absent.")
+                        keep = False
+
+            if keep:
+                remaining_candidates.append(d)
+                
+        self.state.active_candidates = remaining_candidates
 
     def get_candidate_symptoms(self, disorder_id: str) -> List[str]:
         """Get all symptoms for a disorder."""
@@ -177,6 +252,22 @@ class SessionManager:
                 return f"Do you adhere to this criterion: {res[0]['Desc']}?"
             return f"Do you meet subjective criterion {question_id}?"
             
+        if "_onset_age_check" in question_id:
+            disorder = question_id.replace("_onset_age_check", "")
+            q = f"onset_requirement({disorder}, before_age, MaxAge)"
+            res = list(self.prolog.query(q))
+            if res:
+                return f"Is it true that: Several symptoms were present prior to age {res[0]['MaxAge']}?"
+            return f"Did symptoms start early?"
+
+        if "_onset_event_check" in question_id:
+            disorder = question_id.replace("_onset_event_check", "")
+            q = f"onset_requirement({disorder}, after_event, Type)"
+            res = list(self.prolog.query(q))
+            if res:
+                return f"Is it true that: The disturbance occurred after a {res[0]['Type']}?"
+            return f"Did this follow a specific event?"
+
         # Standard Symptom
         q = f"symptom(_, {question_id}, _, Desc)"
         res = list(self.prolog.query(q))

@@ -56,8 +56,8 @@ class DiagnosticSearch:
         score = 0
         
         
-        # Check if Verification Question (Exclusion, Duration, or Subjective)
-        is_verification = "_exc_" in question or "_duration_" in question or "_subj_" in question
+        # Check if Verification Question (Exclusion, Duration, Subjective, or Onset)
+        is_verification = "_exc_" in question or "_duration_" in question or "_subj_" in question or "_onset_" in question
         
         if is_verification:
             # Find which disorder this belongs to
