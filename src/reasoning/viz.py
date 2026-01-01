@@ -151,54 +151,106 @@ def visualise_diagnostic_flowchart(
                                    facecolor=color, edgecolor='#2c3e50'))
         ax.text(lx - 0.3, ly - i*0.5 + 0.05, label, fontsize=9, va='center', color='#2c3e50')
 
+    # Extract disorder metadata for dynamic generation
+    disorder_abbrev = disorder_id.upper()
+    symptom_categories = disorder_data.get('symptom_categories', [])
+
     # 1. Patient Presentation
     draw_box(cx, 13.8, "Patient Presentation", colors['input'], width=3.5)
     draw_arrow(cx, 13.4, cx, 12.6, '#2c3e50')
 
-    # 2. Core symptom check
-    draw_diamond(cx, 11.8, "Core symptom\npresent?\n(A1 or A2)", colors['decision'])
-    draw_arrow(cx, 10.8, cx, 10.0, colors['arrow_yes'], "YES")
-    draw_arrow(cx + 1.3, 11.8, 11.5, 11.8, colors['arrow_no'], "NO")
-    draw_box(12.5, 11.8, "Rule Out\nMDD", colors['failure'], width=1.8, height=0.7, fontsize=9)
+    # 2-N. Dynamic symptom category checks
+    # Calculate dynamic Y positions based on number of categories
+    start_y = 11.8
+    spacing = 2.6  # Vertical space between decision nodes
 
-    # 3. Symptom count
-    draw_diamond(cx, 9.2, "≥5 of 9\nsymptoms?", colors['decision'])
-    draw_arrow(cx, 8.2, cx, 7.4, colors['arrow_yes'], "YES")
-    draw_arrow(cx + 1.3, 9.2, 11.5, 9.2, colors['arrow_no'], "NO")
-    draw_box(12.5, 9.2, "Rule Out\nMDD", colors['failure'], width=1.8, height=0.7, fontsize=9)
+    for i, category in enumerate(symptom_categories):
+        y_pos = start_y - (i * spacing)
 
-    # 4. Duration
+        # Generate dynamic label based on category type
+        symptom_count = len(category.get('Symptoms', []))
+        required_count = category.get('Count', 0)
+        category_type = category.get('Type', 'at_least')
+        category_id = category.get('ID', f'category_{i}')
+
+        if category_type == 'at_least_one_of':
+            label = f"At least 1\ncore symptom\npresent?"
+        elif category_type == 'at_least':
+            label = f"≥{required_count} of {symptom_count}\nsymptoms?"
+        elif category_type == 'exactly':
+            label = f"Exactly {required_count}\nsymptoms?"
+        elif category_type == 'all':
+            label = f"All {symptom_count}\nsymptoms?"
+        else:
+            label = f"{required_count} of {symptom_count}\nsymptoms?"
+
+        draw_diamond(cx, y_pos, label, colors['decision'])
+        draw_arrow(cx, y_pos - 1, cx, y_pos - 1.8, colors['arrow_yes'], "YES")
+        draw_arrow(cx + 1.3, y_pos, 11.5, y_pos, colors['arrow_no'], "NO")
+        draw_box(12.5, y_pos, f"Rule Out\n{disorder_abbrev}", colors['failure'], width=1.8, height=0.7, fontsize=9)
+
+    # Duration check (comes after all symptom categories)
+    num_categories = len(symptom_categories)
+    duration_y = start_y - (num_categories * spacing)
+
     dur = disorder_data['duration']
     dur_text = f"Duration\n≥{dur['Dur']} {dur['Unit']}?" if dur else "Duration\nmet?"
-    draw_diamond(cx, 6.6, dur_text, colors['decision'])
-    draw_arrow(cx, 5.6, cx, 4.8, colors['arrow_yes'], "YES")
-    draw_arrow(cx + 1.3, 6.6, 11.5, 6.6, colors['arrow_no'], "NO")
-    draw_box(12.5, 6.6, "Rule Out\nMDD", colors['failure'], width=1.8, height=0.7, fontsize=9)
+    draw_diamond(cx, duration_y, dur_text, colors['decision'])
+    draw_arrow(cx, duration_y - 1, cx, duration_y - 1.8, colors['arrow_yes'], "YES")
+    draw_arrow(cx + 1.3, duration_y, 11.5, duration_y, colors['arrow_no'], "NO")
+    draw_box(12.5, duration_y, f"Rule Out\n{disorder_abbrev}", colors['failure'], width=1.8, height=0.7, fontsize=9)
 
-    # 5. Exclusion screening
-    draw_box(cx, 4.3, "Exclusion Screening", colors['process'], width=4, height=0.7)
-    excl_text = "• Substance-induced  • Medical condition\n• Psychotic disorder  • Bipolar history"
-    ax.text(cx, 3.5, excl_text, ha='center', va='top', fontsize=8, color='#2c3e50',
+    # Exclusion screening (dynamic text from disorder_data)
+    excl_y = duration_y - spacing
+    draw_box(cx, excl_y, "Exclusion Screening", colors['process'], width=4, height=0.7)
+
+    # Generate exclusion text from first 4 exclusions
+    exclusions = disorder_data.get('exclusions', [])[:4]
+    if exclusions:
+        excl_items = []
+        for excl in exclusions:
+            desc = excl.get('Desc', '')
+            # Truncate long descriptions to fit
+            if len(desc) > 30:
+                desc = desc[:27] + '...'
+            excl_items.append(f"• {desc}")
+
+        # Format as 2 columns if we have 4 items
+        if len(excl_items) >= 4:
+            excl_text = f"{excl_items[0]}  {excl_items[1]}\n{excl_items[2]}  {excl_items[3]}"
+        elif len(excl_items) >= 2:
+            excl_text = f"{excl_items[0]}  {excl_items[1]}"
+            if len(excl_items) > 2:
+                excl_text += f"\n{excl_items[2]}"
+        else:
+            excl_text = "\n".join(excl_items)
+    else:
+        excl_text = "• Check exclusion criteria"
+
+    ax.text(cx, excl_y - 0.5, excl_text, ha='center', va='top', fontsize=7, color='#2c3e50',
             bbox=dict(boxstyle='round,pad=0.3', facecolor='#eaf2f8', edgecolor='#85c1e9'))
-    draw_arrow(cx, 3.0, cx, 2.4, '#2c3e50')
+    draw_arrow(cx, excl_y - 1.2, cx, excl_y - 1.6, '#2c3e50')
 
-    # 6. Exclusions cleared
-    draw_diamond(cx, 1.6, "All exclusions\ncleared?", colors['decision'])
-    draw_arrow(cx, 0.6, cx, -0.1, colors['arrow_yes'], "YES")
-    draw_arrow(cx + 1.3, 1.6, 11.5, 1.6, colors['arrow_no'], "NO")
-    draw_box(12.5, 1.6, "Alternative\nDiagnosis", colors['failure'], width=1.8, height=0.7, fontsize=9)
+    # Exclusions cleared
+    excl_cleared_y = excl_y - 2.4
+    draw_diamond(cx, excl_cleared_y, "All exclusions\ncleared?", colors['decision'])
+    draw_arrow(cx, excl_cleared_y - 1, cx, excl_cleared_y - 1.8, colors['arrow_yes'], "YES")
+    draw_arrow(cx + 1.3, excl_cleared_y, 11.5, excl_cleared_y, colors['arrow_no'], "NO")
+    draw_box(12.5, excl_cleared_y, "Alternative\nDiagnosis", colors['failure'], width=1.8, height=0.7, fontsize=9)
 
-    # 7. LLM Assessment (Tier B)
-    draw_box(cx, -0.7, "Tier B: LLM Assessment\n(Clinical Significance)",
+    # LLM Assessment (Tier B)
+    llm_y = excl_cleared_y - 2.6
+    draw_box(cx, llm_y, "Tier B: LLM Assessment\n(Clinical Significance)",
              colors['llm'], width=4, height=1, fontsize=10)
-    draw_arrow(cx, -1.2, cx, -2.0, colors['arrow_yes'], "MET")
+    draw_arrow(cx, llm_y - 0.5, cx, llm_y - 1.3, colors['arrow_yes'], "MET")
 
     # NOT MET path - consistent red box style
-    draw_arrow(cx + 2, -0.7, 11.5, -0.7, colors['arrow_no'], "NO")
-    draw_box(12.5, -0.7, "Subclinical\nSymptoms", colors['failure'], width=1.8, height=0.7, fontsize=9)
+    draw_arrow(cx + 2, llm_y, 11.5, llm_y, colors['arrow_no'], "NO")
+    draw_box(12.5, llm_y, "Subclinical\nSymptoms", colors['failure'], width=1.8, height=0.7, fontsize=9)
 
-    # 8. Final Diagnosis
-    draw_box(cx, -2.8, "MDD DIAGNOSIS CONFIRMED", colors['success'], width=4.5, height=0.9, fontsize=12)
+    # Final Diagnosis (dynamic disorder name)
+    final_y = llm_y - 2.1
+    draw_box(cx, final_y, f"{disorder_abbrev} DIAGNOSIS CONFIRMED", colors['success'], width=4.5, height=0.9, fontsize=12)
 
     plt.tight_layout()
 
