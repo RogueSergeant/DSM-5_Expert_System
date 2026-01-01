@@ -198,16 +198,23 @@ The `evaluate.py` module automates these checks:
 - Schema compliance via `validate_disorder/2`
 - Comparison with gold standards (MDD, GAD, ADHD)
 
+## Provider Comparison
+
+See [Provider Evaluation](../../docs/PROVIDER_EVALUATION.md) for comprehensive LLM provider comparison (Anthropic vs OpenAI vs Ollama).
+
+See [Extraction Benchmarks](../../docs/EXTRACTION_BENCHMARKS.md) for detailed test results, including:
+- Performance metrics (latency, throughput, token efficiency)
+- Quality benchmarks (criterion coverage, structural quality)
+- Cost analysis
+- Provider-specific issues and recommendations
+
 ## Test Log
 
-### Test 1: PTSD with gpt-oss:20b
-- **Date**: 2025-12-19
-- **Model**: gpt-oss:20b (Ollama)
-- **Thinking Level**: High
-- **Target**: PTSD.txt → ptsd.pl
-- **Files attached**: `src/prolog/gold_standard/README.md`
-- **Result**: Pending
-- **Issues**: Waiting for Ollama API response
+Comprehensive test results have been moved to [Extraction Benchmarks](../../docs/EXTRACTION_BENCHMARKS.md). Summary of key findings:
+
+- **Anthropic Claude Sonnet 4.5**: Best overall quality, most complete extractions
+- **OpenAI GPT-5.2**: Best speed/quality ratio, 16x faster than Ollama
+- **Ollama gpt-oss:20b**: Free but incomplete (missing Criterion A for PTSD at all thinking levels)
 
 ---
 

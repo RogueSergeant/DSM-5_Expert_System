@@ -10,7 +10,7 @@ It is 2025
 
 Hybrid diagnostic decision support system combining Prolog-based symbolic reasoning with LLM-assisted knowledge extraction. The system uses DSM-5-TR (2022) diagnostic criteria encoded in Prolog to perform explainable diagnostic reasoning.
 
-**DSM Version Note**: The reference standard is DSM-5-TR (2022), not DSM-5 (2013). See `data/DSM_VERSION_NOTES.md` for version differences and their impact on each disorder.
+**DSM Version Note**: The reference standard is DSM-5-TR (2022), not DSM-5 (2013). See `docs/DSM_VERSION_NOTES.md` for version differences and their impact on each disorder.
 
 ## Data Flow
 
@@ -44,9 +44,15 @@ src/extraction/           # LLM extraction pipeline
     ├── anthropic_provider.py # Claude with extended thinking
     └── ollama_provider.py    # Local models with think parameter
 
+src/reasoning/            # Prolog engine and utilities
+├── engine.py            # PrologEngine wrapper (pyswip interface)
+├── utils.py             # KB exploration tools
+├── viz.py               # Diagnostic flowchart visualization
+└── __init__.py          # Module exports
+
 data/dsm5_text/          # Source DSM-5-TR criteria text files ({DISORDER}.txt)
 outputs/extractions/     # Timestamped extraction results with metadata
-notebooks/main.ipynb     # Interactive experiments with pyswip
+docs/notebooks/          # Archived notebooks (deprecated - see src/reasoning/)
 ```
 
 ## Prerequisites
