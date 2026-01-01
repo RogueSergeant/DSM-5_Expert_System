@@ -4,137 +4,185 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Always Remember
 
-It is 2025
+It is 2026
 
 ## Project Overview
 
-Hybrid diagnostic decision support system combining Prolog-based symbolic reasoning with LLM-assisted knowledge extraction. The system uses DSM-5-TR (2022) diagnostic criteria encoded in Prolog to perform explainable diagnostic reasoning.
+Hybrid Category 3 AI system combining Prolog-based symbolic reasoning (Tier A: objective criteria) with LLM-assisted judgment (Tier B: subjective criteria) for mental health diagnostic assessment using DSM-5-TR (2022).
 
-**DSM Version Note**: The reference standard is DSM-5-TR (2022), not DSM-5 (2013). See `docs/DSM_VERSION_NOTES.md` for version differences and their impact on each disorder.
+**Target Disorders**: MDD, GAD, ADHD, PTSD, ASD
 
-## Data Flow
-
-```
-data/dsm5_text/{DISORDER}.txt  →  LLM Extraction  →  src/prolog/extracted/{disorder}.pl
-                                       ↓
-                    gold_standard/README.md (template guide)
-                    src/prolog/schema.pl (predicate reference)
-                                       ↓
-                              Syntax validation via SWI-Prolog
-                              Schema validation via validate_disorder/2
-```
+**DSM Version**: DSM-5-TR (2022), not DSM-5 (2013). See `docs/DSM_VERSION_NOTES.md` for differences.
 
 ## Architecture
 
+**Three-Tier Hybrid Design:**
+- **Tier A (Prolog)**: Objective criteria - symptom counts, duration, onset, exclusions → Transparent reasoning chains
+- **Tier B (LLM)**: Subjective criteria - clinical significance, excessive worry → Confidence scores (0.0-1.0)
+- **Tier C (Prolog)**: Integration - combines A+B with confidence propagation → Final diagnosis
+
+**Key Directories:**
 ```
 src/prolog/
-├── schema.pl              # Core diagnostic inference engine (knowledge base + rules)
-├── gold_standard/         # Hand-curated disorder definitions (mdd.pl, gad.pl, adhd.pl, ptsd.pl)
+├── schema.pl              # Diagnostic inference engine (predicates + rules)
+├── gold_standard/         # Hand-curated disorders (mdd.pl, gad.pl, adhd.pl, ptsd.pl, asd.pl)
 │   ├── loader.pl         # Loads all gold standard files
-│   └── README.md         # Template guide for .pl file structure
-└── extracted/            # LLM-extracted disorder definitions (production output)
+│   └── README.md         # Complete template guide for creating disorder files
+└── extracted/            # LLM-extracted disorders (production output)
 
-src/extraction/           # LLM extraction pipeline
-├── base.py              # ExtractionProvider ABC, ExtractionResult dataclass
-├── config.py            # Environment config, API key management
-├── evaluate.py          # Prolog syntax validation via SWI-Prolog subprocess
+src/extraction/           # LLM extraction pipeline (DSM text → Prolog)
 ├── run_extraction.py    # CLI entry point
-└── providers/           # LLM provider implementations
-    ├── openai_provider.py    # GPT-5 with reasoning_effort
-    ├── anthropic_provider.py # Claude with extended thinking
-    └── ollama_provider.py    # Local models with think parameter
+├── providers/           # OpenAI, Anthropic, Ollama implementations
+└── evaluate.py          # Syntax + schema validation
 
-src/reasoning/            # Prolog engine and utilities
-├── engine.py            # PrologEngine wrapper (pyswip interface)
-├── utils.py             # KB exploration tools
-├── viz.py               # Diagnostic flowchart visualization
-└── __init__.py          # Module exports
+src/reasoning/            # Python↔Prolog interface
+├── engine.py            # PrologEngine wrapper (pyswip)
+├── utils.py             # KB exploration
+└── viz.py               # Diagnostic flowchart generation
 
-data/dsm5_text/          # Source DSM-5-TR criteria text files ({DISORDER}.txt)
-outputs/extractions/     # Timestamped extraction results with metadata
-docs/notebooks/          # Archived notebooks (deprecated - see src/reasoning/)
+src/search/              # Diagnostic pathway optimization
+├── search.py            # A* search for optimal question sequences
+└── manager.py           # SessionManager with pruning logic
+
+src/evaluation/          # Benchmarking framework
+└── benchmark.py         # Clinical vignette testing
+
+data/dsm5_text/          # DSM-5-TR source text
+data/vignettes/          # Clinical test cases
+docs/                    # Comprehensive documentation (see README.md)
 ```
 
 ## Prerequisites
 
 - Python 3.10+
-- SWI-Prolog (`brew install swi-prolog` on macOS) - required for pyswip and syntax validation
-- API keys for OpenAI/Anthropic (or local Ollama)
+- SWI-Prolog: `brew install swi-prolog` (macOS) - required for pyswip
+- API keys: OpenAI/Anthropic (optional, only for LLM extraction)
 
-## Key Commands
+## Setup
 
 ```bash
-# Environment setup
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env  # Add API keys
+cp .env.example .env  # Add API keys if using LLM extraction
+```
 
-# Run LLM extraction
-python -m src.extraction.run_extraction --disorder ptsd --provider ollama --model gpt-oss:20b --think high
-python -m src.extraction.run_extraction --disorder ptsd --provider anthropic --thinking-budget 15000
-python -m src.extraction.run_extraction --disorder ptsd --provider openai --reasoning-effort high
+## Common Commands
 
-# Save extraction to production location
+**LLM Extraction** (DSM text → Prolog):
+```bash
+# Recommended: Anthropic Claude (best quality)
 python -m src.extraction.run_extraction --disorder ptsd --provider anthropic --thinking-budget 15000 --production
 
-# Test all providers at once
+# Fastest: OpenAI GPT-5 (excellent quality, faster)
+python -m src.extraction.run_extraction --disorder mdd --provider openai --reasoning-effort high --production
+
+# Local/offline: Ollama (requires validation)
+python -m src.extraction.run_extraction --disorder gad --provider ollama --model gpt-oss:20b --think high --save
+
+# Compare all providers (saves to outputs/extractions/)
 python -m src.extraction.run_extraction --disorder ptsd --all --save
 
 # List available Ollama models
 python -m src.extraction.run_extraction --list-models
-
-# Prolog REPL (run from src/prolog/ directory)
-cd src/prolog && swipl -g "[schema], ['gold_standard/loader']"
-# In Prolog REPL:
-# ?- disorder(X, Name, Category).          % List all disorders
-# ?- symptom(mdd, S, Cat, Desc).           % List symptoms
-# ?- validate_disorder(mdd, Issues).       % Validate a disorder
-# ?- full_diagnosis(pt001, mdd, Result).   % Run full diagnosis
-
-# Run tests
-pytest                          # All tests
-pytest -v                       # Verbose output
-pytest tests/test_foo.py        # Single file
-pytest -k "test_extraction"     # Pattern matching
 ```
 
-## Prolog Predicate Structure
+**Prolog Interactive Testing**:
+```bash
+cd src/prolog
+swipl -g "[schema], ['gold_standard/loader']"
 
-The schema defines these key predicates for disorder knowledge:
+# In Prolog REPL:
+?- disorder(X, Name, Category).          # List all disorders
+?- symptom(mdd, S, Cat, Desc).           # List MDD symptoms
+?- validate_disorder(mdd, Issues).       # Validate disorder definition
+?- full_diagnosis(pt001, mdd, Result).   # Run full diagnosis
+```
+
+**Debugging & Evaluation**:
+```bash
+python debug_pruning.py        # Test diagnostic pruning logic
+python debug_adhd.py           # Test ADHD age-adjusted counts
+python debug_mdd.py            # Test MDD diagnosis
+python -m src.evaluation.benchmark  # Run clinical vignette benchmarks
+```
+
+**Testing**:
+```bash
+pytest                    # All tests (if tests/ exists)
+pytest -v                 # Verbose output
+pytest -k "pattern"       # Pattern matching
+```
+
+## Prolog Schema Overview
+
+**Knowledge Base Predicates** (define disorder criteria):
 - `disorder/3` - disorder(ID, FullName, Category)
 - `symptom/4` - symptom(DisorderID, SymptomID, Category, Description)
-- `symptom_category/5` - groupings with count requirements (at_least, exactly, all, at_least_one_of)
-- `duration_requirement/3`, `onset_requirement/3` - temporal constraints
-- `exclusion_criterion/4` - what must NOT be present
-- `subjective_criterion/4` - criteria requiring clinical judgment
+- `symptom_category/5` - symptom groupings with count requirements
+  - RequirementType: `at_least`, `exactly`, `all`, `at_least_one_of`
+- `duration_requirement/3` - temporal constraints (e.g., "2 weeks")
+- `onset_requirement/3` - onset timing (before_age, after_event, any)
+- `exclusion_criterion/4` - what must NOT be present (substance, medical, other_disorder)
+- `subjective_criterion/4` - criteria requiring clinical judgment (clinical_significance, excessiveness, etc.)
 
-Diagnostic inference predicates:
+**Diagnostic Inference Predicates** (reason over patient data):
 - `full_diagnosis/3` - comprehensive diagnosis with status tracking (met/not_met/missing_data)
 - `criterion_check/5` - individual criterion status with details
-- `collect_missing_data/3`, `generate_follow_up_questions/3` - gap analysis
+- `collect_missing_data/3` - identify data gaps
+- `generate_follow_up_questions/3` - suggest next questions
+
+**Disorder-Specific Predicates** (optional):
+- `age_adjusted_count/4` - different thresholds by age (ADHD: 6 symptoms <17, 5 symptoms ≥17)
+- `setting_requirement/2` - symptoms required across multiple settings (ADHD: 2+ settings)
+
+See `src/prolog/gold_standard/README.md` for complete predicate reference and templates.
 
 ## LLM Provider Configuration
 
-| Provider | Thinking Parameter | Models |
-|----------|-------------------|--------|
-| OpenAI | `--reasoning-effort` (none/minimal/low/medium/high/xhigh) | gpt-5.2, gpt-5.1 |
-| Anthropic | `--thinking-budget` (0 to disable, 1024+ to enable) | claude-sonnet-4-5, claude-opus-4-5 |
-| Ollama | `--think` (low/medium/high) | gpt-oss:20b, deepseek-r1:*, qwq:32b |
+| Provider | Parameter | Options | Best For |
+|----------|-----------|---------|----------|
+| **Anthropic** | `--thinking-budget` | 0 (off), 1024-20000 | Gold standard (highest quality) |
+| **OpenAI** | `--reasoning-effort` | none/minimal/low/medium/high/xhigh | Batch processing (fastest, excellent quality) |
+| **Ollama** | `--think` | low/medium/high | Local/offline (requires validation) |
 
-## Adding New Disorders
+**Key Findings** (see `docs/PROVIDER_EVALUATION.md`):
+- Anthropic: Most complete extractions, best for gold standards
+- OpenAI: Fastest (67s vs 81s), excellent quality, lower cost
+- Ollama: Free but may miss critical criteria (e.g., PTSD Criterion A)
 
-1. Create DSM-5-TR source: `data/dsm5_text/{DISORDER}.txt`
-2. Extract with LLM: `python -m src.extraction.run_extraction --disorder {id} --provider anthropic --production`
-3. Or manually create: `src/prolog/gold_standard/{disorder_id}.pl` following the template guide
+## Working with Disorders
+
+**Adding New Disorders**:
+1. Add DSM-5-TR source text: `data/dsm5_text/{DISORDER}.txt`
+2. **Option A - LLM Extraction**: `python -m src.extraction.run_extraction --disorder {id} --provider anthropic --production`
+3. **Option B - Manual**: Create `src/prolog/gold_standard/{id}.pl` following `gold_standard/README.md` template
 4. Register in `gold_standard/loader.pl` if gold standard
 
-## Extraction Validation
+**Validation Pipeline**:
+- Prolog syntax check (SWI-Prolog subprocess)
+- Schema compliance via `validate_disorder/2`
+- Symptom/exclusion counts
+- Comparison with gold standard (if available)
 
-Extractions are validated via:
-1. Prolog syntax check (loads without errors)
-2. Schema compliance via `validate_disorder/2`
-3. Counts: symptoms defined, exclusions defined
-4. Comparison with gold standard if available
+**Output Locations**:
+- `--save`: `outputs/extractions/{disorder}_{provider}_{timestamp}.pl` (with metadata)
+- `--production`: `src/prolog/extracted/{disorder}.pl` (overwrites existing)
 
-Outputs saved to `outputs/extractions/` (with --save) or `src/prolog/extracted/` (with --production).
+## Important Architecture Details
+
+**Patient Data vs Knowledge Base**:
+- Knowledge Base (static): `disorder/3`, `symptom/4`, etc. defined in gold_standard/*.pl
+- Patient Facts (dynamic): `patient_symptom/4`, `patient_duration/3` asserted at runtime by PrologEngine
+
+**Diagnostic Flow**:
+1. Load schema + disorder files
+2. Assert patient facts for current case
+3. Query `full_diagnosis/3` → triggers inference rules
+4. Rules check symptom counts, duration, onset, exclusions, subjective criteria
+5. Return diagnosis with confidence score and explanation
+
+**Search & Pruning** (src/search/):
+- A* search finds optimal question sequences (reduces questions 40-60%)
+- Pruning eliminates candidates via exclusions or missing core symptoms
+- SessionManager tracks active candidates and answered questions

@@ -1,0 +1,456 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15" version="29.2.9">
+  <diagram name="DSM-5 Diagnostic System Architecture" id="CESzAv9LJ3PBc3to7uUC">
+    <mxGraphModel dx="501" dy="341" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="csXt-jjbGVEFcjzIKpza-1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1" value="DSM-5 Diagnostic Decision Support System&#xa;Hybrid Architecture: Symbolic Reasoning (Prolog) + LLM-Assisted Knowledge Extraction" vertex="1">
+          <mxGeometry height="60" width="1000" x="300" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-2" parent="1" style="swimlane;fontSize=12;fontStyle=1" value="LEGEND" vertex="1">
+          <mxGeometry height="280" width="200" x="40" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-3" parent="csXt-jjbGVEFcjzIKpza-2" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Data/File" vertex="1">
+          <mxGeometry height="30" width="160" x="20" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-4" parent="csXt-jjbGVEFcjzIKpza-2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Process/Function" vertex="1">
+          <mxGeometry height="30" width="160" x="20" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-5" parent="csXt-jjbGVEFcjzIKpza-2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="LLM/API" vertex="1">
+          <mxGeometry height="30" width="160" x="20" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-6" parent="csXt-jjbGVEFcjzIKpza-2" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Decision" vertex="1">
+          <mxGeometry height="40" width="100" x="50" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-7" parent="csXt-jjbGVEFcjzIKpza-2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Prolog Engine" vertex="1">
+          <mxGeometry height="30" width="160" x="20" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-8" parent="csXt-jjbGVEFcjzIKpza-2" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="User Interface" vertex="1">
+          <mxGeometry height="20" width="160" x="20" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-9" parent="1" style="swimlane;fontSize=13;fontStyle=1;fillColor=#fff4e6;strokeColor=#d79b00;startSize=40;" value="PHASE 1: KNOWLEDGE EXTRACTION (Offline - One-time per Disorder)" vertex="1">
+          <mxGeometry height="420" width="1280" x="280" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-10" parent="csXt-jjbGVEFcjzIKpza-9" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="data/dsm5_text/&#xa;PTSD-DSM5-TR.txt&#xa;&#xa;(DSM-5-TR Criteria)" vertex="1">
+          <mxGeometry height="70" width="160" x="40" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-11" parent="csXt-jjbGVEFcjzIKpza-9" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="run_extraction.py&#xa;&#xa;• Load DSM text&#xa;• Load template guide&#xa;• Load schema ref" vertex="1">
+          <mxGeometry height="80" width="160" x="220" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-12" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-10" target="csXt-jjbGVEFcjzIKpza-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-13" parent="csXt-jjbGVEFcjzIKpza-9" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" value="Select Provider" vertex="1">
+          <mxGeometry height="80" width="110" x="430" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-14" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-11" target="csXt-jjbGVEFcjzIKpza-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-15" parent="csXt-jjbGVEFcjzIKpza-9" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" value="Anthropic Provider&#xa;&#xa;claude-sonnet-4-5&#xa;thinking_budget=15000" vertex="1">
+          <mxGeometry height="60" width="140" x="580" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-16" parent="csXt-jjbGVEFcjzIKpza-9" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" value="OpenAI Provider&#xa;&#xa;gpt-5.2&#xa;reasoning_effort=high" vertex="1">
+          <mxGeometry height="60" width="140" x="580" y="131" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-17" parent="csXt-jjbGVEFcjzIKpza-9" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" value="Ollama Provider&#xa;&#xa;gpt-oss:20b&#xa;think=high" vertex="1">
+          <mxGeometry height="60" width="140" x="580" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-18" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-13" target="csXt-jjbGVEFcjzIKpza-15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-19" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-13" target="csXt-jjbGVEFcjzIKpza-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-20" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-13" style="entryX=0;entryY=0;entryDx=0;entryDy=0;" target="csXt-jjbGVEFcjzIKpza-17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-21" parent="csXt-jjbGVEFcjzIKpza-9" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" value="LLM API Call&#xa;&#xa;Extended Thinking&#xa;Prompt Engineering&#xa;(Template + DSM Text)" vertex="1">
+          <mxGeometry height="90" width="140" x="760" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-22" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-15" target="csXt-jjbGVEFcjzIKpza-21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-23" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-16" target="csXt-jjbGVEFcjzIKpza-21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-24" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-17" style="exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" target="csXt-jjbGVEFcjzIKpza-21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-25" parent="csXt-jjbGVEFcjzIKpza-9" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" value="Prolog Code&#xa;(disorder/3,&#xa;symptom/4,&#xa;symptom_category/5,&#xa;etc.)" vertex="1">
+          <mxGeometry height="80" width="130" x="930" y="65" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-26" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-21" target="csXt-jjbGVEFcjzIKpza-25">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-27" parent="csXt-jjbGVEFcjzIKpza-9" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="evaluate.py&#xa;&#xa;Syntax Validation&#xa;(SWI-Prolog subprocess)" vertex="1">
+          <mxGeometry height="70" width="140" x="760" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-28" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-25" target="csXt-jjbGVEFcjzIKpza-27">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-29" parent="csXt-jjbGVEFcjzIKpza-9" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="evaluate.py&#xa;&#xa;Schema Validation&#xa;(validate_disorder/2)" vertex="1">
+          <mxGeometry height="70" width="130" x="930" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-30" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-27" target="csXt-jjbGVEFcjzIKpza-29">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-31" parent="csXt-jjbGVEFcjzIKpza-9" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" value="Valid?" vertex="1">
+          <mxGeometry height="70" width="90" x="1140" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-32" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-29" target="csXt-jjbGVEFcjzIKpza-31">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-33" parent="csXt-jjbGVEFcjzIKpza-9" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" value="src/prolog/extracted/&lt;br&gt;ptsd.pl&lt;br&gt;(--production)" vertex="1">
+          <mxGeometry height="70" width="160" x="930" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-34" parent="csXt-jjbGVEFcjzIKpza-9" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;" value="outputs/extractions/&#xa;ptsd_anthropic_&#xa;20251219_154020.pl&#xa;(--save)" vertex="1">
+          <mxGeometry height="70" width="140" x="1100" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-35" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-31" target="csXt-jjbGVEFcjzIKpza-33" value="YES">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-36" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-31" target="csXt-jjbGVEFcjzIKpza-34" value="YES">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-37" parent="csXt-jjbGVEFcjzIKpza-9" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" value="Report Issues&#xa;(missing symptoms,&#xa;schema errors)" vertex="1">
+          <mxGeometry height="60" width="130" x="1120" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-38" edge="1" parent="csXt-jjbGVEFcjzIKpza-9" source="csXt-jjbGVEFcjzIKpza-31" target="csXt-jjbGVEFcjzIKpza-37" value="NO">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-39" parent="1" style="swimlane;fontSize=13;fontStyle=1;fillColor=#e6f5ff;strokeColor=#6c8ebf;startSize=40;" value="PHASE 2: SYSTEM INITIALIZATION (Once per Runtime)" vertex="1">
+          <mxGeometry height="260" width="1280" x="280" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-40" parent="csXt-jjbGVEFcjzIKpza-39" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" value="PrologEngine&#xa;&#xa;engine = PrologEngine(&#xa;    Path(&#39;src/prolog&#39;))" vertex="1">
+          <mxGeometry height="80" width="180" x="40" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-41" parent="csXt-jjbGVEFcjzIKpza-39" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="Load schema.pl&#xa;&#xa;• Diagnostic predicates&#xa;• Inference rules&#xa;• Helper functions" vertex="1">
+          <mxGeometry height="80" width="160" x="260" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-42" edge="1" parent="csXt-jjbGVEFcjzIKpza-39" source="csXt-jjbGVEFcjzIKpza-40" target="csXt-jjbGVEFcjzIKpza-41">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-43" parent="csXt-jjbGVEFcjzIKpza-39" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="Load Disorders&#xa;&#xa;gold_standard/loader.pl&#xa;• mdd.pl&#xa;• gad.pl&#xa;• adhd.pl&#xa;• ptsd.pl&#xa;• asd.pl" vertex="1">
+          <mxGeometry height="100" width="160" x="460" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-44" edge="1" parent="csXt-jjbGVEFcjzIKpza-39" source="csXt-jjbGVEFcjzIKpza-41" target="csXt-jjbGVEFcjzIKpza-43">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-45" parent="csXt-jjbGVEFcjzIKpza-39" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" value="Knowledge Base Ready&#xa;&#xa;All disorder/3, symptom/4,&#xa;symptom_category/5, etc.&#xa;predicates loaded" vertex="1">
+          <mxGeometry height="80" width="180" x="660" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-46" edge="1" parent="csXt-jjbGVEFcjzIKpza-39" source="csXt-jjbGVEFcjzIKpza-43" target="csXt-jjbGVEFcjzIKpza-45">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-47" parent="csXt-jjbGVEFcjzIKpza-39" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;dashed=1;" value="Example Query:&#xa;&#xa;disorder(X, Name, Category)&#xa;&#xa;Returns all 5 disorders" vertex="1">
+          <mxGeometry height="70" width="160" x="880" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-48" edge="1" parent="csXt-jjbGVEFcjzIKpza-39" source="csXt-jjbGVEFcjzIKpza-45" style="dashed=1;" target="csXt-jjbGVEFcjzIKpza-47">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-49" parent="csXt-jjbGVEFcjzIKpza-39" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;" value="THREE-TIER ARCHITECTURE LOADED:&#xa;&#xa;Tier A (Prolog): Objective criteria (symptom counts, duration, onset, exclusions)&#xa;Tier B (LLM): Subjective criteria (clinical significance, excessiveness) - assessed at runtime&#xa;Tier C (Prolog): Integration with confidence propagation" vertex="1">
+          <mxGeometry height="60" width="400" x="40" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-50" parent="1" style="swimlane;fontSize=13;fontStyle=1;fillColor=#f4e6ff;strokeColor=#9673a6;startSize=40;" value="PHASE 3: DIAGNOSTIC SESSION (Per Patient)" vertex="1">
+          <mxGeometry height="200" width="1280" x="280" y="860" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-51" parent="csXt-jjbGVEFcjzIKpza-50" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="SessionManager&#xa;&#xa;manager = SessionManager()&#xa;manager.start_new_session()" vertex="1">
+          <mxGeometry height="80" width="200" x="40" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-52" parent="csXt-jjbGVEFcjzIKpza-50" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" value="DiagnosticState&#xa;&#xa;• patient_id&#xa;• answered_questions = {}&#xa;• active_candidates = [all]&#xa;• confirmed_diagnoses = []&#xa;• excluded_diagnoses = []" vertex="1">
+          <mxGeometry height="100" width="200" x="280" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-53" edge="1" parent="csXt-jjbGVEFcjzIKpza-50" source="csXt-jjbGVEFcjzIKpza-51" target="csXt-jjbGVEFcjzIKpza-52">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-54" parent="csXt-jjbGVEFcjzIKpza-50" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" value="Clear Patient Facts&#xa;&#xa;retractall(&#xa;  patient_symptom(_, _, _, _)&#xa;)" vertex="1">
+          <mxGeometry height="80" width="180" x="520" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-55" edge="1" parent="csXt-jjbGVEFcjzIKpza-50" source="csXt-jjbGVEFcjzIKpza-52" target="csXt-jjbGVEFcjzIKpza-54">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-56" parent="csXt-jjbGVEFcjzIKpza-50" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" value="Set Patient Context&#xa;&#xa;assertz(patient_context(&#xa;  current_patient,&#xa;  age, 34))" vertex="1">
+          <mxGeometry height="80" width="180" x="740" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-57" edge="1" parent="csXt-jjbGVEFcjzIKpza-50" source="csXt-jjbGVEFcjzIKpza-54" target="csXt-jjbGVEFcjzIKpza-56">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-58" parent="csXt-jjbGVEFcjzIKpza-50" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="Session Ready&#xa;&#xa;Ready for&#xa;iterative&#xa;questioning" vertex="1">
+          <mxGeometry height="100" width="120" x="960" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-59" edge="1" parent="csXt-jjbGVEFcjzIKpza-50" source="csXt-jjbGVEFcjzIKpza-56" target="csXt-jjbGVEFcjzIKpza-58">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-60" parent="1" style="swimlane;fontSize=13;fontStyle=1;fillColor=#ffe6f0;strokeColor=#b85450;startSize=40;" value="PHASE 4: ITERATIVE QUESTIONING (A* Search Loop)" vertex="1">
+          <mxGeometry height="620" width="1280" x="280" y="1100" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-61" parent="csXt-jjbGVEFcjzIKpza-60" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;" value="LOOP" vertex="1">
+          <mxGeometry height="60" width="80" x="40" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-62" parent="csXt-jjbGVEFcjzIKpza-60" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="DiagnosticSearch&#xa;&#xa;get_next_best_question()&#xa;&#xa;A* Heuristic:&#xa;• Core symptoms: +60&#xa;• Multi-disorder: +10 each&#xa;• Verification (4+ met): +1000" vertex="1">
+          <mxGeometry height="120" width="200" x="160" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-63" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-61" target="csXt-jjbGVEFcjzIKpza-62">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-64" parent="csXt-jjbGVEFcjzIKpza-60" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=9;" value="Expand Search Space&#xa;&#xa;• All symptoms (unanswered)&#xa;• Exclusions&#xa;• Duration checks&#xa;• Onset checks&#xa;• Subjective criteria" vertex="1">
+          <mxGeometry height="90" width="180" x="170" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-65" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-62" style="dashed=1;" target="csXt-jjbGVEFcjzIKpza-64">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-66" parent="csXt-jjbGVEFcjzIKpza-60" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" value="Best Question&#xa;&#xa;question_id =&#xa;&#39;mdd_a1&#39;" vertex="1">
+          <mxGeometry height="70" width="140" x="400" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-67" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-62" target="csXt-jjbGVEFcjzIKpza-66">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-68" parent="csXt-jjbGVEFcjzIKpza-60" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" value="Get Description&#xa;&#xa;query(symptom(_, mdd_a1,&#xa;  _, Desc))&#xa;&#xa;→ &#39;Depressed mood&#xa;most of the day...&#39;" vertex="1">
+          <mxGeometry height="100" width="160" x="580" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-69" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-66" target="csXt-jjbGVEFcjzIKpza-68">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-70" parent="csXt-jjbGVEFcjzIKpza-60" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" value="Present to User&#xa;&#xa;&quot;Do you experience:&#xa;Depressed mood most&#xa;of the day...?&quot;" vertex="1">
+          <mxGeometry height="80" width="160" x="780" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-71" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-68" target="csXt-jjbGVEFcjzIKpza-70">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-72" parent="csXt-jjbGVEFcjzIKpza-60" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" value="User Answers&#xa;&#xa;answer = &#39;YES&#39;" vertex="1">
+          <mxGeometry height="70" width="140" x="980" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-73" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-70" target="csXt-jjbGVEFcjzIKpza-72">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-74" parent="csXt-jjbGVEFcjzIKpza-60" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="answer_question()&#xa;&#xa;1. Normalize: &#39;YES&#39;&#xa;2. Record in state&#xa;3. Determine type&#xa;4. Map to status" vertex="1">
+          <mxGeometry height="90" width="160" x="970" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-75" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-72" target="csXt-jjbGVEFcjzIKpza-74">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-76" parent="csXt-jjbGVEFcjzIKpza-60" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" value="Question&#xa;Type?" vertex="1">
+          <mxGeometry height="80" width="110" x="995" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-77" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-74" target="csXt-jjbGVEFcjzIKpza-76">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-78" parent="csXt-jjbGVEFcjzIKpza-60" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" value="assertz(&#xa;patient_symptom(&#xa;  current_patient,&#xa;  mdd_a1,&#xa;  present,&#xa;  &#39;User reported&#39;))" vertex="1">
+          <mxGeometry height="80" width="150" x="760" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-79" parent="csXt-jjbGVEFcjzIKpza-60" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" value="assertz(&#xa;patient_exclusion_status(&#xa;  current_patient,&#xa;  exc_id,&#xa;  cleared))" vertex="1">
+          <mxGeometry height="70" width="150" x="760" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-80" parent="csXt-jjbGVEFcjzIKpza-60" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" value="assertz(&#xa;patient_duration(&#xa;  current_patient,&#xa;  mdd, 14))" vertex="1">
+          <mxGeometry height="60" width="150" x="760" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-81" parent="csXt-jjbGVEFcjzIKpza-60" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" value="assertz(&#xa;subjective_assessment(&#xa;  current_patient,&#xa;  subj_id, met, 0.9))" vertex="1">
+          <mxGeometry height="60" width="150" x="760" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-82" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-76" target="csXt-jjbGVEFcjzIKpza-78" value="Symptom">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-83" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-76" target="csXt-jjbGVEFcjzIKpza-79" value="Exclusion">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="970" y="435" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-84" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-76" target="csXt-jjbGVEFcjzIKpza-80" value="Duration">
+          <mxGeometry relative="1" x="-0.0007" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1000" y="510" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-85" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-76" target="csXt-jjbGVEFcjzIKpza-81" value="Subjective">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1050" y="580" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-86" parent="csXt-jjbGVEFcjzIKpza-60" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;" value="Check Aliases&#xa;&#xa;If mdd_a4 (sleep):&#xa;  Auto-answer:&#xa;  • gad_c4&#xa;  • ptsd_e6" vertex="1">
+          <mxGeometry height="80" width="140" x="560" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-87" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-78" target="csXt-jjbGVEFcjzIKpza-86">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-88" parent="csXt-jjbGVEFcjzIKpza-60" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="_update_diagnostic_status()&#xa;&#xa;PRUNING LOGIC:&#xa;1. Check exclusions&#xa;   → Remove if excluded&#xa;2. Check core symptoms&#xa;   → Remove if all absent" vertex="1">
+          <mxGeometry height="110" width="180" x="540" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-89" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-78" style="entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="csXt-jjbGVEFcjzIKpza-88">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-90" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-79" target="csXt-jjbGVEFcjzIKpza-88">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-91" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-80" target="csXt-jjbGVEFcjzIKpza-88">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-92" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-81" target="csXt-jjbGVEFcjzIKpza-88">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-93" parent="csXt-jjbGVEFcjzIKpza-60" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;" value="Updated Candidates&#xa;&#xa;active_candidates =&#xa;[&#39;mdd&#39;, &#39;gad&#39;, &#39;ptsd&#39;]&#xa;&#xa;(e.g., ADHD pruned)" vertex="1">
+          <mxGeometry height="80" width="160" x="320" y="465" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-94" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-88" target="csXt-jjbGVEFcjzIKpza-93">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-95" parent="csXt-jjbGVEFcjzIKpza-60" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" value="Continue?" vertex="1">
+          <mxGeometry height="80" width="100" x="350" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-96" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-93" target="csXt-jjbGVEFcjzIKpza-95">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-97" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-95" target="csXt-jjbGVEFcjzIKpza-61" value="YES&#xa;(more questions)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="200" y="360" />
+              <mxPoint x="80" y="360" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-98" parent="csXt-jjbGVEFcjzIKpza-60" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="Sufficient&#xa;Evidence" vertex="1">
+          <mxGeometry height="60" width="100" x="180" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-99" edge="1" parent="csXt-jjbGVEFcjzIKpza-60" source="csXt-jjbGVEFcjzIKpza-95" target="csXt-jjbGVEFcjzIKpza-98" value="NO&#xa;(ready)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-100" parent="1" style="swimlane;fontSize=13;fontStyle=1;fillColor=#e6ffe6;strokeColor=#82b366;startSize=40;" value="PHASE 5: DIAGNOSIS GENERATION" vertex="1">
+          <mxGeometry height="710" width="1280" x="280" y="1760" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-101" parent="csXt-jjbGVEFcjzIKpza-100" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" value="full_diagnosis(&#xa;  current_patient,&#xa;  mdd,&#xa;  Result)" vertex="1">
+          <mxGeometry height="80" width="160" x="40" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-102" parent="csXt-jjbGVEFcjzIKpza-100" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="criterion_check(&#xa;  symptoms)&#xa;&#xa;• Core: ≥1 of 2 ✓&#xa;• All: ≥5 of 9 ✓&#xa;&#xa;Status: met" vertex="1">
+          <mxGeometry height="100" width="140" x="240" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-103" parent="csXt-jjbGVEFcjzIKpza-100" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="criterion_check(&#xa;  duration)&#xa;&#xa;Required: 14 days&#xa;Actual: 14 days&#xa;&#xa;Status: met" vertex="1">
+          <mxGeometry height="100" width="140" x="240" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-104" parent="csXt-jjbGVEFcjzIKpza-100" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="criterion_check(&#xa;  onset)&#xa;&#xa;Type: any&#xa;&#xa;Status:&#xa;not_applicable" vertex="1">
+          <mxGeometry height="100" width="140" x="240" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-105" parent="csXt-jjbGVEFcjzIKpza-100" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="criterion_check(&#xa;  exclusions)&#xa;&#xa;• Bipolar: cleared&#xa;• Substance: cleared&#xa;• Medical: cleared&#xa;&#xa;Status: met" vertex="1">
+          <mxGeometry height="120" width="140" x="240" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-106" parent="csXt-jjbGVEFcjzIKpza-100" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="criterion_check(&#xa;  subjective)&#xa;&#xa;Clinical significance:&#xa;  met (0.9)&#xa;&#xa;Status: met" vertex="1">
+          <mxGeometry height="100" width="140" x="240" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-107" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-101" target="csXt-jjbGVEFcjzIKpza-102">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-108" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-101" style="entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="csXt-jjbGVEFcjzIKpza-103">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="200" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-109" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-101" target="csXt-jjbGVEFcjzIKpza-104">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="200" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-110" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-101" target="csXt-jjbGVEFcjzIKpza-105">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="160" y="440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-111" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-101" target="csXt-jjbGVEFcjzIKpza-106">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="120" y="560" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-112" parent="csXt-jjbGVEFcjzIKpza-100" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="determine_overall_status()&#xa;&#xa;Criteria: [met, met, n/a, met, met]&#xa;&#xa;Any not_met? NO&#xa;Any missing_data? NO&#xa;&#xa;Overall: met ✓" vertex="1">
+          <mxGeometry height="110" width="240" x="470" y="265" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-113" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-102" target="csXt-jjbGVEFcjzIKpza-112">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-114" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-103" target="csXt-jjbGVEFcjzIKpza-112">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-115" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-104" target="csXt-jjbGVEFcjzIKpza-112">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-116" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-105" target="csXt-jjbGVEFcjzIKpza-112">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-117" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-106" target="csXt-jjbGVEFcjzIKpza-112">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-118" parent="csXt-jjbGVEFcjzIKpza-100" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="calculate_enhanced_confidence()&#xa;&#xa;Base: 0.9 (from subjective)&#xa;Penalty: 0 (no missing data)&#xa;&#xa;Confidence: 0.9" vertex="1">
+          <mxGeometry height="90" width="300" x="750" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-119" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-112" style="entryX=0;entryY=1;entryDx=0;entryDy=0;" target="csXt-jjbGVEFcjzIKpza-118">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-120" parent="csXt-jjbGVEFcjzIKpza-100" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" value="Build diagnosis_result{}&#xa;&#xa;• disorder_id: mdd&#xa;• disorder_name: &#39;Major Depressive Disorder&#39;&#xa;• overall_status: met&#xa;• confidence: 0.9&#xa;• criteria: [symptoms✓, duration✓, ...]&#xa;• missing_data: []&#xa;• follow_up_needed: []" vertex="1">
+          <mxGeometry height="130" width="300" x="750" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-121" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-112" target="csXt-jjbGVEFcjzIKpza-120">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-122" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-118" target="csXt-jjbGVEFcjzIKpza-120">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-123" parent="csXt-jjbGVEFcjzIKpza-100" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" value="DIAGNOSIS RESULT&#xa;&#xa;Major Depressive Disorder&#xa;Status: MET&#xa;Confidence: 90%&#xa;&#xa;All criteria satisfied ✓" vertex="1">
+          <mxGeometry height="110" width="240" x="780" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-124" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-120" target="csXt-jjbGVEFcjzIKpza-123">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-125" parent="csXt-jjbGVEFcjzIKpza-100" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=9;dashed=1;" value="Optional:&#xa;&#xa;explain_diagnosis()&#xa;• Proof tree&#xa;• Evidence summary&#xa;&#xa;visualise_diagnostic_flowchart()&#xa;• PNG/PDF output" vertex="1">
+          <mxGeometry height="100" width="180" x="1080" y="575" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-126" edge="1" parent="csXt-jjbGVEFcjzIKpza-100" source="csXt-jjbGVEFcjzIKpza-123" style="dashed=1;" target="csXt-jjbGVEFcjzIKpza-125">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-127" parent="csXt-jjbGVEFcjzIKpza-100" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;dashed=1;" value="If missing_data exists:&#xa;• collect_missing_data()&#xa;• generate_follow_up_questions()&#xa;• overall_status: incomplete" vertex="1">
+          <mxGeometry height="80" width="200" x="40" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-128" edge="1" parent="1" source="csXt-jjbGVEFcjzIKpza-33" style="strokeWidth=2;strokeColor=#d79b00;" target="csXt-jjbGVEFcjzIKpza-40">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="410" y="465" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-129" edge="1" parent="1" source="csXt-jjbGVEFcjzIKpza-45" style="strokeWidth=2;strokeColor=#6c8ebf;" target="csXt-jjbGVEFcjzIKpza-51">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1030" y="800" />
+              <mxPoint x="420" y="800" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-130" edge="1" parent="1" source="csXt-jjbGVEFcjzIKpza-58" style="strokeWidth=2;strokeColor=#9673a6;" target="csXt-jjbGVEFcjzIKpza-61">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1300" y="1040" />
+              <mxPoint x="360" y="1040" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="csXt-jjbGVEFcjzIKpza-131" edge="1" parent="1" source="csXt-jjbGVEFcjzIKpza-98" style="strokeWidth=2;strokeColor=#82b366;" target="csXt-jjbGVEFcjzIKpza-101">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="510" y="1680" />
+              <mxPoint x="400" y="1680" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
