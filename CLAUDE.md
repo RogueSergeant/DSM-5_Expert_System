@@ -20,44 +20,38 @@ Hybrid Category 3 AI system combining Prolog-based symbolic reasoning (Tier A: o
 
 **Three-Tier Hybrid Design:**
 - **Tier A (Prolog)**: Objective criteria - symptom counts, duration, onset, exclusions → Transparent reasoning chains
-- **Tier B (LLM)**: Subjective criteria - clinical significance, excessive worry → Confidence scores (0.0-1.0)
+- **Tier B (LLM)**: Subjective criteria - clinical significance, excessive worry → Confidence scores (0.0-1.0) with clinician override
 - **Tier C (Prolog)**: Integration - combines A+B with confidence propagation → Final diagnosis
 
 **Key Directories:**
 ```
-src/prolog/
-├── schema.pl              # Diagnostic inference engine (predicates + rules)
-├── gold_standard/         # Hand-curated disorders (mdd.pl, gad.pl, adhd.pl, ptsd.pl, asd.pl)
-│   ├── loader.pl         # Loads all gold standard files
-│   └── README.md         # Complete template guide for creating disorder files
-└── extracted/            # LLM-extracted disorders (production output)
+src/
+├── prolog/                    # Core Diagnostic System
+│   ├── schema.pl             # Inference engine (~1,100 lines)
+│   ├── gold_standard/        # Hand-curated disorders (5)
+│   │   ├── mdd.pl, gad.pl, adhd.pl, ptsd.pl, asd.pl
+│   │   └── loader.pl
+│   └── extracted/            # LLM-extracted disorders
+│
+├── extraction/                # Layer 1: KB Construction
+│   ├── run_extraction.py     # CLI entry point
+│   ├── providers/            # OpenAI, Anthropic, Ollama
+│   └── evaluate.py           # Validation pipeline
+│
+└── reasoning/                 # Python↔Prolog Interface
+    └── engine.py             # Thin pyswip wrapper
 
-src/extraction/           # LLM extraction pipeline (DSM text → Prolog)
-├── run_extraction.py    # CLI entry point
-├── providers/           # OpenAI, Anthropic, Ollama implementations
-└── evaluate.py          # Syntax + schema validation
+data/
+├── dsm5_text/                # DSM-5-TR source text
+└── vignettes/                # Clinical test cases
 
-src/reasoning/            # Python↔Prolog interface
-├── engine.py            # PrologEngine wrapper (pyswip)
-├── utils.py             # KB exploration
-└── viz.py               # Diagnostic flowchart generation
+docs/
+├── DSM_VERSION_NOTES.md      # DSM-5 vs DSM-5-TR differences
+├── EXTRACTION_BENCHMARKS.md  # LLM provider comparison
+├── IMPLEMENTATION_PLAN.md    # Simplified rebuild plan
+└── LEGACY_SYSTEM.md          # Old architecture (archived)
 
-src/search/              # Diagnostic pathway optimisation
-├── search.py            # A* search for optimal question sequences
-└── manager.py           # SessionManager with pruning logic
-
-src/evaluation/          # Benchmarking framework
-└── benchmark.py         # Clinical vignette testing
-
-scripts/                 # Standalone scripts
-├── debug/              # Debugging utilities
-└── experiments/        # Batch experiment runners
-
-tests/                   # Test scripts
-specs/                   # Coursework specification PDFs
-data/dsm5_text/          # DSM-5-TR source text
-data/vignettes/          # Clinical test cases
-docs/                    # Comprehensive documentation (see README.md)
+archive/                       # Previous over-engineered implementation
 ```
 
 ## Prerequisites
@@ -88,9 +82,6 @@ python -m src.extraction.run_extraction --disorder mdd --provider openai --reaso
 # Local/offline: Ollama (requires validation)
 python -m src.extraction.run_extraction --disorder gad --provider ollama --model gpt-oss:20b --think high --save
 
-# Compare all providers (saves to outputs/extractions/)
-python -m src.extraction.run_extraction --disorder ptsd --all --save
-
 # List available Ollama models
 python -m src.extraction.run_extraction --list-models
 ```
@@ -105,26 +96,6 @@ swipl -g "[schema], ['gold_standard/loader']"
 ?- symptom(mdd, S, Cat, Desc).           # List MDD symptoms
 ?- validate_disorder(mdd, Issues).       # Validate disorder definition
 ?- full_diagnosis(pt001, mdd, Result).   # Run full diagnosis
-```
-
-**Debugging & Evaluation**:
-```bash
-python scripts/debug/diagnose_prolog_failure.py  # Diagnose criteria failures
-python scripts/debug/debug_assertions.py         # Check duration/subjective assertions
-python -m src.evaluation.benchmark               # Run clinical vignette benchmarks
-```
-
-**Experiments**:
-```bash
-python scripts/experiments/run_batch_experiment.py --num-vignettes 10  # Batch vs sequential
-python scripts/experiments/run_pure_llm_baseline.py --provider openai  # Pure LLM baseline
-```
-
-**Testing**:
-```bash
-pytest                    # All tests (if tests/ exists)
-pytest -v                 # Verbose output
-pytest -k "pattern"       # Pattern matching
 ```
 
 ## Prolog Schema Overview
@@ -159,7 +130,7 @@ See `src/prolog/gold_standard/README.md` for complete predicate reference and te
 | **OpenAI** | `--reasoning-effort` | none/minimal/low/medium/high/xhigh | Batch processing (fastest, excellent quality) |
 | **Ollama** | `--think` | low/medium/high | Local/offline (requires validation) |
 
-**Key Findings** (see `docs/PROVIDER_EVALUATION.md`):
+**Key Findings** (see `docs/EXTRACTION_BENCHMARKS.md`):
 - Anthropic: Most complete extractions, best for gold standards
 - OpenAI: Fastest (67s vs 81s), excellent quality, lower cost
 - Ollama: Free but may miss critical criteria (e.g., PTSD Criterion A)
@@ -195,7 +166,9 @@ See `src/prolog/gold_standard/README.md` for complete predicate reference and te
 4. Rules check symptom counts, duration, onset, exclusions, subjective criteria
 5. Return diagnosis with confidence score and explanation
 
-**Search & Pruning** (src/search/):
-- A* search finds optimal question sequences (reduces questions 40-60%)
-- Pruning eliminates candidates via exclusions or missing core symptoms
-- SessionManager tracks active candidates and answered questions
+**Key Design Principles** (see `docs/IMPLEMENTATION_PLAN.md`):
+1. Prolog does the reasoning — Python is just glue
+2. Questions come from the KB — Not hardcoded in Python
+3. Pruning is declarative — Prolog rules, not Python if/else
+4. Simple ordering beats complex search — Clinical priority is good enough
+5. Test on real vignettes — Not synthetic batch experiments
