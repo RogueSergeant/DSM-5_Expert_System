@@ -32,6 +32,64 @@ from src.evaluation.batch_experiment import BatchExperiment
 from src.evaluation.experiment_comparator import ExperimentComparator
 
 
+def prediction_matches(predicted_disorders: list, ground_truth) -> bool:
+    """
+    Check if prediction matches ground truth, handling comorbid cases.
+
+    Args:
+        predicted_disorders: List of predicted disorder IDs
+        ground_truth: Single disorder ID (str) or list of disorder IDs (comorbid)
+
+    Returns:
+        True if prediction matches ground truth
+    """
+    if not predicted_disorders:
+        return False
+
+    if isinstance(ground_truth, list):
+        # Comorbid case: must predict ALL ground truth disorders
+        return all(gt in predicted_disorders for gt in ground_truth)
+    else:
+        # Single disorder case
+        return ground_truth in predicted_disorders
+
+
+def print_vignette_results(results: list, mode_name: str):
+    """Print predicted disorder and confidence for each vignette result."""
+    print(f"\n  {'─'*50}")
+    print(f"  Predictions for {mode_name}:")
+    print(f"  {'─'*50}")
+
+    for result in results:
+        vignette_id = result.get("vignette_id", "unknown")
+        ground_truth = result.get("ground_truth", "unknown")
+        # Use predicted_disorders (plural) for comorbid support
+        predicted_disorders = result.get("predicted_disorders", [])
+        confidence = result.get("confidence", 0.0)
+        status = result.get("diagnosis_status", "unknown")
+
+        # Determine if prediction matches ground truth (handles comorbid cases)
+        match = "✓" if prediction_matches(predicted_disorders, ground_truth) else "✗"
+
+        # Format predicted disorders as comma-separated string
+        pred_str = ','.join(predicted_disorders) if predicted_disorders else 'none'
+
+        # Format confidence as percentage
+        conf_pct = f"{confidence * 100:.1f}%"
+
+        print(f"  {match} {vignette_id}: predicted={pred_str} ({conf_pct}), truth={ground_truth}, status={status}")
+
+    # Summary stats (using proper comorbid matching)
+    correct = sum(1 for r in results
+                  if prediction_matches(r.get("predicted_disorders", []), r.get("ground_truth")))
+    total = len(results)
+    accuracy = (correct / total * 100) if total > 0 else 0
+    avg_conf = sum(r.get("confidence", 0) for r in results) / total if total > 0 else 0
+
+    print(f"  {'─'*50}")
+    print(f"  Accuracy: {correct}/{total} ({accuracy:.1f}%), Avg Confidence: {avg_conf * 100:.1f}%")
+
+
 def main():
     """Main entry point for batch experiment runner."""
     parser = argparse.ArgumentParser(
@@ -113,6 +171,10 @@ def main():
         print(f"SUMMARY: {provider.upper()}")
         print(f"{'='*60}")
 
+        # Print predictions for each mode
+        for mode_name, mode_results in provider_results.items():
+            print_vignette_results(mode_results, f"{provider}/{mode_name}")
+
         # Get sequential baseline
         sequential = provider_results["sequential"]
 
@@ -125,11 +187,14 @@ def main():
         comparisons = comparator.compare_all_modes(sequential, batch_modes)
         all_provider_comparisons[provider] = comparisons
 
-        # Print summary for this provider
+        # Print comparison summary for this provider
+        print(f"\n{'='*60}")
+        print(f"COMPARISON: {provider.upper()}")
+        print(f"{'='*60}")
         for mode_name, comparison in sorted(comparisons.items()):
             agreement = comparison["agreement"]["overall_percent"]
             speedup = comparison["performance"]["speedup_ratio"]
-            print(f"\n{mode_name.upper()}:")
+            print(f"\n{mode_name.upper()} vs Sequential:")
             print(f"  Agreement: {agreement:.1f}%")
             print(f"  Speedup: {speedup:.2f}x")
 

@@ -12,7 +12,7 @@ Date: January 2026
 import time
 import re
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from tqdm import tqdm
 from src.evaluation.benchmark import load_vignettes, ClinicalAnalyser
 from src.evaluation.batch_analyser import BatchClinicalAnalyser
@@ -64,6 +64,33 @@ class BatchExperiment:
         vignettes = load_vignettes(vignettes_dir)
         print(f"Loaded {len(vignettes)} vignettes")
         return vignettes
+
+    def _prediction_matches(
+        self,
+        predicted_disorders: List[str],
+        ground_truth
+    ) -> bool:
+        """
+        Check if prediction matches ground truth, handling comorbid cases.
+
+        Args:
+            predicted_disorders: List of predicted disorder IDs (from all_diagnoses)
+            ground_truth: Single disorder ID (str) or list of disorder IDs (comorbid)
+
+        Returns:
+            True if:
+            - Single ground truth: predicted_disorders contains it
+            - Comorbid ground truth: predicted_disorders contains ALL of them
+        """
+        if not predicted_disorders:
+            return False
+
+        if isinstance(ground_truth, list):
+            # Comorbid case: must predict ALL ground truth disorders
+            return all(gt in predicted_disorders for gt in ground_truth)
+        else:
+            # Single disorder case
+            return ground_truth in predicted_disorders
 
     def run_full_experiment(self) -> Dict:
         """
@@ -152,21 +179,36 @@ class BatchExperiment:
         )
 
         for vignette in pbar:
+            # Show what we're working on
+            ground_truth = vignette.get("ground_truth", "unknown")
+            pbar.set_description(f"  {vignette['id']} (truth={ground_truth})")
+
             result = self._process_vignette_sequential(vignette, provider)
             mode_results.append(result)
 
-            # Update progress bar with latest stats
-            pbar.set_postfix({
-                'questions': result['num_questions'],
-                'time': f"{result['duration_seconds']:.1f}s"
-            })
+            # Print result after each vignette
+            predicted_disorders = result.get('predicted_disorders', [])
+            conf = result.get('confidence', 0) * 100
+            status = result.get('diagnosis_status', 'unknown')
+            match = "✓" if self._prediction_matches(predicted_disorders, ground_truth) else "✗"
+            pred_str = ','.join(predicted_disorders) if predicted_disorders else 'none'
+            tqdm.write(f"    {match} {vignette['id']}: predicted={pred_str} ({conf:.1f}%), truth={ground_truth}, status={status}")
 
         total_time = sum(r["duration_seconds"] for r in mode_results)
         total_questions = sum(r["num_questions"] for r in mode_results)
         total_calls = sum(r["num_llm_calls"] for r in mode_results)
 
+        # Calculate accuracy (handles comorbid cases with predicted_disorders list)
+        correct = sum(1 for r in mode_results
+                      if self._prediction_matches(
+                          r.get("predicted_disorders", []),
+                          r.get("ground_truth")
+                      ))
+        accuracy = (correct / len(mode_results) * 100) if mode_results else 0
+
         print(f"\n  Total: {total_questions} questions, {total_calls} LLM calls, "
               f"{total_time:.1f}s ({total_time/60:.1f} min)")
+        print(f"  Accuracy: {correct}/{len(mode_results)} ({accuracy:.1f}%)")
 
         return mode_results
 
@@ -201,6 +243,10 @@ class BatchExperiment:
         )
 
         for vignette in pbar:
+            # Show what we're working on
+            ground_truth = vignette.get("ground_truth", "unknown")
+            pbar.set_description(f"  {vignette['id']} (truth={ground_truth})")
+
             if adaptive:
                 result = self._process_vignette_batch_adaptive(
                     vignette, provider, batch_size
@@ -212,19 +258,29 @@ class BatchExperiment:
 
             mode_results.append(result)
 
-            # Update progress bar with latest stats
-            pbar.set_postfix({
-                'questions': result['num_questions'],
-                'batches': result['num_llm_calls'],
-                'time': f"{result['duration_seconds']:.1f}s"
-            })
+            # Print result after each vignette
+            predicted_disorders = result.get('predicted_disorders', [])
+            conf = result.get('confidence', 0) * 100
+            status = result.get('diagnosis_status', 'unknown')
+            match = "✓" if self._prediction_matches(predicted_disorders, ground_truth) else "✗"
+            pred_str = ','.join(predicted_disorders) if predicted_disorders else 'none'
+            tqdm.write(f"    {match} {vignette['id']}: predicted={pred_str} ({conf:.1f}%), truth={ground_truth}, status={status}")
 
         total_time = sum(r["duration_seconds"] for r in mode_results)
         total_questions = sum(r["num_questions"] for r in mode_results)
         total_calls = sum(r["num_llm_calls"] for r in mode_results)
 
+        # Calculate accuracy (handles comorbid cases with predicted_disorders list)
+        correct = sum(1 for r in mode_results
+                      if self._prediction_matches(
+                          r.get("predicted_disorders", []),
+                          r.get("ground_truth")
+                      ))
+        accuracy = (correct / len(mode_results) * 100) if mode_results else 0
+
         print(f"\n  Total: {total_questions} questions, {total_calls} LLM calls, "
               f"{total_time:.1f}s ({total_time/60:.1f} min)")
+        print(f"  Accuracy: {correct}/{len(mode_results)} ({accuracy:.1f}%)")
 
         return mode_results
 
@@ -269,24 +325,33 @@ class BatchExperiment:
             # Get question text
             q_text = manager.get_symptom_description(next_q_id)
 
-            # LLM answers (1 call per question)
-            answer = analyser.answer(q_text)
+            # LLM answers with confidence (1 call per question)
+            answer, confidence = analyser.answer_with_confidence(q_text)
 
             questions_asked.append({
                 "id": next_q_id,
                 "text": q_text,
-                "answer": answer
+                "answer": answer,
+                "confidence": confidence
             })
             answers[q_text] = answer
 
-            # Update state for next iteration
-            manager.answer_question(next_q_id, answer)
+            # Update state for next iteration (pass confidence to manager)
+            manager.answer_question(next_q_id, answer, confidence)
 
         duration = time.time() - start_time
+
+        # Get diagnosis predictions (primary + all meeting threshold)
+        predicted, confidence, status, all_diagnoses = self._get_diagnosis(manager)
 
         return {
             "vignette_id": vignette["id"],
             "ground_truth": vignette["ground_truth"],
+            "predicted_disorder": predicted,
+            "predicted_disorders": [d['disorder'] for d in all_diagnoses],
+            "all_diagnoses": all_diagnoses,
+            "confidence": confidence,
+            "diagnosis_status": status,
             "num_questions": len(questions_asked),
             "num_llm_calls": len(questions_asked),  # 1 call per question
             "duration_seconds": duration,
@@ -341,9 +406,9 @@ class BatchExperiment:
                 manager.get_symptom_description(q_id) for q_id in next_questions
             ]
 
-            # Answer batch via LLM
+            # Answer batch via LLM with confidence
             try:
-                batch_answers = analyser.answer_batch(
+                batch_answers = analyser.answer_batch_with_confidence(
                     question_texts,
                     batch_size=None  # Process all N questions in one call
                 )
@@ -353,27 +418,37 @@ class BatchExperiment:
                 # Fallback to sequential for this batch
                 batch_answers = {}
                 for q_text in question_texts:
-                    batch_answers[q_text] = analyser.answer(q_text)
+                    answer, conf = analyser.answer_with_confidence(q_text)
+                    batch_answers[q_text] = (answer, conf)
                     num_batches += 1  # Count each sequential call
 
             # Record answers
             for q_id, q_text in zip(next_questions, question_texts):
-                answer = batch_answers.get(q_text, "UNKNOWN")
+                answer, confidence = batch_answers.get(q_text, ("UNKNOWN", 0.5))
                 all_questions.append({
                     "id": q_id,
                     "text": q_text,
-                    "answer": answer
+                    "answer": answer,
+                    "confidence": confidence
                 })
                 all_answers[q_text] = answer
 
-                # Update state after each answer for next A* iteration
-                manager.answer_question(q_id, answer)
+                # Update state after each answer for next A* iteration (pass confidence)
+                manager.answer_question(q_id, answer, confidence)
 
         duration = time.time() - start_time
+
+        # Get diagnosis predictions (primary + all meeting threshold)
+        predicted, confidence, status, all_diagnoses = self._get_diagnosis(manager)
 
         return {
             "vignette_id": vignette["id"],
             "ground_truth": vignette["ground_truth"],
+            "predicted_disorder": predicted,
+            "predicted_disorders": [d['disorder'] for d in all_diagnoses],
+            "all_diagnoses": all_diagnoses,
+            "confidence": confidence,
+            "diagnosis_status": status,
             "num_questions": len(all_questions),
             "num_llm_calls": num_batches,
             "duration_seconds": duration,
@@ -402,14 +477,20 @@ class BatchExperiment:
         """
         start_time = time.time()
 
-        # Generate all questions upfront
-        question_texts = self._get_all_questions_for_vignette(vignette)
+        # Create manager for diagnosis (even though we don't use A* search)
+        manager = SessionManager()
+        manager.start_new_session()
+        self._set_patient_age(manager, vignette)
+
+        # Generate all questions upfront with proper IDs
+        question_data = self._get_all_questions_with_ids(manager, vignette)
+        question_texts = [q["text"] for q in question_data]
 
         analyser = BatchClinicalAnalyser(vignette, provider_name=provider)
 
-        # Single batch call
+        # Single batch call with confidence
         try:
-            batch_answers = analyser.answer_batch(
+            batch_answers = analyser.answer_batch_with_confidence(
                 question_texts,
                 batch_size=None  # All at once
             )
@@ -418,25 +499,44 @@ class BatchExperiment:
             print(f"    [Warning] Batch failed: {e}, falling back to sequential")
             batch_answers = {}
             for q_text in question_texts:
-                batch_answers[q_text] = analyser.answer(q_text)
+                answer, conf = analyser.answer_with_confidence(q_text)
+                batch_answers[q_text] = (answer, conf)
             num_batches = len(question_texts)
+
+        # Feed answers to manager for diagnosis
+        questions = []
+        answers_only = {}  # For result dict
+        for q_data in question_data:
+            q_id = q_data["id"]
+            q_text = q_data["text"]
+            answer, confidence = batch_answers.get(q_text, ("UNKNOWN", 0.5))
+            questions.append({
+                "id": q_id,
+                "text": q_text,
+                "answer": answer,
+                "confidence": confidence
+            })
+            answers_only[q_text] = answer
+            manager.answer_question(q_id, answer, confidence)
 
         duration = time.time() - start_time
 
-        # Convert to questions list format
-        questions = [
-            {"id": f"q_{i}", "text": q, "answer": batch_answers.get(q, "UNKNOWN")}
-            for i, q in enumerate(question_texts)
-        ]
+        # Get diagnosis predictions (primary + all meeting threshold)
+        predicted, confidence, status, all_diagnoses = self._get_diagnosis(manager)
 
         return {
             "vignette_id": vignette["id"],
             "ground_truth": vignette["ground_truth"],
+            "predicted_disorder": predicted,
+            "predicted_disorders": [d['disorder'] for d in all_diagnoses],
+            "all_diagnoses": all_diagnoses,
+            "confidence": confidence,
+            "diagnosis_status": status,
             "num_questions": len(questions),
             "num_llm_calls": num_batches,
             "duration_seconds": duration,
             "questions": questions,
-            "answers": batch_answers,
+            "answers": answers_only,
             "batch_size": "all"
         }
 
@@ -586,6 +686,9 @@ class BatchExperiment:
         """
         Extract and set patient age from vignette demographics.
 
+        If age cannot be extracted from the vignette text, it will be
+        determined via threshold questions during the diagnostic session.
+
         Args:
             manager: SessionManager instance
             vignette: Vignette dict with 'demographics' key
@@ -597,5 +700,203 @@ class BatchExperiment:
             age = int(age_match.group(1))
             manager.set_patient_data(age)
         else:
-            # Default to adult if not found
-            manager.set_patient_data(30)
+            # Don't default to 30 - let threshold questions handle it
+            manager.set_patient_data(age=None)
+            print(f"  [Info] Age not found in vignette, will ask threshold questions")
+
+    def _get_diagnosis(
+        self,
+        manager: SessionManager,
+        confidence_threshold: float = 0.8
+    ) -> Tuple[str, float, str, List[Dict]]:
+        """
+        Get diagnoses from the Prolog engine.
+
+        Runs full_diagnosis for each active candidate and returns:
+        - The primary (best) diagnosis for backwards compatibility
+        - All diagnoses meeting criteria with confidence >= threshold
+
+        Args:
+            manager: SessionManager with answered questions
+            confidence_threshold: Minimum confidence for a diagnosis (default 0.8)
+
+        Returns:
+            Tuple of (primary_disorder, confidence, status, all_diagnoses)
+            where all_diagnoses is a list of {disorder, confidence, status} dicts
+        """
+        all_diagnoses = []
+        best_disorder = None
+        best_confidence = 0.0
+        best_status = "not_met"
+
+        # Status priority: met > incomplete > not_met
+        status_priority = {'met': 3, 'incomplete': 2, 'not_met': 1}
+
+        # Try all active candidates first
+        candidates = manager.state.active_candidates
+        if not candidates:
+            # Fall back to all disorders if all were pruned
+            candidates = [
+                str(sol['X'])
+                for sol in manager.prolog.query("disorder(X, _, _)")
+            ]
+
+        for disorder in candidates:
+            try:
+                query = f"full_diagnosis(current_patient, {disorder}, Result)"
+                results = list(manager.prolog.query(query))
+
+                if results:
+                    result = results[0]['Result']
+                    # Extract status and confidence from the Prolog dict
+                    status = str(result.get('overall_status', 'not_met'))
+                    confidence = float(result.get('confidence', 0.0))
+
+                    # Collect diagnoses that meet criteria with sufficient confidence
+                    if status in ['met', 'incomplete'] and confidence >= confidence_threshold:
+                        all_diagnoses.append({
+                            'disorder': disorder,
+                            'confidence': confidence,
+                            'status': status
+                        })
+
+                    # Track the single best diagnosis for primary output
+                    current_priority = status_priority.get(status, 0)
+                    best_priority = status_priority.get(best_status, 0)
+
+                    if current_priority > best_priority:
+                        best_disorder = disorder
+                        best_confidence = confidence
+                        best_status = status
+                    elif current_priority == best_priority and confidence > best_confidence:
+                        best_disorder = disorder
+                        best_confidence = confidence
+                        best_status = status
+
+            except Exception:
+                # Skip disorders that fail diagnosis
+                continue
+
+        # Sort all_diagnoses by confidence descending
+        all_diagnoses.sort(key=lambda x: x['confidence'], reverse=True)
+
+        return (best_disorder or "none", best_confidence, best_status, all_diagnoses)
+
+    def _get_all_questions_with_ids(
+        self,
+        manager: SessionManager,
+        vignette: Dict
+    ) -> List[Dict]:
+        """
+        Get all questions with their IDs for non-adaptive batch mode.
+
+        Similar to _get_all_questions_for_vignette but returns
+        dicts with both id and text.
+
+        Args:
+            manager: SessionManager instance
+            vignette: Vignette dict
+
+        Returns:
+            List of {"id": str, "text": str} dicts
+        """
+        questions = []
+        seen_texts = set()
+
+        for disorder in manager.state.active_candidates:
+            # 1. SYMPTOMS
+            symptoms = manager.get_candidate_symptoms(disorder)
+            for symptom_id in symptoms:
+                try:
+                    q_text = manager.get_symptom_description(symptom_id)
+                    if q_text and q_text not in seen_texts:
+                        questions.append({"id": symptom_id, "text": q_text})
+                        seen_texts.add(q_text)
+                except Exception:
+                    pass
+
+            # 2. EXCLUSION CRITERIA
+            try:
+                exclusions = list(manager.prolog.query(
+                    f"exclusion_criterion({disorder}, ExcID, _, _)"
+                ))
+                for exc in exclusions:
+                    exc_id = str(exc['ExcID'])
+                    q_text = manager.get_symptom_description(exc_id)
+                    if q_text and q_text not in seen_texts:
+                        questions.append({"id": exc_id, "text": q_text})
+                        seen_texts.add(q_text)
+            except Exception:
+                pass
+
+            # 3. SUBJECTIVE CRITERIA
+            try:
+                subjective = list(manager.prolog.query(
+                    f"subjective_criterion({disorder}, SubjID, _, _)"
+                ))
+                for subj in subjective:
+                    subj_id = str(subj['SubjID'])
+                    q_text = manager.get_symptom_description(subj_id)
+                    if q_text and q_text not in seen_texts:
+                        questions.append({"id": subj_id, "text": q_text})
+                        seen_texts.add(q_text)
+            except Exception:
+                pass
+
+            # 4. DURATION REQUIREMENTS
+            try:
+                has_duration = list(manager.prolog.query(
+                    f"duration_requirement({disorder}, _, _)"
+                ))
+                if has_duration:
+                    dur_id = f"{disorder}_duration_check"
+                    q_text = manager.get_symptom_description(dur_id)
+                    if q_text and q_text not in seen_texts:
+                        questions.append({"id": dur_id, "text": q_text})
+                        seen_texts.add(q_text)
+            except Exception:
+                pass
+
+            # 5. ONSET AGE REQUIREMENTS
+            try:
+                onset_age = list(manager.prolog.query(
+                    f"onset_requirement({disorder}, before_age, _)"
+                ))
+                if onset_age:
+                    onset_id = f"{disorder}_onset_age_check"
+                    q_text = manager.get_symptom_description(onset_id)
+                    if q_text and q_text not in seen_texts:
+                        questions.append({"id": onset_id, "text": q_text})
+                        seen_texts.add(q_text)
+            except Exception:
+                pass
+
+            # 6. ONSET EVENT REQUIREMENTS
+            try:
+                onset_event = list(manager.prolog.query(
+                    f"onset_requirement({disorder}, after_event, _)"
+                ))
+                if onset_event:
+                    onset_id = f"{disorder}_onset_event_check"
+                    q_text = manager.get_symptom_description(onset_id)
+                    if q_text and q_text not in seen_texts:
+                        questions.append({"id": onset_id, "text": q_text})
+                        seen_texts.add(q_text)
+            except Exception:
+                pass
+
+            # 7. SETTING REQUIREMENTS (DSM-5 Criterion C for ADHD)
+            try:
+                setting_req = list(manager.prolog.query(
+                    f"setting_requirement({disorder}, _)"
+                ))
+                if setting_req:
+                    setting_id = f"{disorder}_settings_check"
+                    q_text = manager.get_symptom_description(setting_id)
+                    if q_text and q_text not in seen_texts:
+                        questions.append({"id": setting_id, "text": q_text})
+                        seen_texts.add(q_text)
+            except Exception:
+                pass
+
+        return questions

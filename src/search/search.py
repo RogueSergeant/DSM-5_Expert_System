@@ -54,8 +54,14 @@ class DiagnosticSearch:
         Higher is better.
         """
         score = 0
-        
-        
+
+        # Age Threshold/Range Questions - high priority if age unknown
+        if "_age_threshold_check" in question or "_age_range_check" in question:
+            if not hasattr(self.manager.state, 'age') or self.manager.state.age is None:
+                return 500  # High priority - need age for correct symptom counts
+            else:
+                return 0  # Already know age, not needed
+
         # Check if Verification Question (Exclusion, Duration, Subjective, or Onset)
         is_verification = "_exc_" in question or "_duration_" in question or "_subj_" in question or "_onset_" in question
         
@@ -164,5 +170,27 @@ class DiagnosticSearch:
                 q_onset = f"onset_requirement({d}, after_event, _)"
                 if list(self.manager.prolog.query(q_onset)):
                     potential.add(onset_event_id)
+
+            # 7. Age Threshold Questions (for age_adjusted_count disorders like ADHD)
+            # Only ask if patient age is not yet known
+            if not hasattr(self.manager.state, 'age') or self.manager.state.age is None:
+                age_threshold_id = f"{d}_age_threshold_check"
+                if age_threshold_id not in self.manager.state.answered_questions:
+                    q_age = f"age_adjusted_count({d}, _, _, _)"
+                    if list(self.manager.prolog.query(q_age)):
+                        potential.add(age_threshold_id)
+
+            # 8. Age Range Questions (for disorder_age_range like PTSD preschool)
+            # Only ask if patient age is not yet known AND max age is meaningful (< 100)
+            if not hasattr(self.manager.state, 'age') or self.manager.state.age is None:
+                age_range_id = f"{d}_age_range_check"
+                if age_range_id not in self.manager.state.answered_questions:
+                    q_range = f"disorder_age_range({d}, _, MaxAge)"
+                    res = list(self.manager.prolog.query(q_range))
+                    if res:
+                        max_age = int(res[0]['MaxAge'])
+                        # Only generate question if max age is meaningful (< 100)
+                        if max_age < 100:
+                            potential.add(age_range_id)
 
         return potential

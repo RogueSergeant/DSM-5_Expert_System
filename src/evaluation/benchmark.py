@@ -81,10 +81,100 @@ Output ONLY the single word: YES, NO, or UNKNOWN.
             if "NO" in ans:
                 return "NO"
             return "UNKNOWN"
-            
+
         except Exception as e:
             print(f"Simulator Error: {e}")
-            return False
+            return "UNKNOWN"
+
+    def answer_with_confidence(self, question_text: str) -> tuple:
+        """
+        Determine if the clinical text supports the given question/criterion.
+        Returns: (answer, confidence) where answer is "YES"/"NO"/"UNKNOWN" and confidence is 0.0-1.0
+        """
+        prompt = f"""You are an expert clinical psychiatrist performing a structured assessment.
+Analyse the following patient vignette:
+
+"{self.clinical_text}"
+
+Question: Does the patient's presentation meet the following criterion: "{question_text}"?
+
+Instructions:
+- Answer YES if the text provides clear evidence for this symptom/criterion.
+- Answer NO if the text explicitly denies this, or if the opposite is true.
+- Answer UNKNOWN if there is no information in the text to confirm or deny this. Do not guess.
+
+Special Logic for Verification Questions ("Is it true that..."):
+- These define conditions that must be TRUE for the diagnosis to hold.
+- Example: "Is it true that the disturbance is NOT attributable to physiological effects of a substance?"
+  - If text says "Patient denies drug use" -> Answer YES (The statement is true).
+  - If text says "Patient uses cocaine daily" -> Answer NO (The statement is false).
+  - If text mentions nothing about the excluded condition -> Answer YES (Presume the condition is absent if not mentioned).
+
+Output your response in exactly this format:
+ANSWER: [YES/NO/UNKNOWN]
+CONFIDENCE: [0.0-1.0]
+
+Where CONFIDENCE is your certainty in the answer:
+- 1.0 = Absolutely certain, explicit clear evidence
+- 0.8-0.9 = Very confident, strong evidence
+- 0.6-0.7 = Moderately confident, reasonable inference
+- 0.4-0.5 = Uncertain, weak evidence
+- 0.1-0.3 = Very uncertain, mostly guessing
+"""
+        try:
+            result = self.provider.extract(
+                dsm5_text=prompt,
+                disorder_id="patient_sim",
+                template_guide="",
+                custom_prompt=prompt,
+                custom_system_prompt="You are a helpful clinical expert. Answer efficiently."
+            )
+
+            if not result.success:
+                print(f"LLM Failure: {result.error}")
+                return ("UNKNOWN", 0.5)
+
+            content = result.content.strip().upper()
+
+            # Parse answer
+            answer = "UNKNOWN"
+            if "ANSWER:" in content:
+                answer_line = [l for l in content.split('\n') if "ANSWER:" in l]
+                if answer_line:
+                    ans_part = answer_line[0].split("ANSWER:")[-1].strip()
+                    if "YES" in ans_part:
+                        answer = "YES"
+                    elif "NO" in ans_part:
+                        answer = "NO"
+            elif "YES" in content:
+                answer = "YES"
+            elif "NO" in content:
+                answer = "NO"
+
+            # Parse confidence
+            confidence = 0.7  # Default if not found
+            if "CONFIDENCE:" in content:
+                conf_line = [l for l in content.split('\n') if "CONFIDENCE:" in l]
+                if conf_line:
+                    conf_part = conf_line[0].split("CONFIDENCE:")[-1].strip()
+                    try:
+                        # Extract first number found
+                        import re
+                        conf_match = re.search(r'(\d+\.?\d*)', conf_part)
+                        if conf_match:
+                            confidence = float(conf_match.group(1))
+                            # Ensure in range 0-1
+                            if confidence > 1.0:
+                                confidence = confidence / 100.0  # Handle if given as percentage
+                            confidence = max(0.0, min(1.0, confidence))
+                    except ValueError:
+                        pass
+
+            return (answer, confidence)
+
+        except Exception as e:
+            print(f"Simulator Error: {e}")
+            return ("UNKNOWN", 0.5)
 
 def run_benchmark(vignettes_dir: Path = None, provider_name: str = "ollama"):
     vignettes = load_vignettes(vignettes_dir)
@@ -107,10 +197,9 @@ def run_benchmark(vignettes_dir: Path = None, provider_name: str = "ollama"):
             manager.set_patient_data(age)
             print(f"  [Info] Patient Age set to {age}")
         else:
-            # Default to adult if not found to avoid child-logic traps?
-            # Or log warning.
-            print("  [Warning] Could not extract age. Defaulting to 30.")
-            manager.set_patient_data(30)
+            # Don't default to 30 - let threshold questions determine age
+            print("  [Info] Age not found in vignette, will ask threshold questions")
+            manager.set_patient_data(age=None)
 
         sim = ClinicalAnalyser(case, provider_name=provider_name)
         

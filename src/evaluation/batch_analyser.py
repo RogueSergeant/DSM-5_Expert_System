@@ -16,7 +16,7 @@ Date: January 2026
 
 import json
 import re
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from src.evaluation.benchmark import ClinicalAnalyser
 
 
@@ -332,4 +332,196 @@ Output valid JSON mapping question numbers to YES/NO/UNKNOWN answers."""
             answer = super().answer(q)
             results[q] = answer
 
+        return results
+
+    def answer_batch_with_confidence(
+        self,
+        questions: List[str],
+        batch_size: Optional[int] = None
+    ) -> Dict[str, Tuple[str, float]]:
+        """
+        Answer multiple questions in batches with confidence scores.
+
+        Args:
+            questions: List of criterion questions to answer
+            batch_size: If None, process all at once. Otherwise, chunk into batches.
+
+        Returns:
+            Dict mapping question_text -> (answer, confidence)
+            where answer is "YES"/"NO"/"UNKNOWN" and confidence is 0.0-1.0
+        """
+        if not questions:
+            return {}
+
+        if batch_size is None:
+            return self._answer_single_batch_with_confidence(questions)
+        else:
+            results = {}
+            for i in range(0, len(questions), batch_size):
+                batch = questions[i:i+batch_size]
+                try:
+                    batch_results = self._answer_single_batch_with_confidence(batch)
+                    results.update(batch_results)
+                except ParseError as e:
+                    print(f"  [Warning] Batch parse failed: {e}")
+                    print(f"  [Fallback] Processing batch sequentially...")
+                    fallback_results = self._fallback_to_sequential_with_confidence(batch)
+                    results.update(fallback_results)
+
+            return results
+
+    def _answer_single_batch_with_confidence(
+        self,
+        questions: List[str]
+    ) -> Dict[str, Tuple[str, float]]:
+        """
+        Process a single batch of questions via LLM with confidence scores.
+
+        Args:
+            questions: List of questions for this batch
+
+        Returns:
+            Dict mapping question_text -> (answer, confidence)
+        """
+        prompt = self._build_batch_prompt_with_confidence(questions)
+        system_prompt = self._build_batch_system_prompt_with_confidence()
+
+        try:
+            result = self.provider.extract(
+                dsm5_text=prompt,
+                disorder_id="batch_assessment",
+                template_guide="",
+                custom_prompt=prompt,
+                custom_system_prompt=system_prompt
+            )
+
+            if not result.success:
+                raise ParseError(f"LLM call failed: {result.error}")
+
+            return self._parse_batch_response_with_confidence(result.content, questions)
+
+        except Exception as e:
+            raise ParseError(f"Batch processing failed: {str(e)}")
+
+    def _build_batch_prompt_with_confidence(self, questions: List[str]) -> str:
+        """Build prompt for batch question answering with confidence scores."""
+        questions_list = "\n".join([
+            f"{i+1}. {q}"
+            for i, q in enumerate(questions)
+        ])
+
+        prompt = f"""You are an expert clinical psychiatrist performing a structured assessment.
+Analyze the following patient vignette:
+
+"{self.clinical_text}"
+
+TASK: Answer ALL {len(questions)} questions below based ONLY on the patient vignette above.
+For each answer, also provide your confidence level (0.0 to 1.0).
+
+QUESTIONS:
+{questions_list}
+
+INSTRUCTIONS:
+- For each question, answer YES, NO, or UNKNOWN
+- YES: Clear evidence in vignette supports this criterion
+- NO: Vignette explicitly contradicts or denies this criterion
+- UNKNOWN: No information available to confirm or deny
+- For "Is it true that..." questions:
+  - These define required conditions that must be TRUE
+  - Answer YES if condition is satisfied (or not mentioned if it's an exclusion)
+  - Answer NO if condition is violated
+  - Answer UNKNOWN only if explicitly ambiguous
+
+CONFIDENCE SCALE:
+- 1.0 = Absolutely certain, explicit clear evidence
+- 0.8-0.9 = Very confident, strong evidence
+- 0.6-0.7 = Moderately confident, reasonable inference
+- 0.4-0.5 = Uncertain, weak evidence
+- 0.1-0.3 = Very uncertain, mostly guessing
+
+OUTPUT FORMAT (JSON ONLY):
+{{
+  "1": {{"answer": "YES", "confidence": 0.9}},
+  "2": {{"answer": "NO", "confidence": 0.8}},
+  "3": {{"answer": "UNKNOWN", "confidence": 0.5}},
+  ...
+  "{len(questions)}": {{"answer": "YES", "confidence": 0.85}}
+}}
+
+Return ONLY the JSON object above with answers and confidence for ALL {len(questions)} questions."""
+
+        return prompt
+
+    def _build_batch_system_prompt_with_confidence(self) -> str:
+        """Build system prompt for batch processing with confidence."""
+        return """You are a clinical assessment system.
+Output ONLY valid JSON with NO additional text, markdown, or explanations.
+Format: {"1": {"answer": "YES", "confidence": 0.9}, "2": {"answer": "NO", "confidence": 0.7}, ...}
+Each key is a question number (string), each value has "answer" (YES/NO/UNKNOWN) and "confidence" (0.0-1.0)."""
+
+    def _parse_batch_response_with_confidence(
+        self,
+        content: str,
+        questions: List[str]
+    ) -> Dict[str, Tuple[str, float]]:
+        """Parse LLM response with confidence into question->(answer, confidence) mapping."""
+        # Clean markdown code blocks
+        content_clean = content.strip()
+        if content_clean.startswith("```json"):
+            content_clean = content_clean[7:]
+        elif content_clean.startswith("```"):
+            content_clean = content_clean[3:]
+        if content_clean.endswith("```"):
+            content_clean = content_clean[:-3]
+        content_clean = content_clean.strip()
+
+        try:
+            data = json.loads(content_clean)
+        except json.JSONDecodeError:
+            # Try to extract JSON from mixed content
+            json_match = re.search(r'\{[\s\S]*\}', content_clean)
+            if json_match:
+                data = json.loads(json_match.group())
+            else:
+                raise ParseError("Could not parse JSON from response")
+
+        result = {}
+        for i, question in enumerate(questions):
+            key = str(i + 1)
+            if key not in data:
+                # Default if missing
+                result[question] = ("UNKNOWN", 0.5)
+                continue
+
+            entry = data[key]
+            if isinstance(entry, dict):
+                answer = entry.get("answer", "UNKNOWN").strip().upper()
+                confidence = float(entry.get("confidence", 0.7))
+            elif isinstance(entry, str):
+                # Fallback: just answer string, no confidence
+                answer = entry.strip().upper()
+                confidence = 0.7
+            else:
+                answer = "UNKNOWN"
+                confidence = 0.5
+
+            if answer not in ["YES", "NO", "UNKNOWN"]:
+                answer = "UNKNOWN"
+
+            # Ensure confidence in range
+            confidence = max(0.0, min(1.0, confidence))
+
+            result[question] = (answer, confidence)
+
+        return result
+
+    def _fallback_to_sequential_with_confidence(
+        self,
+        questions: List[str]
+    ) -> Dict[str, Tuple[str, float]]:
+        """Fallback to sequential processing with confidence if batch fails."""
+        results = {}
+        for q in questions:
+            answer, confidence = super().answer_with_confidence(q)
+            results[q] = (answer, confidence)
         return results

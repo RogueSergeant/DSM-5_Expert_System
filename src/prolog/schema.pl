@@ -173,6 +173,20 @@
 :- multifile setting_requirement/2.
 :- discontiguous setting_requirement/2.
 
+%% disorder_age_range(+DisorderID, +MinAge, +MaxAge)
+%% Specifies applicable age range for a disorder.
+%% Use 0 for no minimum, 999 for no maximum.
+%% If not defined, disorder has no age restriction.
+%%
+%% Example:
+%%   disorder_age_range(ptsd_preschool, 0, 6).  % Children ≤6 only
+:- multifile disorder_age_range/3.
+:- discontiguous disorder_age_range/3.
+
+%% Define age ranges for PTSD variants
+disorder_age_range(ptsd, 7, 999).           % Adults, adolescents, children >6
+disorder_age_range(ptsd_preschool, 0, 6).   % Children ≤6 only
+
 
 %% =============================================================================
 %% PART 2: PATIENT FACT PREDICATES
@@ -557,7 +571,7 @@ criterion_check(PatientID, DisorderID, symptoms, Status, Details) :-
     (   \+ symptom_category(DisorderID, _, _, _, _)
     ->  Status = not_applicable, Details = []
     ;   check_all_symptom_categories(PatientID, DisorderID, CategoryResults),
-        aggregate_symptom_status(CategoryResults, Status, Details)
+        aggregate_symptom_status(DisorderID, CategoryResults, Status, Details)
     ).
 
 %% check_all_symptom_categories/3 - Check each category and collect results
@@ -630,14 +644,37 @@ determine_category_status(at_least_one_of, 0, _, Missing, _, Status) :-
     ;   Status = not_met
     ).
 
-%% aggregate_symptom_status/3 - Combine category results into overall status
-aggregate_symptom_status(CategoryResults, Status, Details) :-
-    (   member(R, CategoryResults), R.status = not_met
-    ->  Status = not_met, Details = CategoryResults
-    ;   member(R, CategoryResults), R.status = missing_data
-    ->  Status = missing_data, Details = CategoryResults
-    ;   Status = met, Details = CategoryResults
+%% aggregate_symptom_status/4 - Combine category results into overall status (disorder-aware)
+%% ADHD uses OR logic (either category can pass), other disorders use AND logic
+aggregate_symptom_status(DisorderID, CategoryResults, Status, Details) :-
+    (   DisorderID = adhd
+    ->  adhd_symptom_check(CategoryResults, Status, Details)
+    ;   standard_symptom_check(CategoryResults, Status, Details)
     ).
+
+%% adhd_symptom_check/3 - ADHD allows EITHER category to pass (OR logic per DSM-5)
+%% DSM-5 Criterion A: "inattention and/or hyperactivity-impulsivity"
+%% Three presentations: Combined (both), Predominantly Inattentive (A1 only), Predominantly Hyperactive (A2 only)
+adhd_symptom_check(CategoryResults, met, CategoryResults) :-
+    member(R, CategoryResults),
+    R.status = met,
+    !.  % At least one category met = symptoms criterion satisfied
+
+adhd_symptom_check(CategoryResults, missing_data, CategoryResults) :-
+    member(R, CategoryResults),
+    R.status = missing_data,
+    \+ (member(R2, CategoryResults), R2.status = met),
+    !.  % Has missing data but no category is met yet
+
+adhd_symptom_check(CategoryResults, not_met, CategoryResults).
+%% All categories are not_met = symptoms criterion not met
+
+%% standard_symptom_check/3 - Original logic for other disorders (AND - all categories must be met)
+standard_symptom_check(CategoryResults, not_met, CategoryResults) :-
+    member(R, CategoryResults), R.status = not_met, !.
+standard_symptom_check(CategoryResults, missing_data, CategoryResults) :-
+    member(R, CategoryResults), R.status = missing_data, !.
+standard_symptom_check(CategoryResults, met, CategoryResults).
 
 %% -----------------------------------------------------------------------------
 %% 7.3 Duration Criterion Check
@@ -1011,12 +1048,16 @@ calculate_enhanced_confidence(PatientID, DisorderID, Statuses, Confidence) :-
         subjective_assessment(PatientID, CritID, met, C)
     ), SubjConfidences),
 
-    % Calculate base confidence
+    % Calculate symptom match rate for evidence-based confidence
+    calculate_symptom_match_rate(PatientID, DisorderID, MatchRate),
+
+    % Calculate base confidence: combine subjective and symptom match
     (   SubjConfidences = []
-    ->  BaseConf = 1.0
+    ->  BaseConf = MatchRate  % Use symptom match rate, NOT 1.0!
     ;   sum_list(SubjConfidences, Sum),
         length(SubjConfidences, Len),
-        BaseConf is Sum / Len
+        SubjConf is Sum / Len,
+        BaseConf is (SubjConf + MatchRate) / 2
     ),
 
     % Penalize for missing data (each missing_data reduces confidence by 10%)
@@ -1024,6 +1065,22 @@ calculate_enhanced_confidence(PatientID, DisorderID, Statuses, Confidence) :-
     length(MissingStatuses, MissingCount),
     Penalty is MissingCount * 0.1,
     Confidence is max(0.0, BaseConf - Penalty).
+
+%% calculate_symptom_match_rate/3 - Ratio of present to required symptoms
+calculate_symptom_match_rate(PatientID, DisorderID, Rate) :-
+    findall(cat(Present, Required), (
+        symptom_category(DisorderID, _, SymptomList, Required, _),
+        count_present_symptoms(PatientID, SymptomList, Present)
+    ), Categories),
+    (   Categories = []
+    ->  Rate = 0.5  % Default 50% for disorders without symptom categories
+    ;   aggregate_all(sum(P), member(cat(P, _), Categories), TotalPresent),
+        aggregate_all(sum(R), member(cat(_, R), Categories), TotalRequired),
+        (   TotalRequired > 0
+        ->  Rate is min(1.0, TotalPresent / TotalRequired)
+        ;   Rate = 0.5
+        )
+    ).
 
 %% quick_diagnosis(+PatientID, +DisorderID, -Status, -Confidence)
 %% Simplified wrapper for backwards compatibility

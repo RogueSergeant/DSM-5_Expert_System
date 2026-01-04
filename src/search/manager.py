@@ -50,14 +50,45 @@ class SessionManager:
         self.prolog.consult("src/prolog/schema.pl")
         self.prolog.consult("src/prolog/gold_standard/loader.pl")
         
-    def set_patient_data(self, age: int, gender: str = 'unknown'):
-        self.state.age = age
+    def set_patient_data(self, age: Optional[int] = None, gender: str = 'unknown'):
+        """
+        Set patient demographic data.
+
+        Args:
+            age: Patient's age in years. If None, age will be determined via
+                 threshold questions during the diagnostic session.
+            gender: Patient's gender (default: 'unknown')
+        """
         self.state.gender = gender
-        list(self.prolog.query(f"assertz(patient_context({self.state.patient_id}, age, {age}))"))
         list(self.prolog.query(f"assertz(patient_context({self.state.patient_id}, gender, '{gender}'))"))
-        # Also assert patient_age if needed for legacy/other checks? 
-        # schema.pl seems to use patient_context for age adjustments.
-        # But patient_onset_age is different.
+
+        if age is not None:
+            self.state.age = age
+            list(self.prolog.query(f"assertz(patient_context({self.state.patient_id}, age, {age}))"))
+            # Filter candidates by age (e.g., ptsd_preschool only for children ≤6)
+            self._prune_candidates_by_age(age)
+        else:
+            # Age unknown - will be determined via threshold questions
+            self.state.age = None
+
+    def _prune_candidates_by_age(self, age: int):
+        """Remove age-inappropriate disorders from active candidates."""
+        filtered = []
+        for disorder in self.state.active_candidates:
+            # Check if disorder has age restriction
+            query = f"disorder_age_range({disorder}, MinAge, MaxAge)"
+            res = list(self.prolog.query(query))
+            if res:
+                min_age = int(res[0]['MinAge'])
+                max_age = int(res[0]['MaxAge'])
+                if min_age <= age <= max_age:
+                    filtered.append(disorder)
+                else:
+                    print(f"  [Age Filter] Removing {disorder} (age {age} not in {min_age}-{max_age})")
+            else:
+                # No age restriction defined, keep it
+                filtered.append(disorder)
+        self.state.active_candidates = filtered
     
     def start_new_session(self):
         """Reset state for a new patient."""
@@ -69,10 +100,11 @@ class SessionManager:
         candidates = [sol['X'] for sol in self.prolog.query("disorder(X, _, _)")]
         self.state.active_candidates = candidates
 
-    def answer_question(self, question_id: str, answer_str: str):
+    def answer_question(self, question_id: str, answer_str: str, confidence: float = 0.9):
         """
         Register a user's answer.
         answer_str: "YES", "NO", "UNKNOWN" (or similar variations)
+        confidence: LLM confidence in the answer (0.0-1.0), defaults to 0.9
         """
         # Normalize input
         ans = answer_str.strip().upper()
@@ -106,8 +138,8 @@ class SessionManager:
             status = 'unclear'
             if ans == 'YES': status = 'met'
             elif ans == 'NO': status = 'not_met'
-            
-            q_ass = f"assertz(subjective_assessment({self.state.patient_id}, {question_id}, {status}, 0.9))"
+
+            q_ass = f"assertz(subjective_assessment({self.state.patient_id}, {question_id}, {status}, {confidence}))"
             list(self.prolog.query(q_ass))
         
         elif "_onset_age_check" in question_id:
@@ -138,6 +170,57 @@ class SessionManager:
                 status = 'present' if ans == 'YES' else 'absent'
                 q_ass = f"assertz(patient_context({self.state.patient_id}, {event_type}, {status}))"
                 list(self.prolog.query(q_ass))
+
+        elif "_settings_check" in question_id:
+            # Settings Check (DSM-5 Criterion C for ADHD)
+            # Question: "Are symptoms present in 2+ settings?"
+            if ans == 'YES':
+                # Assert 2 settings to meet requirement
+                list(self.prolog.query(f"assertz(patient_context({self.state.patient_id}, setting, home))"))
+                list(self.prolog.query(f"assertz(patient_context({self.state.patient_id}, setting, school))"))
+            elif ans == 'NO':
+                # Only 1 setting - fails requirement
+                list(self.prolog.query(f"assertz(patient_context({self.state.patient_id}, setting, home))"))
+            # UNKNOWN leaves it as missing_data (no assertion)
+
+        elif "_age_threshold_check" in question_id:
+            # Age Threshold Check (e.g., adhd_age_threshold_check)
+            # Question: "Is the patient 17 years or older?"
+            disorder = question_id.replace("_age_threshold_check", "")
+            q_threshold = f"age_adjusted_count({disorder}, _, Threshold, _)"
+            res = list(self.prolog.query(q_threshold))
+            if res:
+                threshold = int(res[0]['Threshold'])
+                if ans == 'YES':
+                    inferred_age = threshold  # At or above threshold
+                elif ans == 'NO':
+                    inferred_age = threshold - 1  # Below threshold
+                else:
+                    inferred_age = None
+
+                if inferred_age is not None:
+                    self.state.age = inferred_age
+                    list(self.prolog.query(f"assertz(patient_context({self.state.patient_id}, age, {inferred_age}))"))
+
+        elif "_age_range_check" in question_id:
+            # Age Range Check (e.g., ptsd_preschool_age_range_check)
+            # Question: "Is the patient 6 years or younger?"
+            disorder = question_id.replace("_age_range_check", "")
+            q_range = f"disorder_age_range({disorder}, _, MaxAge)"
+            res = list(self.prolog.query(q_range))
+            if res:
+                max_age = int(res[0]['MaxAge'])
+                if ans == 'YES':
+                    inferred_age = max_age  # Within range
+                elif ans == 'NO':
+                    inferred_age = max_age + 1  # Outside range
+                else:
+                    inferred_age = None
+
+                if inferred_age is not None:
+                    self.state.age = inferred_age
+                    list(self.prolog.query(f"assertz(patient_context({self.state.patient_id}, age, {inferred_age}))"))
+                    self._prune_candidates_by_age(inferred_age)
 
         else:
             # Standard Symptom
@@ -267,6 +350,33 @@ class SessionManager:
             if res:
                 return f"Is it true that: The disturbance occurred after a {res[0]['Type']}?"
             return f"Did this follow a specific event?"
+
+        if "_settings_check" in question_id:
+            disorder = question_id.replace("_settings_check", "")
+            q = f"setting_requirement({disorder}, MinSettings)"
+            res = list(self.prolog.query(q))
+            if res:
+                min_settings = int(res[0]['MinSettings'])
+                return f"Is it true that: Symptoms are present in {min_settings} or more settings (e.g., at home, school/work, with friends)?"
+            return f"Are symptoms present in multiple settings?"
+
+        if "_age_threshold_check" in question_id:
+            disorder = question_id.replace("_age_threshold_check", "")
+            q = f"age_adjusted_count({disorder}, _, Threshold, _)"
+            res = list(self.prolog.query(q))
+            if res:
+                threshold = int(res[0]['Threshold'])
+                return f"Is the patient {threshold} years or older?"
+            return f"Is the patient an adult?"
+
+        if "_age_range_check" in question_id:
+            disorder = question_id.replace("_age_range_check", "")
+            q = f"disorder_age_range({disorder}, _, MaxAge)"
+            res = list(self.prolog.query(q))
+            if res:
+                max_age = int(res[0]['MaxAge'])
+                return f"Is the patient {max_age} years or younger?"
+            return f"Is the patient within the applicable age range?"
 
         # Standard Symptom
         q = f"symptom(_, {question_id}, _, Desc)"

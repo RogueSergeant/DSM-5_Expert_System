@@ -417,6 +417,14 @@ SYMPTOM_ALIASES = {
 
 ---
 
+## 12. Acknoledgement of AI use
+
+Throughout the project I used Claude Code to help at various milestones. Key areas to acknowledge:
+- Prolog is a new language for me, and as such I needed Claude Code to help translate and guide my thinking into parsable prolog.
+- Every script in the "scripts" folder was generated under my guidance with Claude Code. I reviewed each script to ensure it aligned with my plan and approach. I opted for completely AI generated scripts as they were for testing, experimenting and debugging and my timeline didn't allow for manual debugging.
+
+---
+
 ## References
 
 <!-- Use Harvard or APA style consistently -->
