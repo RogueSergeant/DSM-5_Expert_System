@@ -6,8 +6,6 @@
 
 This document provides detailed technical benchmarks for the LLM extraction pipeline.
 
-For a summary and recommendations, see [Provider Evaluation](PROVIDER_EVALUATION.md).
-
 ## Test Matrix
 
 ### Providers Tested
@@ -273,14 +271,7 @@ ptsd_ollama_gpt-oss-20b_20251219_153819.pl
 }
 ```
 
-## Test Logs
-
-Full extraction logs available at:
-- **Detailed Report:** [outputs/extractions/FINDINGS_2025-12-19.md](../outputs/extractions/FINDINGS_2025-12-19.md)
-- **Prolog Files:** `outputs/extractions/ptsd_*.pl`
-- **Metadata:** `outputs/extractions/ptsd_*.json`
-
-### Reproducing Tests
+## Reproducing Tests
 
 ```bash
 # Test all providers with low thinking
@@ -340,10 +331,3 @@ done
 - Criterion coverage percentage
 - Token efficiency (output quality per 1000 tokens)
 - Cost per criterion extracted
-
-## Related Documentation
-
-- [Provider Evaluation](PROVIDER_EVALUATION.md) - Summary and recommendations
-- [Architecture](ARCHITECTURE.md) - System design
-- [Extraction Module](../src/extraction/README.md) - Implementation details
-- [API Reference](API_REFERENCE.md) - Prolog schema reference

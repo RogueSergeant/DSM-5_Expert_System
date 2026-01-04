@@ -1,0 +1,12 @@
+{
+  "disorder_id": "ptsd",
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-5",
+  "success": true,
+  "duration_seconds": 105.34280014038086,
+  "input_tokens": 22990,
+  "output_tokens": 8764,
+  "syntax_valid": true,
+  "validation_issues": [],
+  "timestamp": "20251219_161208"
+}

@@ -1,0 +1,12 @@
+{
+  "disorder_id": "ptsd",
+  "provider": "ollama",
+  "model": "gpt-oss:20b",
+  "success": true,
+  "duration_seconds": 506.0905737876892,
+  "input_tokens": 18982,
+  "output_tokens": 2452,
+  "syntax_valid": true,
+  "validation_issues": [],
+  "timestamp": "20251219_153819"
+}
