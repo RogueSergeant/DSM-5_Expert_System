@@ -1,0 +1,232 @@
+{
+  "metadata": {
+    "timestamp": "2026-01-04T21:45:09.463717",
+    "num_vignettes": 10,
+    "providers": [
+      "openai"
+    ],
+    "vignette_ids": [
+      "vig_1349_0_gad",
+      "vig_3244_0_mdd",
+      "vig_3315_1_gad",
+      "vig_3349_2_adhd",
+      "vig_3410_3_ptsd",
+      "vig_3442_4_asd",
+      "vig_20260102_103450_000_mdd",
+      "vig_20260102_103508_001_gad",
+      "vig_20260102_103551_002_adhd",
+      "vig_20260102_103634_003_comorbid_ptsd_mdd"
+    ]
+  },
+  "comparisons": {
+    "openai": {
+      "batch_5": {
+        "mode": "batch_5",
+        "agreement": {
+          "overall_percent": 69.47,
+          "exact_match_vignettes": 0,
+          "total_vignettes": 10,
+          "matching_answers": 537,
+          "total_questions": 773,
+          "disagreement_count": 62,
+          "top_disagreements": [
+            {
+              "question": "Often leaves seat in situations when remaining seated is expected (e.g., leaves ",
+              "count": 9
+            },
+            {
+              "question": "Do you adhere to this criterion: For learning about events (Criterion A3), the e",
+              "count": 8
+            },
+            {
+              "question": "Exaggerated startle response",
+              "count": 8
+            },
+            {
+              "question": "Witnessing, in person, the event(s) as it occurred to others",
+              "count": 7
+            },
+            {
+              "question": "Often loses things necessary for tasks or activities (e.g., school materials, pe",
+              "count": 7
+            },
+            {
+              "question": "Directly experiencing the traumatic event(s)",
+              "count": 6
+            },
+            {
+              "question": "Persistent, distorted cognitions about the cause or consequences of the traumati",
+              "count": 6
+            },
+            {
+              "question": "Hypervigilance",
+              "count": 6
+            },
+            {
+              "question": "Learning that the traumatic event(s) occurred to a close family member or close ",
+              "count": 6
+            },
+            {
+              "question": "Inability to remember an important aspect of the traumatic event(s) (typically d",
+              "count": 6
+            }
+          ]
+        },
+        "performance": {
+          "time_sequential_total": 1630.84,
+          "time_batch_total": 1103.54,
+          "speedup_ratio": 1.48,
+          "avg_time_per_vignette_sequential": 163.08,
+          "avg_time_per_vignette_batch": 110.35,
+          "questions_sequential": 845,
+          "questions_batch": 919,
+          "llm_calls_sequential": 845,
+          "llm_calls_batch": 188,
+          "call_reduction_ratio": 4.49
+        },
+        "reliability": {
+          "total_vignettes": 10,
+          "parse_success_rate": 100.0
+        }
+      },
+      "batch_10": {
+        "mode": "batch_10",
+        "agreement": {
+          "overall_percent": 70.7,
+          "exact_match_vignettes": 0,
+          "total_vignettes": 10,
+          "matching_answers": 555,
+          "total_questions": 785,
+          "disagreement_count": 63,
+          "top_disagreements": [
+            {
+              "question": "Do you adhere to this criterion: For learning about events (Criterion A3), the e",
+              "count": 8
+            },
+            {
+              "question": "Exaggerated startle response",
+              "count": 8
+            },
+            {
+              "question": "Often leaves seat in situations when remaining seated is expected (e.g., leaves ",
+              "count": 8
+            },
+            {
+              "question": "Directly experiencing the traumatic event(s)",
+              "count": 7
+            },
+            {
+              "question": "Learning that the traumatic event(s) occurred to a close family member or close ",
+              "count": 7
+            },
+            {
+              "question": "Is often forgetful in daily activities (e.g., doing chores, running errands; for",
+              "count": 7
+            },
+            {
+              "question": "Often loses things necessary for tasks or activities (e.g., school materials, pe",
+              "count": 7
+            },
+            {
+              "question": "Often unable to play or engage in leisure activities quietly.",
+              "count": 7
+            },
+            {
+              "question": "Often has difficulty waiting his or her turn (e.g., while waiting in line).",
+              "count": 7
+            },
+            {
+              "question": "Hypervigilance",
+              "count": 6
+            }
+          ]
+        },
+        "performance": {
+          "time_sequential_total": 1630.84,
+          "time_batch_total": 1467.84,
+          "speedup_ratio": 1.11,
+          "avg_time_per_vignette_sequential": 163.08,
+          "avg_time_per_vignette_batch": 146.78,
+          "questions_sequential": 845,
+          "questions_batch": 923,
+          "llm_calls_sequential": 845,
+          "llm_calls_batch": 96,
+          "call_reduction_ratio": 8.8
+        },
+        "reliability": {
+          "total_vignettes": 10,
+          "parse_success_rate": 100.0
+        }
+      },
+      "batch_all": {
+        "mode": "batch_all",
+        "agreement": {
+          "overall_percent": 68.94,
+          "exact_match_vignettes": 0,
+          "total_vignettes": 10,
+          "matching_answers": 566,
+          "total_questions": 821,
+          "disagreement_count": 71,
+          "top_disagreements": [
+            {
+              "question": "Do you adhere to this criterion: Symptoms cause clinically significant impairmen",
+              "count": 9
+            },
+            {
+              "question": "Do you adhere to this criterion: Severity level for restricted, repetitive behav",
+              "count": 8
+            },
+            {
+              "question": "Do you adhere to this criterion: For learning about events (Criterion A3), the e",
+              "count": 8
+            },
+            {
+              "question": "Do you adhere to this criterion: Severity level for social communication impairm",
+              "count": 8
+            },
+            {
+              "question": "Is it true that: Several symptoms were present prior to age 12?",
+              "count": 7
+            },
+            {
+              "question": "Is often forgetful in daily activities (e.g., doing chores, running errands; for",
+              "count": 7
+            },
+            {
+              "question": "Often has difficulty waiting his or her turn (e.g., while waiting in line).",
+              "count": 7
+            },
+            {
+              "question": "Do you adhere to this criterion: Symptoms were present in the early developmenta",
+              "count": 7
+            },
+            {
+              "question": "Persistent and exaggerated negative beliefs or expectations about oneself, other",
+              "count": 6
+            },
+            {
+              "question": "Is it true that: Several symptoms were present prior to age 18?",
+              "count": 6
+            }
+          ]
+        },
+        "performance": {
+          "time_sequential_total": 1630.84,
+          "time_batch_total": 487.81,
+          "speedup_ratio": 3.34,
+          "avg_time_per_vignette_sequential": 163.08,
+          "avg_time_per_vignette_batch": 48.78,
+          "questions_sequential": 845,
+          "questions_batch": 1110,
+          "llm_calls_sequential": 845,
+          "llm_calls_batch": 10,
+          "call_reduction_ratio": 84.5
+        },
+        "reliability": {
+          "total_vignettes": 10,
+          "parse_success_rate": 100.0
+        }
+      }
+    }
+  }
+}

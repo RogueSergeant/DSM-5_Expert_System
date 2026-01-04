@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-01-04T22:55:32.646248",
+  "num_vignettes": 10,
+  "providers": [
+    "openai"
+  ],
+  "vignette_ids": [
+    "vig_1349_0_gad",
+    "vig_3244_0_mdd",
+    "vig_3315_1_gad",
+    "vig_3349_2_adhd",
+    "vig_3410_3_ptsd",
+    "vig_3442_4_asd",
+    "vig_20260102_103450_000_mdd",
+    "vig_20260102_103508_001_gad",
+    "vig_20260102_103551_002_adhd",
+    "vig_20260102_103634_003_comorbid_ptsd_mdd"
+  ]
+}

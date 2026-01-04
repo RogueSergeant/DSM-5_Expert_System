@@ -1,0 +1,232 @@
+{
+  "metadata": {
+    "timestamp": "2026-01-04T18:19:40.038093",
+    "num_vignettes": 10,
+    "providers": [
+      "openai"
+    ],
+    "vignette_ids": [
+      "vig_1349_0_gad",
+      "vig_3244_0_mdd",
+      "vig_3315_1_gad",
+      "vig_3349_2_adhd",
+      "vig_3410_3_ptsd",
+      "vig_3442_4_asd",
+      "vig_20260102_103450_000_mdd",
+      "vig_20260102_103508_001_gad",
+      "vig_20260102_103551_002_adhd",
+      "vig_20260102_103634_003_comorbid_ptsd_mdd"
+    ]
+  },
+  "comparisons": {
+    "openai": {
+      "batch_5": {
+        "mode": "batch_5",
+        "agreement": {
+          "overall_percent": 62.7,
+          "exact_match_vignettes": 0,
+          "total_vignettes": 10,
+          "matching_answers": 632,
+          "total_questions": 1008,
+          "disagreement_count": 81,
+          "top_disagreements": [
+            {
+              "question": "Exaggerated startle response (child \u22646)",
+              "count": 10
+            },
+            {
+              "question": "Do you adhere to this criterion: For learning about events (Criterion A3), the e",
+              "count": 10
+            },
+            {
+              "question": "Intense or prolonged psychological distress at exposure to internal or external ",
+              "count": 9
+            },
+            {
+              "question": "Often loses things necessary for tasks or activities (e.g., school materials, pe",
+              "count": 8
+            },
+            {
+              "question": "Persistent reduction in expression of positive emotions (child \u22646)",
+              "count": 8
+            },
+            {
+              "question": "Exaggerated startle response",
+              "count": 8
+            },
+            {
+              "question": "Substantially increased frequency of negative emotional states (e.g., fear, guil",
+              "count": 8
+            },
+            {
+              "question": "Hypervigilance (child \u22646)",
+              "count": 8
+            },
+            {
+              "question": "Often unable to play or engage in leisure activities quietly.",
+              "count": 8
+            },
+            {
+              "question": "Directly experiencing the traumatic event(s) (child \u22646 years)",
+              "count": 7
+            }
+          ]
+        },
+        "performance": {
+          "time_sequential_total": 2094.51,
+          "time_batch_total": 1401.59,
+          "speedup_ratio": 1.49,
+          "avg_time_per_vignette_sequential": 209.45,
+          "avg_time_per_vignette_batch": 140.16,
+          "questions_sequential": 1120,
+          "questions_batch": 1235,
+          "llm_calls_sequential": 1120,
+          "llm_calls_batch": 249,
+          "call_reduction_ratio": 4.5
+        },
+        "reliability": {
+          "total_vignettes": 10,
+          "parse_success_rate": 100.0
+        }
+      },
+      "batch_10": {
+        "mode": "batch_10",
+        "agreement": {
+          "overall_percent": 65.14,
+          "exact_match_vignettes": 0,
+          "total_vignettes": 10,
+          "matching_answers": 667,
+          "total_questions": 1024,
+          "disagreement_count": 78,
+          "top_disagreements": [
+            {
+              "question": "Do you adhere to this criterion: For learning about events (Criterion A3), the e",
+              "count": 10
+            },
+            {
+              "question": "Exaggerated startle response (child \u22646)",
+              "count": 9
+            },
+            {
+              "question": "Persistent reduction in expression of positive emotions (child \u22646)",
+              "count": 9
+            },
+            {
+              "question": "Witnessing, in person, the event(s) as it occurred to others, especially primary",
+              "count": 8
+            },
+            {
+              "question": "Often loses things necessary for tasks or activities (e.g., school materials, pe",
+              "count": 8
+            },
+            {
+              "question": "Do you adhere to this criterion: Severity level for social communication impairm",
+              "count": 8
+            },
+            {
+              "question": "Exaggerated startle response",
+              "count": 8
+            },
+            {
+              "question": "Learning that the traumatic event(s) occurred to a close family member or close ",
+              "count": 7
+            },
+            {
+              "question": "Directly experiencing the traumatic event(s) (child \u22646 years)",
+              "count": 7
+            },
+            {
+              "question": "Do you adhere to this criterion: Severity level for restricted, repetitive behav",
+              "count": 7
+            }
+          ]
+        },
+        "performance": {
+          "time_sequential_total": 2094.51,
+          "time_batch_total": 1544.18,
+          "speedup_ratio": 1.36,
+          "avg_time_per_vignette_sequential": 209.45,
+          "avg_time_per_vignette_batch": 154.42,
+          "questions_sequential": 1120,
+          "questions_batch": 1239,
+          "llm_calls_sequential": 1120,
+          "llm_calls_batch": 129,
+          "call_reduction_ratio": 8.68
+        },
+        "reliability": {
+          "total_vignettes": 10,
+          "parse_success_rate": 100.0
+        }
+      },
+      "batch_all": {
+        "mode": "batch_all",
+        "agreement": {
+          "overall_percent": 59.66,
+          "exact_match_vignettes": 0,
+          "total_vignettes": 10,
+          "matching_answers": 630,
+          "total_questions": 1056,
+          "disagreement_count": 94,
+          "top_disagreements": [
+            {
+              "question": "Witnessing, in person, the event(s) as it occurred to others, especially primary",
+              "count": 9
+            },
+            {
+              "question": "Substantially increased frequency of negative emotional states (e.g., fear, guil",
+              "count": 9
+            },
+            {
+              "question": "Do you adhere to this criterion: For learning about events (Criterion A3), the e",
+              "count": 9
+            },
+            {
+              "question": "Hypervigilance (child \u22646)",
+              "count": 9
+            },
+            {
+              "question": "Markedly diminished interest or participation in significant activities, includi",
+              "count": 9
+            },
+            {
+              "question": "Problems with concentration (child \u22646)",
+              "count": 9
+            },
+            {
+              "question": "Sleep disturbance (e.g., difficulty falling or staying asleep or restless sleep)",
+              "count": 9
+            },
+            {
+              "question": "Persistent reduction in expression of positive emotions (child \u22646)",
+              "count": 8
+            },
+            {
+              "question": "Directly experiencing the traumatic event(s) (child \u22646 years)",
+              "count": 8
+            },
+            {
+              "question": "Exaggerated startle response (child \u22646)",
+              "count": 8
+            }
+          ]
+        },
+        "performance": {
+          "time_sequential_total": 2094.51,
+          "time_batch_total": 585.97,
+          "speedup_ratio": 3.57,
+          "avg_time_per_vignette_sequential": 209.45,
+          "avg_time_per_vignette_batch": 58.6,
+          "questions_sequential": 1120,
+          "questions_batch": 1330,
+          "llm_calls_sequential": 1120,
+          "llm_calls_batch": 10,
+          "call_reduction_ratio": 112.0
+        },
+        "reliability": {
+          "total_vignettes": 10,
+          "parse_success_rate": 100.0
+        }
+      }
+    }
+  }
+}

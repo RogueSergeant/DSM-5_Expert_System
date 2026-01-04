@@ -1,0 +1,232 @@
+{
+  "metadata": {
+    "timestamp": "2026-01-04T22:55:32.646248",
+    "num_vignettes": 10,
+    "providers": [
+      "openai"
+    ],
+    "vignette_ids": [
+      "vig_1349_0_gad",
+      "vig_3244_0_mdd",
+      "vig_3315_1_gad",
+      "vig_3349_2_adhd",
+      "vig_3410_3_ptsd",
+      "vig_3442_4_asd",
+      "vig_20260102_103450_000_mdd",
+      "vig_20260102_103508_001_gad",
+      "vig_20260102_103551_002_adhd",
+      "vig_20260102_103634_003_comorbid_ptsd_mdd"
+    ]
+  },
+  "comparisons": {
+    "openai": {
+      "batch_5": {
+        "mode": "batch_5",
+        "agreement": {
+          "overall_percent": 65.69,
+          "exact_match_vignettes": 0,
+          "total_vignettes": 10,
+          "matching_answers": 540,
+          "total_questions": 822,
+          "disagreement_count": 61,
+          "top_disagreements": [
+            {
+              "question": "Often has difficulty waiting his or her turn (e.g., while waiting in line).",
+              "count": 10
+            },
+            {
+              "question": "Do you adhere to this criterion: For learning about events (Criterion A3), the e",
+              "count": 9
+            },
+            {
+              "question": "Often unable to play or engage in leisure activities quietly.",
+              "count": 9
+            },
+            {
+              "question": "Often interrupts or intrudes on others (e.g., butts into conversations, games, o",
+              "count": 8
+            },
+            {
+              "question": "Exaggerated startle response",
+              "count": 8
+            },
+            {
+              "question": "Often leaves seat in situations when remaining seated is expected (e.g., leaves ",
+              "count": 8
+            },
+            {
+              "question": "Do you adhere to this criterion: Severity level for restricted, repetitive behav",
+              "count": 8
+            },
+            {
+              "question": "Do you adhere to this criterion: Severity level for social communication impairm",
+              "count": 8
+            },
+            {
+              "question": "Often blurts out an answer before a question has been completed (e.g., completes",
+              "count": 7
+            },
+            {
+              "question": "Witnessing, in person, the event(s) as it occurred to others",
+              "count": 7
+            }
+          ]
+        },
+        "performance": {
+          "time_sequential_total": 1751.49,
+          "time_batch_total": 1112.33,
+          "speedup_ratio": 1.57,
+          "avg_time_per_vignette_sequential": 175.15,
+          "avg_time_per_vignette_batch": 111.23,
+          "questions_sequential": 857,
+          "questions_batch": 944,
+          "llm_calls_sequential": 857,
+          "llm_calls_batch": 194,
+          "call_reduction_ratio": 4.42
+        },
+        "reliability": {
+          "total_vignettes": 10,
+          "parse_success_rate": 100.0
+        }
+      },
+      "batch_10": {
+        "mode": "batch_10",
+        "agreement": {
+          "overall_percent": 68.94,
+          "exact_match_vignettes": 0,
+          "total_vignettes": 10,
+          "matching_answers": 566,
+          "total_questions": 821,
+          "disagreement_count": 59,
+          "top_disagreements": [
+            {
+              "question": "Often has difficulty waiting his or her turn (e.g., while waiting in line).",
+              "count": 10
+            },
+            {
+              "question": "Do you adhere to this criterion: Severity level for restricted, repetitive behav",
+              "count": 9
+            },
+            {
+              "question": "Often interrupts or intrudes on others (e.g., butts into conversations, games, o",
+              "count": 8
+            },
+            {
+              "question": "Often unable to play or engage in leisure activities quietly.",
+              "count": 8
+            },
+            {
+              "question": "Exaggerated startle response",
+              "count": 8
+            },
+            {
+              "question": "Often blurts out an answer before a question has been completed (e.g., completes",
+              "count": 7
+            },
+            {
+              "question": "Witnessing, in person, the event(s) as it occurred to others",
+              "count": 7
+            },
+            {
+              "question": "Is often forgetful in daily activities (e.g., doing chores, running errands; for",
+              "count": 7
+            },
+            {
+              "question": "Often leaves seat in situations when remaining seated is expected (e.g., leaves ",
+              "count": 7
+            },
+            {
+              "question": "Often loses things necessary for tasks or activities (e.g., school materials, pe",
+              "count": 7
+            }
+          ]
+        },
+        "performance": {
+          "time_sequential_total": 1751.49,
+          "time_batch_total": 909.28,
+          "speedup_ratio": 1.93,
+          "avg_time_per_vignette_sequential": 175.15,
+          "avg_time_per_vignette_batch": 90.93,
+          "questions_sequential": 857,
+          "questions_batch": 983,
+          "llm_calls_sequential": 857,
+          "llm_calls_batch": 102,
+          "call_reduction_ratio": 8.4
+        },
+        "reliability": {
+          "total_vignettes": 10,
+          "parse_success_rate": 100.0
+        }
+      },
+      "batch_all": {
+        "mode": "batch_all",
+        "agreement": {
+          "overall_percent": 67.95,
+          "exact_match_vignettes": 0,
+          "total_vignettes": 10,
+          "matching_answers": 566,
+          "total_questions": 833,
+          "disagreement_count": 70,
+          "top_disagreements": [
+            {
+              "question": "Do you adhere to this criterion: Severity level for restricted, repetitive behav",
+              "count": 10
+            },
+            {
+              "question": "Do you adhere to this criterion: Severity level for social communication impairm",
+              "count": 10
+            },
+            {
+              "question": "Often unable to play or engage in leisure activities quietly.",
+              "count": 9
+            },
+            {
+              "question": "Often has difficulty waiting his or her turn (e.g., while waiting in line).",
+              "count": 8
+            },
+            {
+              "question": "Do you adhere to this criterion: For learning about events (Criterion A3), the e",
+              "count": 7
+            },
+            {
+              "question": "Exaggerated startle response",
+              "count": 7
+            },
+            {
+              "question": "Is often easily distracted by extraneous stimuli (for older adolescents and adul",
+              "count": 7
+            },
+            {
+              "question": "Is often forgetful in daily activities (e.g., doing chores, running errands; for",
+              "count": 7
+            },
+            {
+              "question": "The individual finds it difficult to control the worry.",
+              "count": 7
+            },
+            {
+              "question": "Often does not seem to listen when spoken to directly (e.g., mind seems elsewher",
+              "count": 6
+            }
+          ]
+        },
+        "performance": {
+          "time_sequential_total": 1751.49,
+          "time_batch_total": 523.44,
+          "speedup_ratio": 3.35,
+          "avg_time_per_vignette_sequential": 175.15,
+          "avg_time_per_vignette_batch": 52.34,
+          "questions_sequential": 857,
+          "questions_batch": 1110,
+          "llm_calls_sequential": 857,
+          "llm_calls_batch": 10,
+          "call_reduction_ratio": 85.7
+        },
+        "reliability": {
+          "total_vignettes": 10,
+          "parse_success_rate": 100.0
+        }
+      }
+    }
+  }
+}
