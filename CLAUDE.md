@@ -71,6 +71,21 @@ cp .env.example .env  # Add API keys if using LLM extraction
 
 ## Common Commands
 
+**Testing** (pytest):
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run single test class
+pytest tests/test_prolog_schema.py::TestSchemaLoading -v
+
+# Run single test
+pytest tests/test_prolog_schema.py::TestSchemaLoading::test_schema_loads -v
+
+# Run with output shown
+pytest tests/ -v -s
+```
+
 **LLM Extraction** (DSM text → Prolog):
 ```bash
 # Recommended: Anthropic Claude (best quality)
@@ -92,10 +107,29 @@ cd src/prolog
 swipl -g "[schema], ['gold_standard/loader']"
 
 # In Prolog REPL:
-?- disorder(X, Name, Category).          # List all disorders
-?- symptom(mdd, S, Cat, Desc).           # List MDD symptoms
-?- validate_disorder(mdd, Issues).       # Validate disorder definition
-?- full_diagnosis(pt001, mdd, Result).   # Run full diagnosis
+?- disorder(X, Name, Category).          % List all disorders
+?- symptom(mdd, S, Cat, Desc).           % List MDD symptoms
+?- validate_disorder(mdd, Issues).       % Validate disorder definition
+?- full_diagnosis(pt001, mdd, Result).   % Run full diagnosis
+```
+
+**Python↔Prolog** (via PrologEngine):
+```python
+from pathlib import Path
+from src.reasoning.engine import PrologEngine
+
+engine = PrologEngine(Path('src/prolog'))
+engine.load_file('schema.pl')
+engine.load_file('gold_standard/loader.pl')
+
+# Query all disorders
+results = engine.query("disorder(X, Name, Category)")
+
+# Assert patient facts
+engine.assert_fact("patient_symptom(pt001, mdd_a1, present, 'Reports sadness')")
+
+# Run diagnosis
+result = engine.query_one("full_diagnosis(pt001, mdd, Result)")
 ```
 
 ## Prolog Schema Overview

@@ -4,7 +4,7 @@
 
 ```
 src/prolog/
-├── schema.pl              # 1,100 lines - inference engine (works)
+├── schema.pl              # ~950 lines - simplified inference engine
 └── gold_standard/         # 5 disorders defined (MDD, GAD, ADHD, PTSD, ASD)
 
 src/extraction/            # Layer 1 KB construction (works, demonstrated)
@@ -12,7 +12,16 @@ src/extraction/            # Layer 1 KB construction (works, demonstrated)
 src/reasoning/engine.py    # Thin pyswip wrapper
 
 data/vignettes/            # Test cases
+
+tests/
+└── test_prolog_schema.py  # 34 pytest tests
 ```
+
+### Schema API (Implemented)
+- `full_diagnosis(PatientID, DisorderID, Result)` - Comprehensive diagnosis
+- `criterion_check(PatientID, DisorderID, Type, Status, Details)` - Check criterion
+- `get_missing_items(PatientID, DisorderID, Items)` - Get unevaluated items (IDs only)
+- `explain_diagnosis(PatientID, DisorderID, Explanation)` - Generate explanation
 
 ## What We Need to Build
 
@@ -22,30 +31,30 @@ A minimal Python script that:
 
 ```python
 # Pseudocode
-def run_diagnosis():
+def run_diagnosis(disorder_id):
     engine = PrologEngine()
     engine.load_schema()
     engine.load_gold_standards()
 
-    # Get all possible questions from KB
-    questions = engine.query("generate_all_questions(Qs)")
+    # Get missing items from KB (IDs only - Python formats text)
+    missing = engine.query(f"get_missing_items(patient, {disorder_id}, Items)")
 
-    # Simple ordering: core symptoms first, then exclusions, then duration/onset
-    ordered = order_questions(questions)
+    # Simple ordering: symptoms first, then exclusions, then duration/onset
+    ordered = order_by_priority(missing)
 
-    for q in ordered:
-        answer = ask_user(q)  # or LLM for vignette testing
-        engine.assert_fact(answer_to_fact(q, answer))
+    for item in ordered:
+        answer = ask_user(item)  # or LLM for vignette testing
+        engine.assert_fact(item_to_fact(item, answer))
 
-        # Check if any diagnosis is now confirmed or ruled out
-        results = engine.query("diagnosis_candidate(current_patient, D, Conf)")
-        if should_stop(results):
+        # Check current status
+        result = engine.query(f"full_diagnosis(patient, {disorder_id}, Result)")
+        if result.overall_status in ['met', 'not_met']:
             break
 
-    return engine.query("full_diagnosis(current_patient, D, Result)")
+    return engine.query(f"full_diagnosis(patient, {disorder_id}, Result)")
 ```
 
-**Key principle**: Prolog generates questions and evaluates answers. Python just orchestrates.
+**Key principle**: Prolog generates item IDs and evaluates answers. Python formats text and orchestrates.
 
 ### 2. Question Generation in Prolog
 

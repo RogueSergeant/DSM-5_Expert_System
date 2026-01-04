@@ -19,12 +19,16 @@
 :- multifile subjective_criterion/4.
 :- multifile specifier/4.
 :- multifile differential_feature/4.
+:- multifile disorder_age_range/3.
 
 %% =============================================================================
 %% DISORDER 1: PTSD (Adults/Adolescents/Children >6 years)
 %% =============================================================================
 
 disorder(ptsd, 'Posttraumatic Stress Disorder', trauma_stressor_related).
+
+%% Age range: Adults, adolescents, and children older than 6 years
+disorder_age_range(ptsd, 7, 999).
 
 %% Criterion A: Trauma Exposure
 symptom(ptsd, ptsd_a1, trauma_exposure, 'Directly experiencing the traumatic event(s)').
@@ -165,6 +169,9 @@ differential_feature(ptsd, separation_anxiety_disorder, ptsd_diff_separation_anx
 %% =============================================================================
 
 disorder(ptsd_preschool, 'Posttraumatic Stress Disorder (Preschool Subtype)', trauma_stressor_related).
+
+%% Age range: Children 6 years and younger
+disorder_age_range(ptsd_preschool, 0, 6).
 
 %% Criterion A: Trauma Exposure (Children ≤6 years)
 symptom(ptsd_preschool, ptsd_a1_child, trauma_exposure_child, 'Directly experiencing the traumatic event(s) (child ≤6 years)').

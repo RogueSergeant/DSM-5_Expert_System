@@ -23,10 +23,8 @@
 %%   Patient Facts:  patient_symptom/4, patient_duration/3, patient_onset_age/2,
 %%                   patient_exclusion_status/3, subjective_assessment/4,
 %%                   patient_context/3
-%%   Diagnostics:    meets_symptom_criteria/2, meets_duration_criteria/2,
-%%                   meets_onset_criteria/2, meets_exclusion_criteria/2,
-%%                   meets_subjective_criteria/2, diagnosis_candidate/3
-%%   Explanation:    explain_diagnosis/3, criterion_status/4
+%%   Diagnostics:    criterion_check/5, full_diagnosis/3, quick_diagnosis/4
+%%   Explanation:    explain_diagnosis/3, collect_missing_data/3
 %% =============================================================================
 
 %% =============================================================================
@@ -183,9 +181,15 @@
 :- multifile disorder_age_range/3.
 :- discontiguous disorder_age_range/3.
 
-%% Define age ranges for PTSD variants
-disorder_age_range(ptsd, 7, 999).           % Adults, adolescents, children >6
-disorder_age_range(ptsd_preschool, 0, 6).   % Children ≤6 only
+%% symptom_logic(+DisorderID, +LogicType)
+%% Specifies how symptom categories combine for a disorder.
+%% LogicType: 'or_any' (any category satisfies criterion), default is AND (all must be met)
+%% If not defined for a disorder, AND logic is used.
+%%
+%% Example:
+%%   symptom_logic(adhd, or_any).  % Either inattention OR hyperactivity can satisfy
+:- multifile symptom_logic/2.
+:- discontiguous symptom_logic/2.
 
 
 %% =============================================================================
@@ -248,42 +252,10 @@ disorder_age_range(ptsd_preschool, 0, 6).   % Children ≤6 only
 
 
 %% =============================================================================
-%% PART 3: DIAGNOSTIC INFERENCE PREDICATES
+%% PART 3: SHARED UTILITY PREDICATES
 %% =============================================================================
-%% These predicates implement the diagnostic logic, combining knowledge base
-%% definitions with patient facts.
+%% Utility predicates used by the diagnostic inference engine.
 %% =============================================================================
-
-%% meets_symptom_criteria(+PatientID, +DisorderID)
-%% True if patient meets symptom count requirements for all categories.
-meets_symptom_criteria(PatientID, DisorderID) :-
-    disorder(DisorderID, _, _),
-    forall(
-        symptom_category(DisorderID, CategoryID, SymptomList, RequiredCount, RequirementType),
-        category_satisfied(PatientID, DisorderID, CategoryID, SymptomList, RequiredCount, RequirementType)
-    ).
-
-%% category_satisfied/6 - Helper for symptom category checking
-category_satisfied(PatientID, DisorderID, CategoryID, SymptomList, BaseRequiredCount, at_least) :-
-    get_required_count(PatientID, DisorderID, CategoryID, BaseRequiredCount, AdjustedRequiredCount),
-    count_present_symptoms(PatientID, SymptomList, Count),
-    Count >= AdjustedRequiredCount.
-
-category_satisfied(PatientID, DisorderID, CategoryID, SymptomList, BaseRequiredCount, exactly) :-
-    get_required_count(PatientID, DisorderID, CategoryID, BaseRequiredCount, AdjustedRequiredCount),
-    count_present_symptoms(PatientID, SymptomList, Count),
-    Count =:= AdjustedRequiredCount.
-
-category_satisfied(PatientID, _DisorderID, _CategoryID, SymptomList, _RequiredCount, all) :-
-    forall(
-        member(SymptomID, SymptomList),
-        patient_symptom(PatientID, SymptomID, present, _)
-    ).
-
-category_satisfied(PatientID, _DisorderID, _CategoryID, SymptomList, _RequiredCount, at_least_one_of) :-
-    member(SymptomID, SymptomList),
-    patient_symptom(PatientID, SymptomID, present, _),
-    !.
 
 %% count_present_symptoms/3 - Count how many symptoms from list are present
 count_present_symptoms(PatientID, SymptomList, Count) :-
@@ -293,133 +265,29 @@ count_present_symptoms(PatientID, SymptomList, Count) :-
     ), PresentSymptoms),
     length(PresentSymptoms, Count).
 
-%% meets_duration_criteria(+PatientID, +DisorderID)
-%% True if patient symptoms have persisted for required duration.
-meets_duration_criteria(PatientID, DisorderID) :-
-    duration_requirement(DisorderID, MinDuration, Unit),
-    normalise_to_days(MinDuration, Unit, MinDays),
-    patient_duration(PatientID, DisorderID, ActualDays),
-    ActualDays >= MinDays.
-
-%% Duration not specified = automatically met
-meets_duration_criteria(_PatientID, DisorderID) :-
-    \+ duration_requirement(DisorderID, _, _).
-
 %% normalise_to_days/3 - Convert duration to days
 normalise_to_days(N, days, N).
 normalise_to_days(N, weeks, Days) :- Days is N * 7.
 normalise_to_days(N, months, Days) :- Days is N * 30.
 normalise_to_days(N, years, Days) :- Days is N * 365.
 
-%% meets_onset_criteria(+PatientID, +DisorderID)
-%% True if onset timing requirements are satisfied.
-meets_onset_criteria(PatientID, DisorderID) :-
-    onset_requirement(DisorderID, before_age, MaxAge),
-    patient_onset_age(PatientID, OnsetAge),
-    OnsetAge =< MaxAge.
-
-meets_onset_criteria(PatientID, DisorderID) :-
-    onset_requirement(DisorderID, after_event, EventType),
-    patient_context(PatientID, EventType, present).
-
-meets_onset_criteria(_PatientID, DisorderID) :-
-    onset_requirement(DisorderID, any, _).
-
-meets_onset_criteria(_PatientID, DisorderID) :-
-    \+ onset_requirement(DisorderID, _, _).
-
-%% meets_exclusion_criteria(+PatientID, +DisorderID)
-%% True if NO exclusion criteria apply (i.e., all are cleared or unknown).
-meets_exclusion_criteria(PatientID, DisorderID) :-
-    forall(
-        exclusion_criterion(DisorderID, ExclusionID, _, _),
-        \+ patient_exclusion_status(PatientID, ExclusionID, excluded)
-    ).
-
-%% meets_subjective_criteria(+PatientID, +DisorderID)
-%% True if all subjective criteria are assessed as met.
-meets_subjective_criteria(PatientID, DisorderID) :-
-    forall(
-        subjective_criterion(DisorderID, CriterionID, _, _),
-        subjective_assessment(PatientID, CriterionID, met, _)
-    ).
-
-%% diagnosis_candidate(+PatientID, +DisorderID, -ConfidenceScore)
-%% Generates candidate diagnoses with confidence scores.
-diagnosis_candidate(PatientID, DisorderID, Confidence) :-
-    disorder(DisorderID, _, _),
-    meets_symptom_criteria(PatientID, DisorderID),
-    meets_duration_criteria(PatientID, DisorderID),
-    meets_onset_criteria(PatientID, DisorderID),
-    meets_exclusion_criteria(PatientID, DisorderID),
-    meets_subjective_criteria(PatientID, DisorderID),
-    calculate_confidence(PatientID, DisorderID, Confidence).
-
-%% calculate_confidence/3 - Compute overall confidence from subjective assessments
-calculate_confidence(PatientID, DisorderID, Confidence) :-
-    findall(C, (
-        subjective_criterion(DisorderID, CritID, _, _),
-        subjective_assessment(PatientID, CritID, met, C)
-    ), Confidences),
-    (   Confidences = []
-    ->  Confidence = 1.0
-    ;   sum_list(Confidences, Sum),
-        length(Confidences, Len),
-        Confidence is Sum / Len
-    ).
-
 
 %% =============================================================================
 %% PART 4: EXPLANATION PREDICATES
 %% =============================================================================
 %% These predicates support generating human-readable explanations of
-%% diagnostic reasoning.
+%% diagnostic reasoning. Uses criterion_check/5 from Part 7.
 %% =============================================================================
-
-%% criterion_status(+PatientID, +DisorderID, +CriterionType, -Status)
-%% Returns status of each criterion type for explanation.
-%% CriterionType: symptoms, duration, onset, exclusions, subjective
-%% Status: met, not_met, partial, unknown
-
-criterion_status(PatientID, DisorderID, symptoms, Status) :-
-    (   meets_symptom_criteria(PatientID, DisorderID)
-    ->  Status = met
-    ;   Status = not_met
-    ).
-
-criterion_status(PatientID, DisorderID, duration, Status) :-
-    (   meets_duration_criteria(PatientID, DisorderID)
-    ->  Status = met
-    ;   Status = not_met
-    ).
-
-criterion_status(PatientID, DisorderID, onset, Status) :-
-    (   meets_onset_criteria(PatientID, DisorderID)
-    ->  Status = met
-    ;   Status = not_met
-    ).
-
-criterion_status(PatientID, DisorderID, exclusions, Status) :-
-    (   meets_exclusion_criteria(PatientID, DisorderID)
-    ->  Status = met
-    ;   Status = not_met
-    ).
-
-criterion_status(PatientID, DisorderID, subjective, Status) :-
-    (   meets_subjective_criteria(PatientID, DisorderID)
-    ->  Status = met
-    ;   Status = not_met
-    ).
 
 %% explain_diagnosis(+PatientID, +DisorderID, -Explanation)
 %% Generates structured explanation of diagnostic reasoning.
 explain_diagnosis(PatientID, DisorderID, Explanation) :-
     disorder(DisorderID, Name, _),
-    criterion_status(PatientID, DisorderID, symptoms, SympStatus),
-    criterion_status(PatientID, DisorderID, duration, DurStatus),
-    criterion_status(PatientID, DisorderID, onset, OnsetStatus),
-    criterion_status(PatientID, DisorderID, exclusions, ExclStatus),
-    criterion_status(PatientID, DisorderID, subjective, SubjStatus),
+    criterion_check(PatientID, DisorderID, symptoms, SympStatus, _),
+    criterion_check(PatientID, DisorderID, duration, DurStatus, _),
+    criterion_check(PatientID, DisorderID, onset, OnsetStatus, _),
+    criterion_check(PatientID, DisorderID, exclusions, ExclStatus, _),
+    criterion_check(PatientID, DisorderID, subjective, SubjStatus, _),
     get_symptom_details(PatientID, DisorderID, SymptomDetails),
     Explanation = explanation{
         disorder: Name,
@@ -431,9 +299,7 @@ explain_diagnosis(PatientID, DisorderID, Explanation) :-
             exclusions: ExclStatus,
             subjective: SubjStatus
         },
-        symptom_evidence: SymptomDetails,
-        overall: (SympStatus = met, DurStatus = met, OnsetStatus = met, 
-                  ExclStatus = met, SubjStatus = met -> met ; not_met)
+        symptom_evidence: SymptomDetails
     }.
 
 %% get_symptom_details/3 - Collect evidence for present symptoms
@@ -469,17 +335,6 @@ clear_all_patient_facts :-
     retractall(patient_exclusion_status(_, _, _)),
     retractall(subjective_assessment(_, _, _, _)),
     retractall(patient_context(_, _, _)).
-
-%% list_pending_subjective/2 - Find subjective criteria not yet assessed
-list_pending_subjective(PatientID, DisorderID, Pending) :-
-    findall(
-        pending{criterion_id: CID, description: Desc, type: Type},
-        (
-            subjective_criterion(DisorderID, CID, Desc, Type),
-            \+ subjective_assessment(PatientID, CID, _, _)
-        ),
-        Pending
-    ).
 
 %% all_disorders/1 - List all defined disorders
 all_disorders(Disorders) :-
@@ -644,37 +499,36 @@ determine_category_status(at_least_one_of, 0, _, Missing, _, Status) :-
     ;   Status = not_met
     ).
 
-%% aggregate_symptom_status/4 - Combine category results into overall status (disorder-aware)
-%% ADHD uses OR logic (either category can pass), other disorders use AND logic
+%% aggregate_symptom_status/4 - Combine category results into overall status
+%% Uses symptom_logic/2 to determine OR vs AND logic (data-driven, not hardcoded)
 aggregate_symptom_status(DisorderID, CategoryResults, Status, Details) :-
-    (   DisorderID = adhd
-    ->  adhd_symptom_check(CategoryResults, Status, Details)
-    ;   standard_symptom_check(CategoryResults, Status, Details)
+    (   symptom_logic(DisorderID, or_any)
+    ->  or_any_symptom_check(CategoryResults, Status, Details)
+    ;   and_all_symptom_check(CategoryResults, Status, Details)
     ).
 
-%% adhd_symptom_check/3 - ADHD allows EITHER category to pass (OR logic per DSM-5)
-%% DSM-5 Criterion A: "inattention and/or hyperactivity-impulsivity"
-%% Three presentations: Combined (both), Predominantly Inattentive (A1 only), Predominantly Hyperactive (A2 only)
-adhd_symptom_check(CategoryResults, met, CategoryResults) :-
+%% or_any_symptom_check/3 - OR logic: any category meeting criteria satisfies the symptom requirement
+%% Used when symptom_logic(DisorderID, or_any) is defined
+or_any_symptom_check(CategoryResults, met, CategoryResults) :-
     member(R, CategoryResults),
     R.status = met,
     !.  % At least one category met = symptoms criterion satisfied
 
-adhd_symptom_check(CategoryResults, missing_data, CategoryResults) :-
+or_any_symptom_check(CategoryResults, missing_data, CategoryResults) :-
     member(R, CategoryResults),
     R.status = missing_data,
     \+ (member(R2, CategoryResults), R2.status = met),
     !.  % Has missing data but no category is met yet
 
-adhd_symptom_check(CategoryResults, not_met, CategoryResults).
+or_any_symptom_check(CategoryResults, not_met, CategoryResults).
 %% All categories are not_met = symptoms criterion not met
 
-%% standard_symptom_check/3 - Original logic for other disorders (AND - all categories must be met)
-standard_symptom_check(CategoryResults, not_met, CategoryResults) :-
+%% and_all_symptom_check/3 - AND logic: all categories must be met (default)
+and_all_symptom_check(CategoryResults, not_met, CategoryResults) :-
     member(R, CategoryResults), R.status = not_met, !.
-standard_symptom_check(CategoryResults, missing_data, CategoryResults) :-
+and_all_symptom_check(CategoryResults, missing_data, CategoryResults) :-
     member(R, CategoryResults), R.status = missing_data, !.
-standard_symptom_check(CategoryResults, met, CategoryResults).
+and_all_symptom_check(CategoryResults, met, CategoryResults).
 
 %% -----------------------------------------------------------------------------
 %% 7.3 Duration Criterion Check
@@ -843,138 +697,41 @@ criterion_check(PatientID, DisorderID, settings, Status, Details) :-
 
 
 %% =============================================================================
-%% PART 8: MISSING DATA COLLECTORS
+%% PART 8: MISSING DATA COLLECTION
 %% =============================================================================
-%% Aggregates information about incomplete assessments to guide follow-up.
+%% Returns IDs of missing data items. Python handles text formatting.
 %% =============================================================================
 
-%% collect_missing_data(+PatientID, +DisorderID, -MissingList)
-%% Collects all criteria with missing_data status
-collect_missing_data(PatientID, DisorderID, MissingList) :-
-    findall(
-        missing{criterion: CriterionName, details: Details},
-        (   member(CriterionName, [symptoms, duration, onset, exclusions, subjective, settings]),
-            criterion_check(PatientID, DisorderID, CriterionName, missing_data, Details)
-        ),
-        MissingList
-    ).
+%% get_missing_items(+PatientID, +DisorderID, -Items)
+%% Returns list of missing data items with IDs only (Python handles text formatting)
+get_missing_items(PatientID, DisorderID, Items) :-
+    findall(Item, get_missing_item(PatientID, DisorderID, Item), Items).
 
-%% collect_unassessed_exclusions(+PatientID, +DisorderID, -Unassessed)
-%% Lists exclusion criteria that haven't been evaluated
-collect_unassessed_exclusions(PatientID, DisorderID, Unassessed) :-
-    findall(
-        unassessed_exclusion{id: ExclusionID, type: Type, description: Desc},
-        (   exclusion_criterion(DisorderID, ExclusionID, Type, Desc),
-            \+ patient_exclusion_status(PatientID, ExclusionID, _)
-        ),
-        Unassessed
-    ).
+%% get_missing_item/3 - Get individual missing data items
+get_missing_item(PatientID, DisorderID, item{type: symptom, id: SID, category: Cat}) :-
+    symptom(DisorderID, SID, Cat, _),
+    \+ patient_symptom(PatientID, SID, _, _).
 
-%% collect_unevaluated_symptoms(+PatientID, +DisorderID, -Unevaluated)
-%% Lists symptoms that haven't been evaluated
-collect_unevaluated_symptoms(PatientID, DisorderID, Unevaluated) :-
-    findall(
-        unevaluated_symptom{id: SymptomID, category: Cat, description: Desc},
-        (   symptom(DisorderID, SymptomID, Cat, Desc),
-            \+ patient_symptom(PatientID, SymptomID, _, _)
-        ),
-        Unevaluated
-    ).
+get_missing_item(PatientID, DisorderID, item{type: duration, id: DisorderID, category: none}) :-
+    duration_requirement(DisorderID, _, _),
+    \+ patient_duration(PatientID, DisorderID, _).
 
-%% collect_pending_subjective(+PatientID, +DisorderID, -Pending)
-%% Lists subjective criteria awaiting assessment
-collect_pending_subjective(PatientID, DisorderID, Pending) :-
-    findall(
-        pending_subjective{id: CriterionID, type: Type, description: Desc},
-        (   subjective_criterion(DisorderID, CriterionID, Desc, Type),
-            \+ subjective_assessment(PatientID, CriterionID, _, _)
-        ),
-        Pending
-    ).
+get_missing_item(PatientID, DisorderID, item{type: onset, id: DisorderID, category: none}) :-
+    onset_requirement(DisorderID, ConstraintType, _),
+    ConstraintType \= any,
+    \+ patient_onset_age(PatientID, _).
 
-%% generate_follow_up_questions(+PatientID, +DisorderID, -Questions)
-%% Generates prioritized follow-up questions based on missing data
-generate_follow_up_questions(PatientID, DisorderID, Questions) :-
-    collect_missing_data(PatientID, DisorderID, Missing),
-    maplist(missing_to_question(DisorderID), Missing, QuestionLists),
-    append(QuestionLists, Questions).
+get_missing_item(PatientID, DisorderID, item{type: exclusion, id: ExcID, category: Type}) :-
+    exclusion_criterion(DisorderID, ExcID, Type, _),
+    \+ patient_exclusion_status(PatientID, ExcID, _).
 
-%% missing_to_question/3 - Convert missing data item to follow-up question
-missing_to_question(DisorderID, missing{criterion: symptoms, details: Details}, Questions) :-
-    findall(
-        question{
-            priority: high,
-            category: symptoms,
-            symptom_id: SID,
-            text: QuestionText
-        },
-        (   member(CatResult, Details),
-            member(SID, CatResult.missing_symptoms),
-            symptom(DisorderID, SID, _, Desc),
-            format(atom(QuestionText), 'Has the patient experienced: ~w?', [Desc])
-        ),
-        Questions
-    ).
+get_missing_item(PatientID, DisorderID, item{type: subjective, id: CritID, category: Type}) :-
+    subjective_criterion(DisorderID, CritID, _, Type),
+    \+ subjective_assessment(PatientID, CritID, _, _).
 
-missing_to_question(_, missing{criterion: duration, details: _}, [
-    question{
-        priority: high,
-        category: duration,
-        text: 'How long have these symptoms been present?'
-    }
-]).
-
-missing_to_question(_, missing{criterion: onset, details: Details}, Questions) :-
-    (   member(max_age(_), Details)
-    ->  Questions = [question{priority: medium, category: onset,
-                              text: 'At what age did symptoms first appear?'}]
-    ;   member(event_type(Event), Details)
-    ->  format(atom(Q), 'Is there a history of ~w?', [Event]),
-        Questions = [question{priority: medium, category: onset, text: Q}]
-    ;   Questions = []
-    ).
-
-missing_to_question(DisorderID, missing{criterion: exclusions, details: Details}, Questions) :-
-    findall(
-        question{
-            priority: high,
-            category: exclusions,
-            exclusion_id: ExcID,
-            text: QuestionText
-        },
-        (   member(ExclResult, Details),
-            ExclResult.status = unassessed,
-            ExcID = ExclResult.exclusion_id,
-            exclusion_criterion(DisorderID, ExcID, _, Desc),
-            format(atom(QuestionText), 'Assess exclusion: ~w', [Desc])
-        ),
-        Questions
-    ).
-
-missing_to_question(DisorderID, missing{criterion: subjective, details: Details}, Questions) :-
-    findall(
-        question{
-            priority: medium,
-            category: subjective,
-            criterion_id: CritID,
-            text: QuestionText
-        },
-        (   member(SubjResult, Details),
-            (SubjResult.status = unassessed ; SubjResult.status = unclear),
-            CritID = SubjResult.criterion_id,
-            subjective_criterion(DisorderID, CritID, Desc, _),
-            format(atom(QuestionText), 'Evaluate: ~w', [Desc])
-        ),
-        Questions
-    ).
-
-missing_to_question(_, missing{criterion: settings, details: _}, [
-    question{
-        priority: medium,
-        category: settings,
-        text: 'In which settings have symptoms been observed? (e.g., home, school, work)'
-    }
-]).
+get_missing_item(PatientID, DisorderID, item{type: settings, id: DisorderID, category: none}) :-
+    setting_requirement(DisorderID, _),
+    \+ patient_context(PatientID, setting, _).
 
 
 %% =============================================================================
@@ -996,15 +753,8 @@ full_diagnosis(PatientID, DisorderID, Result) :-
     criterion_check(PatientID, DisorderID, subjective, SubjStatus, SubjDetails),
     criterion_check(PatientID, DisorderID, settings, SetStatus, SetDetails),
 
-    % Collect missing data
-    collect_missing_data(PatientID, DisorderID, MissingList),
-    collect_unassessed_exclusions(PatientID, DisorderID, UnassessedExcl),
-
-    % Generate follow-up questions
-    (   MissingList \= []
-    ->  generate_follow_up_questions(PatientID, DisorderID, FollowUp)
-    ;   FollowUp = []
-    ),
+    % Collect missing items (IDs only - Python formats text)
+    get_missing_items(PatientID, DisorderID, MissingItems),
 
     % Determine overall status
     CriteriaStatuses = [SympStatus, DurStatus, OnsetStatus, ExclStatus, SubjStatus, SetStatus],
@@ -1028,9 +778,7 @@ full_diagnosis(PatientID, DisorderID, Result) :-
             criterion{name: subjective, status: SubjStatus, details: SubjDetails},
             criterion{name: settings, status: SetStatus, details: SetDetails}
         ],
-        missing_data: MissingList,
-        unassessed_exclusions: UnassessedExcl,
-        follow_up_needed: FollowUp
+        missing_items: MissingItems
     }.
 
 %% determine_overall_status/2 - Determine overall diagnostic status

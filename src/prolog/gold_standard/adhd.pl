@@ -23,9 +23,10 @@
 :- multifile specifier/4.
 :- multifile differential_feature/4.
 
-%% Optional disorder-specific predicates (ADHD uses both!)
+%% Optional disorder-specific predicates (ADHD uses all three!)
 :- multifile age_adjusted_count/4.
 :- multifile setting_requirement/2.
+:- multifile symptom_logic/2.
 
 %% -----------------------------------------------------------------------------
 %% Disorder Definition
@@ -125,6 +126,18 @@ symptom_category(adhd, inattention_symptoms,
 symptom_category(adhd, hyperactivity_impulsivity_symptoms,
     [adhd_a2a, adhd_a2b, adhd_a2c, adhd_a2d, adhd_a2e, adhd_a2f, adhd_a2g, adhd_a2h, adhd_a2i],
     6, at_least).
+
+%% -----------------------------------------------------------------------------
+%% Symptom Logic
+%% -----------------------------------------------------------------------------
+%% DSM-5 Criterion A: "inattention and/or hyperactivity-impulsivity"
+%% ADHD allows EITHER symptom category to be met (OR logic), unlike most
+%% disorders which require ALL categories (AND logic).
+%% Three presentations result: Combined (both), Predominantly Inattentive (A1 only),
+%% Predominantly Hyperactive/Impulsive (A2 only).
+%% -----------------------------------------------------------------------------
+
+symptom_logic(adhd, or_any).
 
 %% -----------------------------------------------------------------------------
 %% Age-Adjusted Requirements
