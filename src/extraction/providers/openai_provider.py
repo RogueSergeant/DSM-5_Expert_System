@@ -159,7 +159,7 @@ class OpenAIProvider(ExtractionProvider):
 
         This method sends the DSM-5 text along with the template guide to
         GPT-5, requesting structured Prolog output. The reasoning_effort
-        parameter controls how deeply the model analyzes the criteria.
+        parameter controls how deeply the model analyses the criteria.
 
         Args:
             dsm5_text: Raw DSM-5 diagnostic criteria text to extract from.

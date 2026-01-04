@@ -1,0 +1,232 @@
+{
+  "metadata": {
+    "timestamp": "2026-01-03T14:47:37.420114",
+    "num_vignettes": 10,
+    "providers": [
+      "openai"
+    ],
+    "vignette_ids": [
+      "vig_1349_0_gad",
+      "vig_3244_0_mdd",
+      "vig_3315_1_gad",
+      "vig_3349_2_adhd",
+      "vig_3410_3_ptsd",
+      "vig_3442_4_asd",
+      "vig_20260102_103450_000_mdd",
+      "vig_20260102_103508_001_gad",
+      "vig_20260102_103551_002_adhd",
+      "vig_20260102_103634_003_comorbid_ptsd_mdd"
+    ]
+  },
+  "comparisons": {
+    "openai": {
+      "batch_5": {
+        "mode": "batch_5",
+        "agreement": {
+          "overall_percent": 56.76,
+          "exact_match_vignettes": 0,
+          "total_vignettes": 10,
+          "matching_answers": 579,
+          "total_questions": 1020,
+          "disagreement_count": 82,
+          "top_disagreements": [
+            {
+              "question": "Exaggerated startle response (child \u22646)",
+              "count": 10
+            },
+            {
+              "question": "Often has difficulty waiting his or her turn (e.g., while waiting in line).",
+              "count": 9
+            },
+            {
+              "question": "Deficits in nonverbal communicative behaviors used for social interaction, rangi",
+              "count": 9
+            },
+            {
+              "question": "Often unable to play or engage in leisure activities quietly.",
+              "count": 9
+            },
+            {
+              "question": "Problems with concentration (child \u22646)",
+              "count": 9
+            },
+            {
+              "question": "Substantially increased frequency of negative emotional states (e.g., fear, guil",
+              "count": 8
+            },
+            {
+              "question": "Do you adhere to this criterion: Severity level for restricted, repetitive behav",
+              "count": 8
+            },
+            {
+              "question": "Exaggerated startle response",
+              "count": 8
+            },
+            {
+              "question": "Witnessing, in person, the event(s) as it occurred to others, especially primary",
+              "count": 8
+            },
+            {
+              "question": "Do you adhere to this criterion: For learning about events (Criterion A3), the e",
+              "count": 8
+            }
+          ]
+        },
+        "performance": {
+          "time_sequential_total": 1765.38,
+          "time_batch_total": 1247.12,
+          "speedup_ratio": 1.42,
+          "avg_time_per_vignette_sequential": 176.54,
+          "avg_time_per_vignette_batch": 124.71,
+          "questions_sequential": 1090,
+          "questions_batch": 1209,
+          "llm_calls_sequential": 1090,
+          "llm_calls_batch": 246,
+          "call_reduction_ratio": 4.43
+        },
+        "reliability": {
+          "total_vignettes": 10,
+          "parse_success_rate": 100.0
+        }
+      },
+      "batch_10": {
+        "mode": "batch_10",
+        "agreement": {
+          "overall_percent": 57.76,
+          "exact_match_vignettes": 0,
+          "total_vignettes": 10,
+          "matching_answers": 592,
+          "total_questions": 1025,
+          "disagreement_count": 83,
+          "top_disagreements": [
+            {
+              "question": "Exaggerated startle response (child \u22646)",
+              "count": 10
+            },
+            {
+              "question": "Often has difficulty waiting his or her turn (e.g., while waiting in line).",
+              "count": 9
+            },
+            {
+              "question": "Often unable to play or engage in leisure activities quietly.",
+              "count": 9
+            },
+            {
+              "question": "Persistent reduction in expression of positive emotions (child \u22646)",
+              "count": 9
+            },
+            {
+              "question": "Do you adhere to this criterion: For learning about events (Criterion A3), the e",
+              "count": 9
+            },
+            {
+              "question": "Substantially increased frequency of negative emotional states (e.g., fear, guil",
+              "count": 8
+            },
+            {
+              "question": "Exaggerated startle response",
+              "count": 8
+            },
+            {
+              "question": "Witnessing, in person, the event(s) as it occurred to others, especially primary",
+              "count": 8
+            },
+            {
+              "question": "Problems with concentration (child \u22646)",
+              "count": 8
+            },
+            {
+              "question": "Persistent, distorted cognitions about the cause or consequences of the traumati",
+              "count": 7
+            }
+          ]
+        },
+        "performance": {
+          "time_sequential_total": 1765.38,
+          "time_batch_total": 2977.96,
+          "speedup_ratio": 0.59,
+          "avg_time_per_vignette_sequential": 176.54,
+          "avg_time_per_vignette_batch": 297.8,
+          "questions_sequential": 1090,
+          "questions_batch": 1220,
+          "llm_calls_sequential": 1090,
+          "llm_calls_batch": 128,
+          "call_reduction_ratio": 8.52
+        },
+        "reliability": {
+          "total_vignettes": 10,
+          "parse_success_rate": 100.0
+        }
+      },
+      "batch_all": {
+        "mode": "batch_all",
+        "agreement": {
+          "overall_percent": 41.52,
+          "exact_match_vignettes": 0,
+          "total_vignettes": 10,
+          "matching_answers": 301,
+          "total_questions": 725,
+          "disagreement_count": 74,
+          "top_disagreements": [
+            {
+              "question": "Often has difficulty waiting his or her turn (e.g., while waiting in line).",
+              "count": 10
+            },
+            {
+              "question": "Irritable behavior and angry outbursts (with little or no provocation) typically",
+              "count": 10
+            },
+            {
+              "question": "Often unable to play or engage in leisure activities quietly.",
+              "count": 9
+            },
+            {
+              "question": "Learning that the traumatic event(s) occurred to a close family member or close ",
+              "count": 9
+            },
+            {
+              "question": "Substantially increased frequency of negative emotional states (e.g., fear, guil",
+              "count": 9
+            },
+            {
+              "question": "Witnessing, in person, the event(s) as it occurred to others, especially primary",
+              "count": 9
+            },
+            {
+              "question": "Experiencing repeated or extreme exposure to aversive details of the traumatic e",
+              "count": 8
+            },
+            {
+              "question": "Exaggerated startle response",
+              "count": 8
+            },
+            {
+              "question": "Exaggerated startle response (child \u22646)",
+              "count": 8
+            },
+            {
+              "question": "Hypervigilance (child \u22646)",
+              "count": 8
+            }
+          ]
+        },
+        "performance": {
+          "time_sequential_total": 1765.38,
+          "time_batch_total": 513.53,
+          "speedup_ratio": 3.44,
+          "avg_time_per_vignette_sequential": 176.54,
+          "avg_time_per_vignette_batch": 51.35,
+          "questions_sequential": 1090,
+          "questions_batch": 850,
+          "llm_calls_sequential": 1090,
+          "llm_calls_batch": 10,
+          "call_reduction_ratio": 109.0
+        },
+        "reliability": {
+          "total_vignettes": 10,
+          "parse_success_rate": 100.0
+        }
+      }
+    }
+  }
+}

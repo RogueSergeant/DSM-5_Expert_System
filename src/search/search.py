@@ -148,5 +148,21 @@ class DiagnosticSearch:
                 subj_id = str(sol['SubjID'])
                 if subj_id not in self.manager.state.answered_questions:
                     potential.add(subj_id)
-                
+
+            # 5. Onset Age Requirements
+            # onset_requirement(DisorderID, before_age, MaxAge)
+            onset_age_id = f"{d}_onset_age_check"
+            if onset_age_id not in self.manager.state.answered_questions:
+                q_onset = f"onset_requirement({d}, before_age, _)"
+                if list(self.manager.prolog.query(q_onset)):
+                    potential.add(onset_age_id)
+
+            # 6. Onset Event Requirements
+            # onset_requirement(DisorderID, after_event, EventType)
+            onset_event_id = f"{d}_onset_event_check"
+            if onset_event_id not in self.manager.state.answered_questions:
+                q_onset = f"onset_requirement({d}, after_event, _)"
+                if list(self.manager.prolog.query(q_onset)):
+                    potential.add(onset_event_id)
+
         return potential

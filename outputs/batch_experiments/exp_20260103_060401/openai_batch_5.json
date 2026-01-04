@@ -1,0 +1,621 @@
+[
+  {
+    "vignette_id": "vig_1349_0_gad",
+    "ground_truth": "gad",
+    "num_questions": 50,
+    "num_llm_calls": 10,
+    "duration_seconds": 54.88594913482666,
+    "questions": [
+      {
+        "id": "gad_a",
+        "text": "Excessive anxiety and worry (apprehensive expectation), occurring more days than not for at least 6 months, about a number of events or activities (such as work or school performance).",
+        "answer": "YES"
+      },
+      {
+        "id": "mdd_a1",
+        "text": "Depressed mood most of the day, nearly every day, as indicated by subjective report (e.g., feels sad, empty, hopeless) or observation by others (e.g., appears tearful). Note: In children and adolescents, can be irritable mood.",
+        "answer": "NO"
+      },
+      {
+        "id": "mdd_a2",
+        "text": "Markedly diminished interest or pleasure in all, or almost all, activities most of the day, nearly every day (as indicated by subjective account or observation).",
+        "answer": "NO"
+      },
+      {
+        "id": "gad_b",
+        "text": "The individual finds it difficult to control the worry.",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_b3_child",
+        "text": "Dissociative reactions in which the child feels or acts as if the traumatic event(s) were recurring (trauma-specific reenactment may occur in play)",
+        "answer": "NO"
+      },
+      {
+        "id": "adhd_a1c",
+        "text": "Often does not seem to listen when spoken to directly (e.g., mind seems elsewhere, even in the absence of any obvious distraction).",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_d6",
+        "text": "Feelings of detachment or estrangement from others",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_d4",
+        "text": "Persistent negative emotional state (e.g., fear, horror, anger, guilt, or shame)",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_d5",
+        "text": "Markedly diminished interest or participation in significant activities",
+        "answer": "NO"
+      },
+      {
+        "id": "ptsd_a3_child",
+        "text": "Learning that the traumatic event(s) occurred to a parent or caregiving figure (child \u22646 years)",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_e5",
+        "text": "Problems with concentration",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_e1",
+        "text": "Irritable behavior and angry outbursts (with little or no provocation) typically expressed as verbal or physical aggression toward people or objects",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_a1_child",
+        "text": "Directly experiencing the traumatic event(s) (child \u22646 years)",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_d3",
+        "text": "Persistent, distorted cognitions about the cause or consequences of the traumatic event(s) that lead the individual to blame himself/herself or others",
+        "answer": "NO"
+      },
+      {
+        "id": "gad_c6",
+        "text": "Sleep disturbance (difficulty falling or staying asleep, or restless, unsatisfying sleep).",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_ocd",
+        "text": "Is it true that: The disturbance is not better explained by contamination or other obsessions in obsessive-compulsive disorder.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_social_anxiety",
+        "text": "Is it true that: The disturbance is not better explained by negative evaluation in social anxiety disorder (social phobia).?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_duration_check",
+        "text": "Have these symptoms persisted for the required duration (usually > 2 weeks or 6 months depending on disorder)?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_panic",
+        "text": "Is it true that: The disturbance is not better explained by anxiety or worry about having panic attacks in panic disorder.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_psychotic",
+        "text": "Is it true that: The disturbance is not better explained by the content of delusional beliefs in schizophrenia or delusional disorder.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_somatic",
+        "text": "Is it true that: The disturbance is not better explained by physical complaints in somatic symptom disorder.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_bdd",
+        "text": "Is it true that: The disturbance is not better explained by perceived appearance flaws in body dysmorphic disorder.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_illness_anxiety",
+        "text": "Is it true that: The disturbance is not better explained by having a serious illness in illness anxiety disorder.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_subj_clinical_significance",
+        "text": "Do you adhere to this criterion: The anxiety, worry, or physical symptoms cause clinically significant distress or impairment in social, occupational, or other important areas of functioning.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_substance",
+        "text": "Is it true that: The disturbance is not attributable to the physiological effects of a substance (e.g., a drug of abuse, a medication).?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_ptsd",
+        "text": "Is it true that: The disturbance is not better explained by reminders of traumatic events in posttraumatic stress disorder.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_medical",
+        "text": "Is it true that: The disturbance is not attributable to another medical condition (e.g., hyperthyroidism).?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_subj_excessive",
+        "text": "Do you adhere to this criterion: The intensity, duration, or frequency of the anxiety and worry is out of proportion to the actual likelihood or impact of the anticipated event.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_separation",
+        "text": "Is it true that: The disturbance is not better explained by separation from attachment figures in separation anxiety disorder.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_anorexia",
+        "text": "Is it true that: The disturbance is not better explained by gaining weight in anorexia nervosa.?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_a2_child",
+        "text": "Witnessing, in person, the event(s) as it occurred to others, especially primary caregivers (child \u22646 years; not electronic media)",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_b2_child",
+        "text": "Recurrent distressing dreams related to the traumatic event(s) (may not be possible to ascertain frightening content is trauma-related in children \u22646)",
+        "answer": "NO"
+      },
+      {
+        "id": "ptsd_d1",
+        "text": "Inability to remember an important aspect of the traumatic event(s) (typically due to dissociative amnesia)",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_c1",
+        "text": "Avoidance of or efforts to avoid distressing memories, thoughts, or feelings about or closely associated with the traumatic event(s)",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_b4_child",
+        "text": "Intense or prolonged psychological distress at exposure to internal or external cues that symbolize or resemble an aspect of the traumatic event(s) (child \u22646)",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "adhd_a2h",
+        "text": "Often has difficulty waiting his or her turn (e.g., while waiting in line).",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "adhd_a1a",
+        "text": "Often fails to give close attention to details or makes careless mistakes in schoolwork, at work, or during other activities (e.g., overlooks or misses details, work is inaccurate).",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "asd_a2",
+        "text": "Deficits in nonverbal communicative behaviors used for social interaction, ranging from poorly integrated verbal and nonverbal communication; to abnormalities in eye contact and body language or deficits in understanding and use of gestures; to a total lack of facial expressions and nonverbal communication",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_a4",
+        "text": "Experiencing repeated or extreme exposure to aversive details of the traumatic event(s) (e.g., first responders; not through media unless work-related)",
+        "answer": "NO"
+      },
+      {
+        "id": "adhd_a1d",
+        "text": "Often does not follow through on instructions and fails to finish schoolwork, chores, or duties in the workplace (e.g., starts tasks but quickly loses focus and is easily sidetracked).",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_e6",
+        "text": "Sleep disturbance (e.g., difficulty falling or staying asleep or restless sleep)",
+        "answer": "YES"
+      },
+      {
+        "id": "adhd_a1b",
+        "text": "Often has difficulty sustaining attention in tasks or play activities (e.g., has difficulty remaining focused during lectures, conversations, or lengthy reading).",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_c3_child",
+        "text": "Substantially increased frequency of negative emotional states (e.g., fear, guilt, sadness, shame, confusion) (child \u22646)",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_d2_child",
+        "text": "Hypervigilance (child \u22646)",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "adhd_a1h",
+        "text": "Is often easily distracted by extraneous stimuli (for older adolescents and adults, may include unrelated thoughts).",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_subj_violent_accidental",
+        "text": "Do you adhere to this criterion: For learning about events (Criterion A3), the event(s) must have been violent or accidental?",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_exc_substance_child",
+        "text": "Is it true that: The disturbance is not attributable to the physiological effects of a substance (e.g., medication)?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_subj_distress",
+        "text": "Do you adhere to this criterion: The disturbance causes clinically significant distress or impairment in social, occupational, or other important areas of functioning?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_subj_trauma_quality",
+        "text": "Do you adhere to this criterion: Exposure involves actual or threatened death, serious injury, or sexual violence?",
+        "answer": "NO"
+      },
+      {
+        "id": "ptsd_exc_dissociative_substance_child",
+        "text": "Is it true that: Dissociative symptoms (if present) must not be attributable to the physiological effects of a substance?",
+        "answer": "YES"
+      }
+    ],
+    "answers": {
+      "Excessive anxiety and worry (apprehensive expectation), occurring more days than not for at least 6 months, about a number of events or activities (such as work or school performance).": "YES",
+      "Depressed mood most of the day, nearly every day, as indicated by subjective report (e.g., feels sad, empty, hopeless) or observation by others (e.g., appears tearful). Note: In children and adolescents, can be irritable mood.": "NO",
+      "Markedly diminished interest or pleasure in all, or almost all, activities most of the day, nearly every day (as indicated by subjective account or observation).": "NO",
+      "The individual finds it difficult to control the worry.": "YES",
+      "Dissociative reactions in which the child feels or acts as if the traumatic event(s) were recurring (trauma-specific reenactment may occur in play)": "NO",
+      "Often does not seem to listen when spoken to directly (e.g., mind seems elsewhere, even in the absence of any obvious distraction).": "UNKNOWN",
+      "Feelings of detachment or estrangement from others": "UNKNOWN",
+      "Persistent negative emotional state (e.g., fear, horror, anger, guilt, or shame)": "YES",
+      "Markedly diminished interest or participation in significant activities": "NO",
+      "Learning that the traumatic event(s) occurred to a parent or caregiving figure (child \u22646 years)": "UNKNOWN",
+      "Problems with concentration": "YES",
+      "Irritable behavior and angry outbursts (with little or no provocation) typically expressed as verbal or physical aggression toward people or objects": "YES",
+      "Directly experiencing the traumatic event(s) (child \u22646 years)": "UNKNOWN",
+      "Persistent, distorted cognitions about the cause or consequences of the traumatic event(s) that lead the individual to blame himself/herself or others": "NO",
+      "Sleep disturbance (difficulty falling or staying asleep, or restless, unsatisfying sleep).": "YES",
+      "Is it true that: The disturbance is not better explained by contamination or other obsessions in obsessive-compulsive disorder.?": "YES",
+      "Is it true that: The disturbance is not better explained by negative evaluation in social anxiety disorder (social phobia).?": "YES",
+      "Have these symptoms persisted for the required duration (usually > 2 weeks or 6 months depending on disorder)?": "YES",
+      "Is it true that: The disturbance is not better explained by anxiety or worry about having panic attacks in panic disorder.?": "YES",
+      "Is it true that: The disturbance is not better explained by the content of delusional beliefs in schizophrenia or delusional disorder.?": "YES",
+      "Is it true that: The disturbance is not better explained by physical complaints in somatic symptom disorder.?": "YES",
+      "Is it true that: The disturbance is not better explained by perceived appearance flaws in body dysmorphic disorder.?": "YES",
+      "Is it true that: The disturbance is not better explained by having a serious illness in illness anxiety disorder.?": "YES",
+      "Do you adhere to this criterion: The anxiety, worry, or physical symptoms cause clinically significant distress or impairment in social, occupational, or other important areas of functioning.?": "YES",
+      "Is it true that: The disturbance is not attributable to the physiological effects of a substance (e.g., a drug of abuse, a medication).?": "YES",
+      "Is it true that: The disturbance is not better explained by reminders of traumatic events in posttraumatic stress disorder.?": "YES",
+      "Is it true that: The disturbance is not attributable to another medical condition (e.g., hyperthyroidism).?": "YES",
+      "Do you adhere to this criterion: The intensity, duration, or frequency of the anxiety and worry is out of proportion to the actual likelihood or impact of the anticipated event.?": "YES",
+      "Is it true that: The disturbance is not better explained by separation from attachment figures in separation anxiety disorder.?": "YES",
+      "Is it true that: The disturbance is not better explained by gaining weight in anorexia nervosa.?": "YES",
+      "Witnessing, in person, the event(s) as it occurred to others, especially primary caregivers (child \u22646 years; not electronic media)": "UNKNOWN",
+      "Recurrent distressing dreams related to the traumatic event(s) (may not be possible to ascertain frightening content is trauma-related in children \u22646)": "NO",
+      "Inability to remember an important aspect of the traumatic event(s) (typically due to dissociative amnesia)": "UNKNOWN",
+      "Avoidance of or efforts to avoid distressing memories, thoughts, or feelings about or closely associated with the traumatic event(s)": "UNKNOWN",
+      "Intense or prolonged psychological distress at exposure to internal or external cues that symbolize or resemble an aspect of the traumatic event(s) (child \u22646)": "UNKNOWN",
+      "Often has difficulty waiting his or her turn (e.g., while waiting in line).": "UNKNOWN",
+      "Often fails to give close attention to details or makes careless mistakes in schoolwork, at work, or during other activities (e.g., overlooks or misses details, work is inaccurate).": "UNKNOWN",
+      "Deficits in nonverbal communicative behaviors used for social interaction, ranging from poorly integrated verbal and nonverbal communication; to abnormalities in eye contact and body language or deficits in understanding and use of gestures; to a total lack of facial expressions and nonverbal communication": "UNKNOWN",
+      "Experiencing repeated or extreme exposure to aversive details of the traumatic event(s) (e.g., first responders; not through media unless work-related)": "NO",
+      "Often does not follow through on instructions and fails to finish schoolwork, chores, or duties in the workplace (e.g., starts tasks but quickly loses focus and is easily sidetracked).": "UNKNOWN",
+      "Sleep disturbance (e.g., difficulty falling or staying asleep or restless sleep)": "YES",
+      "Often has difficulty sustaining attention in tasks or play activities (e.g., has difficulty remaining focused during lectures, conversations, or lengthy reading).": "YES",
+      "Substantially increased frequency of negative emotional states (e.g., fear, guilt, sadness, shame, confusion) (child \u22646)": "UNKNOWN",
+      "Hypervigilance (child \u22646)": "UNKNOWN",
+      "Is often easily distracted by extraneous stimuli (for older adolescents and adults, may include unrelated thoughts).": "YES",
+      "Do you adhere to this criterion: For learning about events (Criterion A3), the event(s) must have been violent or accidental?": "UNKNOWN",
+      "Is it true that: The disturbance is not attributable to the physiological effects of a substance (e.g., medication)?": "YES",
+      "Do you adhere to this criterion: The disturbance causes clinically significant distress or impairment in social, occupational, or other important areas of functioning?": "YES",
+      "Do you adhere to this criterion: Exposure involves actual or threatened death, serious injury, or sexual violence?": "NO",
+      "Is it true that: Dissociative symptoms (if present) must not be attributable to the physiological effects of a substance?": "YES"
+    },
+    "batch_size": 5
+  },
+  {
+    "vignette_id": "vig_3244_0_mdd",
+    "ground_truth": "mdd",
+    "num_questions": 50,
+    "num_llm_calls": 10,
+    "duration_seconds": 43.06989121437073,
+    "questions": [
+      {
+        "id": "gad_a",
+        "text": "Excessive anxiety and worry (apprehensive expectation), occurring more days than not for at least 6 months, about a number of events or activities (such as work or school performance).",
+        "answer": "NO"
+      },
+      {
+        "id": "mdd_a1",
+        "text": "Depressed mood most of the day, nearly every day, as indicated by subjective report (e.g., feels sad, empty, hopeless) or observation by others (e.g., appears tearful). Note: In children and adolescents, can be irritable mood.",
+        "answer": "YES"
+      },
+      {
+        "id": "mdd_a2",
+        "text": "Markedly diminished interest or pleasure in all, or almost all, activities most of the day, nearly every day (as indicated by subjective account or observation).",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_b",
+        "text": "The individual finds it difficult to control the worry.",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_b3_child",
+        "text": "Dissociative reactions in which the child feels or acts as if the traumatic event(s) were recurring (trauma-specific reenactment may occur in play)",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "mdd_a6",
+        "text": "Fatigue or loss of energy nearly every day.",
+        "answer": "YES"
+      },
+      {
+        "id": "adhd_a1c",
+        "text": "Often does not seem to listen when spoken to directly (e.g., mind seems elsewhere, even in the absence of any obvious distraction).",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "mdd_a3",
+        "text": "Significant weight loss when not dieting or weight gain (e.g., change of more than 5% of body weight in a month), or decrease or increase in appetite nearly every day. Note: In children, consider failure to make expected weight gain.",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_d6",
+        "text": "Feelings of detachment or estrangement from others",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_d4",
+        "text": "Persistent negative emotional state (e.g., fear, horror, anger, guilt, or shame)",
+        "answer": "YES"
+      },
+      {
+        "id": "mdd_exc_bipolar",
+        "text": "Is it true that: There has never been a manic episode or a hypomanic episode. Note: This exclusion does not apply if all manic-like or hypomanic-like episodes are substance-induced or attributable to another medical condition.?",
+        "answer": "YES"
+      },
+      {
+        "id": "mdd_exc_medical",
+        "text": "Is it true that: The episode is not attributable to another medical condition.?",
+        "answer": "YES"
+      },
+      {
+        "id": "mdd_subj_clinical_significance",
+        "text": "Do you adhere to this criterion: The symptoms cause clinically significant distress or impairment in social, occupational, or other important areas of functioning.?",
+        "answer": "YES"
+      },
+      {
+        "id": "mdd_exc_substance",
+        "text": "Is it true that: The episode is not attributable to the physiological effects of a substance (e.g., drug of abuse, medication).?",
+        "answer": "YES"
+      },
+      {
+        "id": "mdd_exc_psychotic",
+        "text": "Is it true that: The occurrence of the major depressive episode is not better explained by schizoaffective disorder, schizophrenia, schizophreniform disorder, delusional disorder, or other schizophrenia spectrum and psychotic disorders.?",
+        "answer": "YES"
+      },
+      {
+        "id": "mdd_duration_check",
+        "text": "Have these symptoms persisted for the required duration (usually > 2 weeks or 6 months depending on disorder)?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_d5",
+        "text": "Markedly diminished interest or participation in significant activities",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_a3_child",
+        "text": "Learning that the traumatic event(s) occurred to a parent or caregiving figure (child \u22646 years)",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_e5",
+        "text": "Problems with concentration",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_e1",
+        "text": "Irritable behavior and angry outbursts (with little or no provocation) typically expressed as verbal or physical aggression toward people or objects",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_subj_violent_accidental",
+        "text": "Do you adhere to this criterion: For learning about events (Criterion A3), the event(s) must have been violent or accidental?",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_subj_trauma_quality",
+        "text": "Do you adhere to this criterion: Exposure involves actual or threatened death, serious injury, or sexual violence?",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_exc_substance",
+        "text": "Is it true that: The disturbance is not attributable to the physiological effects of a substance (e.g., medication, alcohol)?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_subj_distress_child",
+        "text": "Do you adhere to this criterion: The disturbance causes clinically significant distress or impairment in relationships with parents, siblings, peers, or other caregivers or with school behavior?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_preschool_duration_check",
+        "text": "Have these symptoms persisted for the required duration (usually > 2 weeks or 6 months depending on disorder)?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_exc_dissociative_medical_child",
+        "text": "Is it true that: Dissociative symptoms (if present) must not be attributable to another medical condition?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_exc_dissociative_substance",
+        "text": "Is it true that: Dissociative symptoms (if present) must not be attributable to the physiological effects of a substance (e.g., blackouts, behavior during alcohol intoxication)?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_exc_dissociative_medical",
+        "text": "Is it true that: Dissociative symptoms (if present) must not be attributable to another medical condition (e.g., complex partial seizures)?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_exc_medical",
+        "text": "Is it true that: The disturbance is not attributable to another medical condition?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_exc_substance_child",
+        "text": "Is it true that: The disturbance is not attributable to the physiological effects of a substance (e.g., medication)?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_subj_distress",
+        "text": "Do you adhere to this criterion: The disturbance causes clinically significant distress or impairment in social, occupational, or other important areas of functioning?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_subj_trauma_quality_child",
+        "text": "Do you adhere to this criterion: Exposure involves actual or threatened death, serious injury, or sexual violence?",
+        "answer": "NO"
+      },
+      {
+        "id": "ptsd_duration_check",
+        "text": "Have these symptoms persisted for the required duration (usually > 2 weeks or 6 months depending on disorder)?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_exc_medical_child",
+        "text": "Is it true that: The disturbance is not attributable to another medical condition?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_exc_dissociative_substance_child",
+        "text": "Is it true that: Dissociative symptoms (if present) must not be attributable to the physiological effects of a substance?",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_a1_child",
+        "text": "Directly experiencing the traumatic event(s) (child \u22646 years)",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_d3",
+        "text": "Persistent, distorted cognitions about the cause or consequences of the traumatic event(s) that lead the individual to blame himself/herself or others",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "gad_c6",
+        "text": "Sleep disturbance (difficulty falling or staying asleep, or restless, unsatisfying sleep).",
+        "answer": "YES"
+      },
+      {
+        "id": "ptsd_a2_child",
+        "text": "Witnessing, in person, the event(s) as it occurred to others, especially primary caregivers (child \u22646 years; not electronic media)",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "ptsd_b2_child",
+        "text": "Recurrent distressing dreams related to the traumatic event(s) (may not be possible to ascertain frightening content is trauma-related in children \u22646)",
+        "answer": "UNKNOWN"
+      },
+      {
+        "id": "gad_exc_ocd",
+        "text": "Is it true that: The disturbance is not better explained by contamination or other obsessions in obsessive-compulsive disorder.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_social_anxiety",
+        "text": "Is it true that: The disturbance is not better explained by negative evaluation in social anxiety disorder (social phobia).?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_duration_check",
+        "text": "Have these symptoms persisted for the required duration (usually > 2 weeks or 6 months depending on disorder)?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_panic",
+        "text": "Is it true that: The disturbance is not better explained by anxiety or worry about having panic attacks in panic disorder.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_psychotic",
+        "text": "Is it true that: The disturbance is not better explained by the content of delusional beliefs in schizophrenia or delusional disorder.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_somatic",
+        "text": "Is it true that: The disturbance is not better explained by physical complaints in somatic symptom disorder.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_bdd",
+        "text": "Is it true that: The disturbance is not better explained by perceived appearance flaws in body dysmorphic disorder.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_illness_anxiety",
+        "text": "Is it true that: The disturbance is not better explained by having a serious illness in illness anxiety disorder.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_subj_clinical_significance",
+        "text": "Do you adhere to this criterion: The anxiety, worry, or physical symptoms cause clinically significant distress or impairment in social, occupational, or other important areas of functioning.?",
+        "answer": "YES"
+      },
+      {
+        "id": "gad_exc_substance",
+        "text": "Is it true that: The disturbance is not attributable to the physiological effects of a substance (e.g., a drug of abuse, a medication).?",
+        "answer": "YES"
+      }
+    ],
+    "answers": {
+      "Excessive anxiety and worry (apprehensive expectation), occurring more days than not for at least 6 months, about a number of events or activities (such as work or school performance).": "NO",
+      "Depressed mood most of the day, nearly every day, as indicated by subjective report (e.g., feels sad, empty, hopeless) or observation by others (e.g., appears tearful). Note: In children and adolescents, can be irritable mood.": "YES",
+      "Markedly diminished interest or pleasure in all, or almost all, activities most of the day, nearly every day (as indicated by subjective account or observation).": "YES",
+      "The individual finds it difficult to control the worry.": "UNKNOWN",
+      "Dissociative reactions in which the child feels or acts as if the traumatic event(s) were recurring (trauma-specific reenactment may occur in play)": "UNKNOWN",
+      "Fatigue or loss of energy nearly every day.": "YES",
+      "Often does not seem to listen when spoken to directly (e.g., mind seems elsewhere, even in the absence of any obvious distraction).": "UNKNOWN",
+      "Significant weight loss when not dieting or weight gain (e.g., change of more than 5% of body weight in a month), or decrease or increase in appetite nearly every day. Note: In children, consider failure to make expected weight gain.": "YES",
+      "Feelings of detachment or estrangement from others": "YES",
+      "Persistent negative emotional state (e.g., fear, horror, anger, guilt, or shame)": "YES",
+      "Is it true that: There has never been a manic episode or a hypomanic episode. Note: This exclusion does not apply if all manic-like or hypomanic-like episodes are substance-induced or attributable to another medical condition.?": "YES",
+      "Is it true that: The episode is not attributable to another medical condition.?": "YES",
+      "Do you adhere to this criterion: The symptoms cause clinically significant distress or impairment in social, occupational, or other important areas of functioning.?": "YES",
+      "Is it true that: The episode is not attributable to the physiological effects of a substance (e.g., drug of abuse, medication).?": "YES",
+      "Is it true that: The occurrence of the major depressive episode is not better explained by schizoaffective disorder, schizophrenia, schizophreniform disorder, delusional disorder, or other schizophrenia spectrum and psychotic disorders.?": "YES",
+      "Have these symptoms persisted for the required duration (usually > 2 weeks or 6 months depending on disorder)?": "YES",
+      "Markedly diminished interest or participation in significant activities": "YES",
+      "Learning that the traumatic event(s) occurred to a parent or caregiving figure (child \u22646 years)": "UNKNOWN",
+      "Problems with concentration": "YES",
+      "Irritable behavior and angry outbursts (with little or no provocation) typically expressed as verbal or physical aggression toward people or objects": "YES",
+      "Do you adhere to this criterion: For learning about events (Criterion A3), the event(s) must have been violent or accidental?": "UNKNOWN",
+      "Do you adhere to this criterion: Exposure involves actual or threatened death, serious injury, or sexual violence?": "NO",
+      "Is it true that: The disturbance is not attributable to the physiological effects of a substance (e.g., medication, alcohol)?": "YES",
+      "Do you adhere to this criterion: The disturbance causes clinically significant distress or impairment in relationships with parents, siblings, peers, or other caregivers or with school behavior?": "YES",
+      "Is it true that: Dissociative symptoms (if present) must not be attributable to another medical condition?": "YES",
+      "Is it true that: Dissociative symptoms (if present) must not be attributable to the physiological effects of a substance (e.g., blackouts, behavior during alcohol intoxication)?": "YES",
+      "Is it true that: Dissociative symptoms (if present) must not be attributable to another medical condition (e.g., complex partial seizures)?": "YES",
+      "Is it true that: The disturbance is not attributable to another medical condition?": "YES",
+      "Is it true that: The disturbance is not attributable to the physiological effects of a substance (e.g., medication)?": "YES",
+      "Do you adhere to this criterion: The disturbance causes clinically significant distress or impairment in social, occupational, or other important areas of functioning?": "YES",
+      "Is it true that: Dissociative symptoms (if present) must not be attributable to the physiological effects of a substance?": "YES",
+      "Directly experiencing the traumatic event(s) (child \u22646 years)": "UNKNOWN",
+      "Persistent, distorted cognitions about the cause or consequences of the traumatic event(s) that lead the individual to blame himself/herself or others": "UNKNOWN",
+      "Sleep disturbance (difficulty falling or staying asleep, or restless, unsatisfying sleep).": "YES",
+      "Witnessing, in person, the event(s) as it occurred to others, especially primary caregivers (child \u22646 years; not electronic media)": "UNKNOWN",
+      "Recurrent distressing dreams related to the traumatic event(s) (may not be possible to ascertain frightening content is trauma-related in children \u22646)": "UNKNOWN",
+      "Is it true that: The disturbance is not better explained by contamination or other obsessions in obsessive-compulsive disorder.?": "YES",
+      "Is it true that: The disturbance is not better explained by negative evaluation in social anxiety disorder (social phobia).?": "YES",
+      "Is it true that: The disturbance is not better explained by anxiety or worry about having panic attacks in panic disorder.?": "YES",
+      "Is it true that: The disturbance is not better explained by the content of delusional beliefs in schizophrenia or delusional disorder.?": "YES",
+      "Is it true that: The disturbance is not better explained by physical complaints in somatic symptom disorder.?": "YES",
+      "Is it true that: The disturbance is not better explained by perceived appearance flaws in body dysmorphic disorder.?": "YES",
+      "Is it true that: The disturbance is not better explained by having a serious illness in illness anxiety disorder.?": "YES",
+      "Do you adhere to this criterion: The anxiety, worry, or physical symptoms cause clinically significant distress or impairment in social, occupational, or other important areas of functioning.?": "YES",
+      "Is it true that: The disturbance is not attributable to the physiological effects of a substance (e.g., a drug of abuse, a medication).?": "YES"
+    },
+    "batch_size": 5
+  }
+]

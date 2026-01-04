@@ -74,7 +74,7 @@ The diagram is organized into **5 sequential phases**, each represented by a col
   - Overall status determination
   - Confidence calculation
   - Result dictionary construction
-  - Optional explanation and visualization
+  - Optional explanation and visualisation
 - **Frequency**: Once when ready
 
 ## Color Coding Legend
@@ -153,7 +153,7 @@ The flowchart uses consistent color coding for different component types:
 - All assertion types shown (symptom, exclusion, duration, subjective)
 
 ### 3. **Prolog Inference → Diagnosis Result** (Phase 5)
-- Parallel criterion checks visualized
+- Parallel criterion checks visualised
 - Aggregation into overall status
 - Confidence calculation formula
 
@@ -254,5 +254,5 @@ A: No, it's manually created based on comprehensive code analysis. This ensures 
 
 **Created**: January 2026
 **Format**: draw.io XML (mxGraph)
-**Dimensions**: 1600×2400px (optimized for A4 portrait)
+**Dimensions**: 1600×2400px (optimised for A4 portrait)
 **Complexity**: 100+ shapes, 5 major phases, full system lifecycle

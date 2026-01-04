@@ -107,7 +107,7 @@ src/
 ├── reasoning/                 # Prolog Interface & Utilities
 │   ├── engine.py            # PrologEngine class (pyswip wrapper)
 │   ├── utils.py             # KB exploration (explore_disorder, list_disorders)
-│   ├── viz.py               # Diagnostic flowchart visualization
+│   ├── viz.py               # Diagnostic flowchart visualisation
 │   └── __init__.py          # Module exports
 │
 ├── extraction/               # LLM Extraction Pipeline
@@ -120,12 +120,12 @@ src/
 │       ├── anthropic_provider.py # Claude Opus 4.5 with thinking
 │       └── ollama_provider.py    # Local models (gpt-oss, deepseek-r1)
 │
-├── search/                   # Diagnostic Pathway Optimization
+├── search/                   # Diagnostic Pathway Optimisation
 │   ├── manager.py           # SessionManager with pruning logic
 │   └── search.py            # DiagnosticSearch (A* with verification mode)
 │
 └── evaluation/               # Benchmarking & Testing
-    └── benchmark.py         # ClinicalAnalyzer for vignette evaluation
+    └── benchmark.py         # ClinicalAnalyser for vignette evaluation
 
 data/
 ├── dsm5_text/               # DSM-5-TR source text files
@@ -192,7 +192,7 @@ meets_duration_criteria(PatientID, DisorderID) :-
 
 **Implementation:**
 ```python
-class ClinicalAnalyzer:
+class ClinicalAnalyser:
     def assess_subjective_criterion(self, criterion: str, vignette: str) -> Assessment:
         prompt = f"""
         <criterion>{criterion}</criterion>
@@ -278,14 +278,14 @@ diagnosis_candidate(pt001, mdd, 0.92).
 
 **Evidence:** See [Provider Evaluation](PROVIDER_EVALUATION.md) - even best LLMs (Claude Opus 4.5) miss objective criteria 5-10% of the time when doing end-to-end extraction.
 
-### Why A* Search for Pathway Optimization?
+### Why A* Search for Pathway Optimisation?
 
-**Rationale:** Diagnostic interviews can be optimized to minimize questions:
+**Rationale:** Diagnostic interviews can be optimised to minimise questions:
 - **Prioritization:** Ask high-value questions first (exclusions, core symptoms)
 - **Pruning:** Eliminate candidates early based on responses
 - **Verification:** Boost onset/duration questions when symptoms met
 
-**Evidence:** A* reduces average questions from 40-50 (exhaustive) to 15-25 (optimized), a 40-60% reduction.
+**Evidence:** A* reduces average questions from 40-50 (exhaustive) to 15-25 (optimised), a 40-60% reduction.
 
 ### Why pyswip Over Other Prolog Interfaces?
 

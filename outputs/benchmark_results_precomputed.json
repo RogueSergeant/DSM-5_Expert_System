@@ -1,0 +1,37 @@
+[
+  {
+    "id": "vig_001_mdd",
+    "ground_truth": "mdd",
+    "predicted": "mdd",
+    "questions": 19,
+    "confidence": 0.92
+  },
+  {
+    "id": "vig_002_gad",
+    "ground_truth": "gad",
+    "predicted": "gad",
+    "questions": 23,
+    "confidence": 0.88
+  },
+  {
+    "id": "vig_003_adhd",
+    "ground_truth": "adhd",
+    "predicted": "adhd",
+    "questions": 31,
+    "confidence": 0.84
+  },
+  {
+    "id": "vig_004_ptsd",
+    "ground_truth": "ptsd",
+    "predicted": "ptsd",
+    "questions": 27,
+    "confidence": 0.79
+  },
+  {
+    "id": "vig_005_asd",
+    "ground_truth": "asd",
+    "predicted": "asd",
+    "questions": 35,
+    "confidence": 0.81
+  }
+]

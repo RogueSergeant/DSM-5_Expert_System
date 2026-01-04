@@ -281,7 +281,7 @@ python -m src.evaluation.benchmark
 
 This will:
 1. Load vignettes from `data/vignettes/`
-2. Extract symptoms using LLM (ClinicalAnalyzer)
+2. Extract symptoms using LLM (ClinicalAnalyser)
 3. Run diagnostic search
 4. Compare against ground truth diagnoses
 5. Report accuracy metrics
@@ -291,7 +291,7 @@ This will:
 Test a single vignette:
 
 ```python
-from src.evaluation.benchmark import ClinicalAnalyzer, run_diagnostic_benchmark
+from src.evaluation.benchmark import ClinicalAnalyser, run_diagnostic_benchmark
 
 vignette = """
 34-year-old female presenting with persistent low mood for 3 weeks.
@@ -300,7 +300,7 @@ and socializing. Difficulty sleeping, waking at 4am. Constantly fatigued.
 Feels worthless. No suicidal ideation. No substance use. No prior mania.
 """
 
-analyzer = ClinicalAnalyzer()
+analyzer = ClinicalAnalyser()
 result = analyzer.diagnose(vignette)
 print(f"Diagnosis: {result.disorder_id}")
 print(f"Confidence: {result.confidence}")

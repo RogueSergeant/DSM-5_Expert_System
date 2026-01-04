@@ -32,11 +32,11 @@ This system implements a novel three-tier architecture that separates objective 
 - Validation pipeline ensures syntactic and semantic correctness
 - See [Provider Evaluation](docs/PROVIDER_EVALUATION.md) for benchmarks
 
-### 🎯 Diagnostic Pathway Optimization
+### 🎯 Diagnostic Pathway Optimisation
 - A* search finds optimal question sequences
 - Pruning eliminates ruled-out diagnoses early
 - Verification mode boosts high-value questions
-- Reduces questions from 40-50 (exhaustive) to 15-25 (optimized)
+- Reduces questions from 40-50 (exhaustive) to 15-25 (optimised)
 
 ### 📊 Comprehensive Testing
 - Clinical vignette benchmarks
@@ -145,7 +145,7 @@ python -m src.evaluation.benchmark
 │   ├── extraction/                # LLM extraction pipeline
 │   │   ├── run_extraction.py    # CLI entry point
 │   │   └── providers/           # OpenAI, Anthropic, Ollama
-│   ├── search/                    # Diagnostic pathway optimization
+│   ├── search/                    # Diagnostic pathway optimisation
 │   │   ├── manager.py           # SessionManager with pruning
 │   │   └── search.py            # A* search implementation
 │   └── evaluation/                # Benchmarking
@@ -257,7 +257,7 @@ This project was developed for the **Foundations of AI** module (MSc Applied AI,
 - Hybrid AI architecture design (Category 3)
 - Knowledge representation with logic programming (Prolog)
 - LLM integration for knowledge extraction
-- Search optimization (A* for diagnostic pathways)
+- Search optimisation (A* for diagnostic pathways)
 - Explainable AI for high-stakes domains (healthcare)
 - Benchmark design and evaluation
 
@@ -270,7 +270,7 @@ This project was developed for the **Foundations of AI** module (MSc Applied AI,
 | Symbolic Reasoning | SWI-Prolog | Diagnostic inference engine |
 | Python Interface | pyswip | Prolog ↔ Python bridge |
 | LLM Integration | Anthropic/OpenAI/Ollama APIs | Knowledge extraction & subjective assessment |
-| Search | A* algorithm | Pathway optimization |
+| Search | A* algorithm | Pathway optimisation |
 | Visualization | matplotlib, networkx | Diagnostic flowcharts |
 | Testing | pytest, clinical vignettes | Validation & benchmarking |
 

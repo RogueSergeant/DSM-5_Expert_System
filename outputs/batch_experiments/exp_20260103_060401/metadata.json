@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-01-03T06:04:01.625980",
+  "num_vignettes": 2,
+  "providers": [
+    "openai"
+  ],
+  "vignette_ids": [
+    "vig_1349_0_gad",
+    "vig_3244_0_mdd"
+  ]
+}

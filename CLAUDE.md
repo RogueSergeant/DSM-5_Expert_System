@@ -5,6 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Always Remember
 
 It is 2026
+Write in British English only
+Avoid using =s to break up print statements
 
 ## Project Overview
 
@@ -40,13 +42,19 @@ src/reasoning/            # Python↔Prolog interface
 ├── utils.py             # KB exploration
 └── viz.py               # Diagnostic flowchart generation
 
-src/search/              # Diagnostic pathway optimization
+src/search/              # Diagnostic pathway optimisation
 ├── search.py            # A* search for optimal question sequences
 └── manager.py           # SessionManager with pruning logic
 
 src/evaluation/          # Benchmarking framework
 └── benchmark.py         # Clinical vignette testing
 
+scripts/                 # Standalone scripts
+├── debug/              # Debugging utilities
+└── experiments/        # Batch experiment runners
+
+tests/                   # Test scripts
+specs/                   # Coursework specification PDFs
 data/dsm5_text/          # DSM-5-TR source text
 data/vignettes/          # Clinical test cases
 docs/                    # Comprehensive documentation (see README.md)
@@ -101,10 +109,15 @@ swipl -g "[schema], ['gold_standard/loader']"
 
 **Debugging & Evaluation**:
 ```bash
-python debug_pruning.py        # Test diagnostic pruning logic
-python debug_adhd.py           # Test ADHD age-adjusted counts
-python debug_mdd.py            # Test MDD diagnosis
-python -m src.evaluation.benchmark  # Run clinical vignette benchmarks
+python scripts/debug/diagnose_prolog_failure.py  # Diagnose criteria failures
+python scripts/debug/debug_assertions.py         # Check duration/subjective assertions
+python -m src.evaluation.benchmark               # Run clinical vignette benchmarks
+```
+
+**Experiments**:
+```bash
+python scripts/experiments/run_batch_experiment.py --num-vignettes 10  # Batch vs sequential
+python scripts/experiments/run_pure_llm_baseline.py --provider openai  # Pure LLM baseline
 ```
 
 **Testing**:

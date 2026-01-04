@@ -1,0 +1,248 @@
+{
+  "total": 10,
+  "exact_matches": 5,
+  "partial_matches": 6,
+  "exact_accuracy": 50.0,
+  "partial_accuracy": 60.0,
+  "single_disorder": {
+    "total": 9,
+    "correct": 5,
+    "accuracy": 55.55555555555556
+  },
+  "comorbid": {
+    "total": 1,
+    "exact_matches": 0,
+    "partial_matches": 1,
+    "exact_accuracy": 0.0,
+    "partial_accuracy": 100.0
+  },
+  "details": [
+    {
+      "vignette_id": "vig_1349_0_gad",
+      "ground_truth": "gad",
+      "predicted_all": [
+        "gad"
+      ],
+      "predicted_top": "gad",
+      "valid_diagnoses": [
+        [
+          "gad",
+          0.9
+        ]
+      ],
+      "is_correct": true,
+      "match_type": "exact",
+      "correct": [
+        "gad"
+      ],
+      "missed": [],
+      "extra": [],
+      "is_comorbid_truth": false,
+      "is_comorbid_pred": false,
+      "partial_score": 1.0,
+      "num_questions": 120
+    },
+    {
+      "vignette_id": "vig_3244_0_mdd",
+      "ground_truth": "mdd",
+      "predicted_all": [
+        "mdd"
+      ],
+      "predicted_top": "mdd",
+      "valid_diagnoses": [
+        [
+          "mdd",
+          0.9
+        ]
+      ],
+      "is_correct": true,
+      "match_type": "exact",
+      "correct": [
+        "mdd"
+      ],
+      "missed": [],
+      "extra": [],
+      "is_comorbid_truth": false,
+      "is_comorbid_pred": false,
+      "partial_score": 1.0,
+      "num_questions": 105
+    },
+    {
+      "vignette_id": "vig_3315_1_gad",
+      "ground_truth": "gad",
+      "predicted_all": [
+        "gad"
+      ],
+      "predicted_top": "gad",
+      "valid_diagnoses": [
+        [
+          "gad",
+          0.9
+        ]
+      ],
+      "is_correct": true,
+      "match_type": "exact",
+      "correct": [
+        "gad"
+      ],
+      "missed": [],
+      "extra": [],
+      "is_comorbid_truth": false,
+      "is_comorbid_pred": false,
+      "partial_score": 1.0,
+      "num_questions": 110
+    },
+    {
+      "vignette_id": "vig_3349_2_adhd",
+      "ground_truth": "adhd",
+      "predicted_all": [],
+      "predicted_top": "none",
+      "valid_diagnoses": [],
+      "is_correct": false,
+      "match_type": "incorrect",
+      "correct": [],
+      "missed": [
+        "adhd"
+      ],
+      "extra": [],
+      "is_comorbid_truth": false,
+      "is_comorbid_pred": false,
+      "partial_score": 0.0,
+      "num_questions": 102
+    },
+    {
+      "vignette_id": "vig_3410_3_ptsd",
+      "ground_truth": "ptsd",
+      "predicted_all": [],
+      "predicted_top": "none",
+      "valid_diagnoses": [],
+      "is_correct": false,
+      "match_type": "incorrect",
+      "correct": [],
+      "missed": [
+        "ptsd"
+      ],
+      "extra": [],
+      "is_comorbid_truth": false,
+      "is_comorbid_pred": false,
+      "partial_score": 0.0,
+      "num_questions": 113
+    },
+    {
+      "vignette_id": "vig_3442_4_asd",
+      "ground_truth": "asd",
+      "predicted_all": [],
+      "predicted_top": "none",
+      "valid_diagnoses": [],
+      "is_correct": false,
+      "match_type": "incorrect",
+      "correct": [],
+      "missed": [
+        "asd"
+      ],
+      "extra": [],
+      "is_comorbid_truth": false,
+      "is_comorbid_pred": false,
+      "partial_score": 0.0,
+      "num_questions": 102
+    },
+    {
+      "vignette_id": "vig_20260102_103450_000_mdd",
+      "ground_truth": "mdd",
+      "predicted_all": [
+        "mdd"
+      ],
+      "predicted_top": "mdd",
+      "valid_diagnoses": [
+        [
+          "mdd",
+          0.9
+        ]
+      ],
+      "is_correct": true,
+      "match_type": "exact",
+      "correct": [
+        "mdd"
+      ],
+      "missed": [],
+      "extra": [],
+      "is_comorbid_truth": false,
+      "is_comorbid_pred": false,
+      "partial_score": 1.0,
+      "num_questions": 103
+    },
+    {
+      "vignette_id": "vig_20260102_103508_001_gad",
+      "ground_truth": "gad",
+      "predicted_all": [
+        "gad"
+      ],
+      "predicted_top": "gad",
+      "valid_diagnoses": [
+        [
+          "gad",
+          0.9
+        ]
+      ],
+      "is_correct": true,
+      "match_type": "exact",
+      "correct": [
+        "gad"
+      ],
+      "missed": [],
+      "extra": [],
+      "is_comorbid_truth": false,
+      "is_comorbid_pred": false,
+      "partial_score": 1.0,
+      "num_questions": 120
+    },
+    {
+      "vignette_id": "vig_20260102_103551_002_adhd",
+      "ground_truth": "adhd",
+      "predicted_all": [],
+      "predicted_top": "none",
+      "valid_diagnoses": [],
+      "is_correct": false,
+      "match_type": "incorrect",
+      "correct": [],
+      "missed": [
+        "adhd"
+      ],
+      "extra": [],
+      "is_comorbid_truth": false,
+      "is_comorbid_pred": false,
+      "partial_score": 0.0,
+      "num_questions": 102
+    },
+    {
+      "vignette_id": "vig_20260102_103634_003_comorbid_ptsd_mdd",
+      "ground_truth": [
+        "ptsd",
+        "mdd"
+      ],
+      "predicted_all": [
+        "mdd"
+      ],
+      "predicted_top": "mdd",
+      "valid_diagnoses": [
+        [
+          "mdd",
+          0.9
+        ]
+      ],
+      "is_correct": false,
+      "match_type": "partial_under",
+      "correct": [
+        "mdd"
+      ],
+      "missed": [
+        "ptsd"
+      ],
+      "extra": [],
+      "is_comorbid_truth": true,
+      "is_comorbid_pred": false,
+      "partial_score": 0.5,
+      "num_questions": 113
+    }
+  ]
+}

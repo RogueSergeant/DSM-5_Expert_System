@@ -308,7 +308,7 @@ All providers produced **syntactically valid** Prolog files that load without er
 1. **Test with high/xhigh thinking** to compare quality improvement
 2. **Test on more complex disorders** (e.g., Schizophrenia, Bipolar)
 3. **Evaluate inter-rater reliability** across multiple runs
-4. **Test smaller/faster models** for cost optimization (gpt-4o, claude-haiku)
+4. **Test smaller/faster models** for cost optimisation (gpt-4o, claude-haiku)
 5. **Test alternative Ollama models** (deepseek-r1, qwq) for Criterion A handling
 
 ## Related Documentation

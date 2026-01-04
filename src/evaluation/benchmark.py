@@ -6,14 +6,26 @@ from typing import List, Dict
 from src.search.manager import SessionManager
 from src.search.search import DiagnosticSearch
 
-def load_vignettes(path: Path) -> List[Dict]:
-    with open(path, 'r') as f:
-        return json.load(f)
+def load_vignettes(vignettes_dir: Path = None) -> List[Dict]:
+    """Load all vignette files from the vignettes directory."""
+    if vignettes_dir is None:
+        # Default to data/vignettes from project root
+        vignettes_dir = Path(__file__).parent.parent.parent / 'data' / 'vignettes'
+
+    all_vignettes = []
+    # Load all vignettes_*.json files
+    for vfile in sorted(vignettes_dir.glob("vignettes_*.json")):
+        with open(vfile, 'r') as f:
+            vigs = json.load(f)
+            all_vignettes.extend(vigs)
+            print(f"Loaded {len(vigs)} vignettes from {vfile.name}")
+
+    return all_vignettes
 
 from src.extraction.providers import get_provider
 from src.extraction.config import Config
 
-class ClinicalAnalyzer:
+class ClinicalAnalyser:
     def __init__(self, vignette: Dict, provider_name: str = "openai"):
         self.clinical_text = vignette.get('clinical_text', '')
         self.provider = get_provider(provider_name)
@@ -24,7 +36,7 @@ class ClinicalAnalyzer:
         Returns: "YES", "NO", "UNKNOWN"
         """
         prompt = f"""You are an expert clinical psychiatrist performing a structured assessment.
-Analyze the following patient vignette:
+Analyse the following patient vignette:
 
 "{self.clinical_text}"
 
@@ -74,21 +86,18 @@ Output ONLY the single word: YES, NO, or UNKNOWN.
             print(f"Simulator Error: {e}")
             return False
 
-def run_benchmark(vignette_path: Path):
-    vignettes = load_vignettes(vignette_path)
+def run_benchmark(vignettes_dir: Path = None, provider_name: str = "ollama"):
+    vignettes = load_vignettes(vignettes_dir)
     manager = SessionManager()
     search = DiagnosticSearch(manager)
-    
-    # Initialize simulator with default provider
-    # Ideally passed via args, defaulting to openai for now
-    
+
     results = []
-    
-    print(f"Benchmarking on {len(vignettes)} cases using Clinical Expert Agent...")
-    
+
+    print(f"Benchmarking on {len(vignettes)} cases using Clinical Expert Agent (Provider: {provider_name})...")
+
     for case in vignettes:
         manager.start_new_session()
-        
+
         # Extract and Set Age
         import re
         demo = case.get('demographics', '')
@@ -98,12 +107,12 @@ def run_benchmark(vignette_path: Path):
             manager.set_patient_data(age)
             print(f"  [Info] Patient Age set to {age}")
         else:
-            # Default to adult if not found to avoid child-logic traps? 
+            # Default to adult if not found to avoid child-logic traps?
             # Or log warning.
             print("  [Warning] Could not extract age. Defaulting to 30.")
             manager.set_patient_data(30)
 
-        sim = ClinicalAnalyzer(case)
+        sim = ClinicalAnalyser(case, provider_name=provider_name)
         
         questions_asked = 0
         max_questions = 50
@@ -212,7 +221,10 @@ def run_benchmark(vignette_path: Path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("vignettes", type=Path)
+    parser.add_argument("--vignettes-dir", type=Path, default=None,
+                        help="Directory containing vignette files (default: data/vignettes)")
+    parser.add_argument("--provider", type=str, default="ollama",
+                        help="LLM provider to use (ollama, openai, anthropic)")
     args = parser.parse_args()
-    
-    run_benchmark(args.vignettes)
+
+    run_benchmark(args.vignettes_dir, provider_name=args.provider)

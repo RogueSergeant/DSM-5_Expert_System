@@ -64,10 +64,10 @@ class Config:
     # Default models (as of December 2025)
     # OpenAI: gpt-5.2 is the latest with xhigh reasoning support
     # Anthropic: claude-sonnet-4-5 balances speed and quality
-    # Ollama: llama3.1:8b is a good default for local use
+    # Ollama: llama3.2 for batch experiment testing
     default_openai_model: str = "gpt-5.2"
     default_anthropic_model: str = "claude-sonnet-4-5"
-    default_ollama_model: str = "llama3.1:8b"
+    default_ollama_model: str = "llama3.2"
 
     # Generation settings
     max_tokens: int = 16384  # Increased for complex Prolog output
@@ -107,7 +107,7 @@ class Config:
             ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
             default_openai_model=os.getenv("OPENAI_MODEL", "gpt-5.2"),
             default_anthropic_model=os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5"),
-            default_ollama_model=os.getenv("OLLAMA_MODEL", "llama3.1:8b"),
+            default_ollama_model=os.getenv("OLLAMA_MODEL", "llama3.2"),
             max_tokens=int(os.getenv("MAX_TOKENS", "16384")),
             temperature=float(os.getenv("TEMPERATURE", "0.1")),
         )
@@ -174,10 +174,10 @@ OLLAMA_BASE_URL=http://localhost:11434
 # Default models (as of December 2025)
 # OpenAI GPT-5: gpt-5.2 (latest), gpt-5.1, gpt-5
 # Claude: claude-sonnet-4-5 (recommended), claude-opus-4-5, claude-haiku-3-5
-# Ollama: llama3.1:8b, gpt-oss:20b, deepseek-r1:7b, qwq:32b
+# Ollama: llama3.2 (for testing), llama3.1:8b, gpt-oss:20b, deepseek-r1:7b, qwq:32b
 OPENAI_MODEL=gpt-5.2
 ANTHROPIC_MODEL=claude-sonnet-4-5
-OLLAMA_MODEL=llama3.1:8b
+OLLAMA_MODEL=llama3.2
 
 # Generation settings
 MAX_TOKENS=16384

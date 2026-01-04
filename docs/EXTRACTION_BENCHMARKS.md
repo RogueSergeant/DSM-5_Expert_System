@@ -331,7 +331,7 @@ done
 ### Recommended Tests
 1. Test on simpler disorders (MDD, GAD) to isolate PTSD-specific issues
 2. Test alternative Ollama models (deepseek-r1:70b, qwq:32b)
-3. Test smaller cloud models (gpt-4o, claude-haiku-4) for cost optimization
+3. Test smaller cloud models (gpt-4o, claude-haiku-4) for cost optimisation
 4. Inter-rater reliability: Run same extraction 3-5 times, measure consistency
 5. Test extraction from DSM-5-TR vs DSM-5 to validate version handling
 
