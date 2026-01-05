@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 It is 2026
 Write in British English only
 Avoid using =s to break up print statements
+Write efficient, concise code - no unnecessary verbosity or fluff
 
 ## Project Overview
 

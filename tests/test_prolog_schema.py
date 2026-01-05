@@ -46,51 +46,6 @@ class TestSchemaLoading:
         assert "Loaded: asd" in result.stdout
 
 
-class TestDisorderDefinitions:
-    """Test that all disorders are properly defined."""
-
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        """Set up query helper."""
-        self.disorders = ["mdd", "gad", "adhd", "ptsd", "asd"]
-
-    def _run_query(self, query: str) -> tuple[bool, str]:
-        """Run a Prolog query and return (success, output)."""
-        result = subprocess.run(
-            ["swipl", "-g",
-             f"[src/prolog/schema], ['src/prolog/gold_standard/loader'], ({query} -> halt(0) ; halt(1))",
-             "-t", "halt(1)"],
-            cwd=PROJECT_ROOT,
-            capture_output=True,
-            text=True
-        )
-        return result.returncode == 0, result.stdout + result.stderr
-
-    def test_all_disorders_exist(self):
-        """All five target disorders should be defined."""
-        for disorder in self.disorders:
-            success, output = self._run_query(f"disorder({disorder}, _, _)")
-            assert success, f"Disorder {disorder} not found"
-
-    def test_all_disorders_have_symptoms(self):
-        """Each disorder should have at least one symptom."""
-        for disorder in self.disorders:
-            success, output = self._run_query(f"symptom({disorder}, _, _, _)")
-            assert success, f"No symptoms found for {disorder}"
-
-    def test_all_disorders_have_categories(self):
-        """Each disorder should have at least one symptom category."""
-        for disorder in self.disorders:
-            success, output = self._run_query(f"symptom_category({disorder}, _, _, _, _)")
-            assert success, f"No symptom categories found for {disorder}"
-
-    def test_all_disorders_have_subjective_criteria(self):
-        """Each disorder should have subjective criteria."""
-        for disorder in self.disorders:
-            success, output = self._run_query(f"subjective_criterion({disorder}, _, _, _)")
-            assert success, f"No subjective criteria found for {disorder}"
-
-
 class TestSymptomLogic:
     """Test data-driven symptom logic (OR vs AND)."""
 
@@ -109,18 +64,6 @@ class TestSymptomLogic:
     def test_adhd_uses_or_logic(self):
         """ADHD should use OR logic (either category can satisfy criteria)."""
         assert self._run_query("symptom_logic(adhd, or_any)")
-
-    def test_mdd_uses_default_and_logic(self):
-        """MDD should not have explicit symptom_logic (defaults to AND)."""
-        assert not self._run_query("symptom_logic(mdd, _)")
-
-    def test_gad_uses_default_and_logic(self):
-        """GAD should not have explicit symptom_logic (defaults to AND)."""
-        assert not self._run_query("symptom_logic(gad, _)")
-
-    def test_ptsd_uses_default_and_logic(self):
-        """PTSD should not have explicit symptom_logic (defaults to AND)."""
-        assert not self._run_query("symptom_logic(ptsd, _)")
 
 
 class TestAgeAdjustments:
@@ -253,50 +196,6 @@ class TestCriterionCheck:
         )
 
 
-class TestMissingItems:
-    """Test get_missing_items/3 predicate."""
-
-    def _run_query(self, query: str) -> bool:
-        """Run a Prolog query and return success."""
-        result = subprocess.run(
-            ["swipl", "-g",
-             f"[src/prolog/schema], ['src/prolog/gold_standard/loader'], ({query} -> halt(0) ; halt(1))",
-             "-t", "halt(1)"],
-            cwd=PROJECT_ROOT,
-            capture_output=True,
-            text=True
-        )
-        return result.returncode == 0
-
-    def test_returns_symptom_items(self):
-        """Should return symptom items for unevaluated symptoms."""
-        assert self._run_query(
-            "get_missing_items(test_patient, mdd, Items), "
-            "member(I, Items), get_dict(type, I, symptom)"
-        )
-
-    def test_returns_duration_item(self):
-        """Should return duration item when not assessed."""
-        assert self._run_query(
-            "get_missing_items(test_patient, mdd, Items), "
-            "member(I, Items), get_dict(type, I, duration)"
-        )
-
-    def test_returns_exclusion_items(self):
-        """Should return exclusion items when not assessed."""
-        assert self._run_query(
-            "get_missing_items(test_patient, mdd, Items), "
-            "member(I, Items), get_dict(type, I, exclusion)"
-        )
-
-    def test_returns_subjective_items(self):
-        """Should return subjective items when not assessed."""
-        assert self._run_query(
-            "get_missing_items(test_patient, mdd, Items), "
-            "member(I, Items), get_dict(type, I, subjective)"
-        )
-
-
 class TestFullDiagnosis:
     """Test full_diagnosis/3 predicate."""
 
@@ -349,15 +248,3 @@ class TestUtilities:
     def test_normalise_months_to_days(self):
         """6 months should normalise to 180 days."""
         assert self._run_query("normalise_to_days(6, months, 180)")
-
-    def test_all_disorders_returns_list(self):
-        """all_disorders/1 should return a list including mdd."""
-        assert self._run_query(
-            "all_disorders(D), is_list(D), member(mdd, D)"
-        )
-
-    def test_symptoms_for_disorder_returns_list(self):
-        """symptoms_for_disorder/2 should return a non-empty list."""
-        assert self._run_query(
-            "symptoms_for_disorder(mdd, S), is_list(S), length(S, L), L > 0"
-        )

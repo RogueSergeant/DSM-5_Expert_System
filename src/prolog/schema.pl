@@ -845,3 +845,135 @@ diagnosis_summary(PatientID, DisorderID, Summary) :-
            '~w Assessment~n  Status: ~w~n  Confidence: ~2f~n  Missing Data: ~w items~n  Follow-up Needed: ~w questions',
            [Result.disorder_name, Result.overall_status, Result.confidence,
             Result.missing_data, Result.follow_up_needed]).
+
+
+%% =============================================================================
+%% PART 10: QUESTION GENERATION
+%% =============================================================================
+%% Generates questions from the knowledge base for the diagnostic driver.
+%% Python handles text formatting and ordering; Prolog provides the data.
+%% =============================================================================
+
+%% disorder_questions(+DisorderID, -Questions)
+%% Generate all questions for a specific disorder.
+%% Returns list of q(Type, ID, Category, Description) terms.
+disorder_questions(DisorderID, Questions) :-
+    disorder(DisorderID, _, _),
+    findall(
+        q(symptom, SID, Cat, Desc),
+        symptom(DisorderID, SID, Cat, Desc),
+        SymptomQs
+    ),
+    findall(
+        q(exclusion, ExcID, Type, Desc),
+        exclusion_criterion(DisorderID, ExcID, Type, Desc),
+        ExclQs
+    ),
+    findall(
+        q(subjective, CritID, Type, Desc),
+        subjective_criterion(DisorderID, CritID, Desc, Type),
+        SubjQs
+    ),
+    append([SymptomQs, ExclQs, SubjQs], Questions).
+
+%% all_disorder_questions(-Questions)
+%% Generate questions for all defined disorders.
+%% Returns list with disorder ID attached: dq(DisorderID, QuestionList).
+all_disorder_questions(Questions) :-
+    findall(
+        dq(DisorderID, Qs),
+        (disorder(DisorderID, _, _), disorder_questions(DisorderID, Qs)),
+        Questions
+    ).
+
+%% get_question_text(+DisorderID, +ItemType, +ItemID, -Description)
+%% Retrieve the description text for a specific question item.
+get_question_text(DisorderID, symptom, ItemID, Description) :-
+    symptom(DisorderID, ItemID, _, Description), !.
+get_question_text(DisorderID, exclusion, ItemID, Description) :-
+    exclusion_criterion(DisorderID, ItemID, _, Description), !.
+get_question_text(DisorderID, subjective, ItemID, Description) :-
+    subjective_criterion(DisorderID, ItemID, Description, _), !.
+get_question_text(_, duration, _, 'How long have these symptoms been present?') :- !.
+get_question_text(_, onset, _, 'At what age did these symptoms first appear?') :- !.
+get_question_text(_, settings, _, 'In which settings do these symptoms occur?') :- !.
+get_question_text(_, _, _, 'No description available').
+
+
+%% =============================================================================
+%% PART 11: DISORDER PRUNING
+%% =============================================================================
+%% Determines whether a disorder can be definitively ruled out based on
+%% current patient data, enabling efficient question reduction.
+%% =============================================================================
+
+%% disorder_pruned(+PatientID, +DisorderID)
+%% True if the disorder is definitively ruled out for this patient.
+%% A disorder is pruned if:
+%%   1. All symptoms in a required category are explicitly absent
+%%   2. An exclusion criterion is confirmed (i.e., the exclusion applies)
+
+%% Rule 1: Category with all symptoms absent when at least one is required
+disorder_pruned(PatientID, DisorderID) :-
+    symptom_category(DisorderID, _CategoryID, SymptomList, RequiredCount, at_least),
+    RequiredCount > 0,
+    SymptomList \= [],
+    % Check that ALL symptoms in category are explicitly absent
+    forall(
+        member(SID, SymptomList),
+        patient_symptom(PatientID, SID, absent, _)
+    ).
+
+%% Rule 2: Category requires all symptoms, but any is absent
+disorder_pruned(PatientID, DisorderID) :-
+    symptom_category(DisorderID, _CategoryID, SymptomList, _, all),
+    member(SID, SymptomList),
+    patient_symptom(PatientID, SID, absent, _).
+
+%% Rule 3: Exclusion criterion is confirmed
+disorder_pruned(PatientID, DisorderID) :-
+    exclusion_criterion(DisorderID, ExcID, _, _),
+    patient_exclusion_status(PatientID, ExcID, excluded).
+
+%% Rule 4: Age range mismatch (if disorder has age restriction)
+disorder_pruned(PatientID, DisorderID) :-
+    disorder_age_range(DisorderID, MinAge, MaxAge),
+    patient_context(PatientID, age, Age),
+    (Age < MinAge ; Age > MaxAge).
+
+%% active_candidates(+PatientID, -Candidates)
+%% Get list of disorders that have NOT been pruned.
+active_candidates(PatientID, Candidates) :-
+    findall(
+        DisorderID,
+        (disorder(DisorderID, _, _), \+ disorder_pruned(PatientID, DisorderID)),
+        Candidates
+    ).
+
+%% pruned_disorders(+PatientID, -Pruned)
+%% Get list of disorders that HAVE been pruned (for debugging/explanation).
+pruned_disorders(PatientID, Pruned) :-
+    findall(
+        DisorderID,
+        (disorder(DisorderID, _, _), disorder_pruned(PatientID, DisorderID)),
+        Pruned
+    ).
+
+%% prune_reason(+PatientID, +DisorderID, -Reason)
+%% Explain why a disorder was pruned.
+prune_reason(PatientID, DisorderID, Reason) :-
+    symptom_category(DisorderID, CategoryID, SymptomList, RequiredCount, at_least),
+    RequiredCount > 0,
+    forall(member(SID, SymptomList), patient_symptom(PatientID, SID, absent, _)),
+    format(atom(Reason), 'All symptoms in category ~w are absent', [CategoryID]).
+
+prune_reason(PatientID, DisorderID, Reason) :-
+    exclusion_criterion(DisorderID, ExcID, _, _),
+    patient_exclusion_status(PatientID, ExcID, excluded),
+    format(atom(Reason), 'Exclusion criterion ~w applies', [ExcID]).
+
+prune_reason(PatientID, DisorderID, Reason) :-
+    disorder_age_range(DisorderID, MinAge, MaxAge),
+    patient_context(PatientID, age, Age),
+    (Age < MinAge ; Age > MaxAge),
+    format(atom(Reason), 'Patient age ~w outside range ~w-~w', [Age, MinAge, MaxAge]).
