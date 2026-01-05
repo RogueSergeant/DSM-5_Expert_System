@@ -1,15 +1,16 @@
 """
 Answer mode implementations for diagnostic evaluation.
 
-Three modes:
+Four modes:
 1. Pre-extracted: Look up answers from vignette dict (fast baseline)
 2. Interactive: Clinician answers via terminal prompts
 3. LLM-led: GPT-5-mini infers from clinical text only
+4. Hybrid: Routes subjective criteria to LLM, others to base mode
 """
 
 import json
 import logging
-from typing import Optional
+from typing import Callable, Optional
 
 from openai import OpenAI
 from src.diagnosis.driver import DiagnosticItem
@@ -59,36 +60,66 @@ def create_interactive_answer_fn(clinical_text: str):
         print(f"\n{item.item_type.upper()}: {item.description}")
 
         if item.item_type == 'symptom':
-            r = input("[p]resent/[a]bsent/[u]nclear: ").strip().lower()
-            if r.startswith('p'):
-                return 'present', input("Evidence: ").strip(), 1.0, None
-            return ('absent' if r.startswith('a') else 'unclear'), '', 1.0, None
+            while True:
+                r = input("[p]resent/[a]bsent/[u]nclear: ").strip().lower()
+                if r.startswith('p'):
+                    return 'present', input("Evidence: ").strip(), 1.0, None
+                elif r.startswith('a'):
+                    return 'absent', '', 1.0, None
+                elif r.startswith('u'):
+                    return 'unclear', '', 1.0, None
+                print("Invalid input. Please enter 'p', 'a', or 'u'.")
 
         elif item.item_type == 'exclusion':
-            r = input("[c]leared/[e]xcluded/[u]nknown: ").strip().lower()
-            status = 'cleared' if r.startswith('c') else ('excluded' if r.startswith('e') else 'unknown')
-            return status, '', 1.0, None
+            while True:
+                r = input("[c]leared/[e]xcluded/[u]nknown: ").strip().lower()
+                if r.startswith('c'):
+                    return 'cleared', '', 1.0, None
+                elif r.startswith('e'):
+                    return 'excluded', '', 1.0, None
+                elif r.startswith('u'):
+                    return 'unknown', '', 1.0, None
+                print("Invalid input. Please enter 'c', 'e', or 'u'.")
 
         elif item.item_type == 'subjective':
-            r = input("[m]et/[n]ot_met/[u]nclear: ").strip().lower()
-            status = 'met' if r.startswith('m') else ('not_met' if r.startswith('n') else 'unclear')
-            return status, '', 1.0, None
+            while True:
+                r = input("[m]et/[n]ot_met/[u]nclear: ").strip().lower()
+                if r.startswith('m'):
+                    return 'met', '', 1.0, None
+                elif r.startswith('n'):
+                    return 'not_met', '', 1.0, None
+                elif r.startswith('u'):
+                    return 'unclear', '', 1.0, None
+                print("Invalid input. Please enter 'm', 'n', or 'u'.")
 
         elif item.item_type == 'duration':
-            try:
-                return 'present', '', 1.0, int(input("Duration in days: ").strip())
-            except ValueError:
-                return 'unclear', '', 0.5, None
+            while True:
+                r = input("Duration in days (or 'u' for unclear): ").strip().lower()
+                if r == 'u':
+                    return 'unclear', '', 0.5, None
+                try:
+                    return 'present', '', 1.0, int(r)
+                except ValueError:
+                    print("Invalid input. Please enter a number or 'u' for unclear.")
 
         elif item.item_type == 'onset':
-            try:
-                return 'present', '', 1.0, int(input("Onset age: ").strip())
-            except ValueError:
-                return 'unclear', '', 0.5, None
+            while True:
+                r = input("Onset age (or 'u' for unclear): ").strip().lower()
+                if r == 'u':
+                    return 'unclear', '', 0.5, None
+                try:
+                    return 'present', '', 1.0, int(r)
+                except ValueError:
+                    print("Invalid input. Please enter a number or 'u' for unclear.")
 
         elif item.item_type == 'settings':
-            s = input("Settings (e.g. home,school): ").strip()
-            return ('present', s, 1.0, None) if s else ('unclear', '', 0.5, None)
+            while True:
+                s = input("Settings (e.g. home,school) or 'u' for unclear: ").strip()
+                if s.lower() == 'u':
+                    return 'unclear', '', 0.5, None
+                elif s:
+                    return 'present', s, 1.0, None
+                print("Invalid input. Please enter settings or 'u' for unclear.")
 
         return 'unclear', '', 0.5, None
 
@@ -187,3 +218,169 @@ def _validate_status(status: str, item_type: str) -> str:
         'duration': 'unclear', 'onset': 'unclear', 'settings': 'unclear'
     }
     return status if status in valid.get(item_type, set()) else defaults.get(item_type, 'unclear')
+
+
+def create_subjective_llm_answer_fn(clinical_text: str, provider: str = 'claude'):
+    """Create LLM answer function for subjective criteria only.
+
+    Args:
+        clinical_text: The clinical vignette text
+        provider: 'claude' (default) or 'openai'
+
+    Returns:
+        Answer function that only handles subjective item types
+    """
+    config = Config.from_env()
+
+    if provider == 'claude':
+        from anthropic import Anthropic
+        client = Anthropic(api_key=config.anthropic_api_key)
+        model = config.default_anthropic_model  # claude-sonnet-4-5
+    else:
+        client = OpenAI(api_key=config.openai_api_key)
+        model = "gpt-5-mini"
+
+    def answer_fn(item: DiagnosticItem) -> tuple[str, str, float, Optional[int]]:
+        if item.item_type != 'subjective':
+            raise ValueError(f"Subjective LLM only handles subjective items, got: {item.item_type}")
+
+        if provider == 'claude':
+            prompt = f"""<task>
+Assess this subjective clinical criterion based on the clinical note.
+</task>
+
+<clinical_note>
+{clinical_text}
+</clinical_note>
+
+<criterion>
+{item.description}
+</criterion>
+
+<instructions>
+- Assess whether the criterion is MET, NOT_MET, or UNCLEAR
+- Consider clinical significance thresholds defined in DSM-5-TR
+- Provide confidence score (0.0-1.0) based on evidence strength
+- Quote supporting evidence from the clinical note
+</instructions>
+
+<response_format>
+Respond with valid JSON only:
+{{"status": "met|not_met|unclear", "confidence": 0.0-1.0, "evidence": "quote or null"}}
+</response_format>"""
+        else:
+            prompt = f"""# Task
+Assess this subjective clinical criterion based on the clinical note.
+
+## Clinical Note
+{clinical_text}
+
+## Criterion to Assess
+{item.description}
+
+## Instructions
+- Assess whether the criterion is **MET**, **NOT_MET**, or **UNCLEAR**
+- Consider clinical significance thresholds defined in DSM-5-TR
+- Provide confidence score (0.0-1.0) based on evidence strength
+- Quote supporting evidence from the clinical note
+
+## Response Format
+Respond with valid JSON only:
+```json
+{{"status": "met|not_met|unclear", "confidence": 0.0-1.0, "evidence": "quote or null"}}
+```"""
+
+        try:
+            logger.debug(f"    Subjective LLM | provider={provider} | item={item.item_id}")
+
+            if provider == 'claude':
+                resp = client.messages.create(
+                    model=model,
+                    max_tokens=5000,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                content = resp.content[0].text or "{}"
+            else:
+                resp = client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": "You are a psychiatrist assessing clinical criteria. Respond with valid JSON only."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_completion_tokens=5000
+                )
+                content = resp.choices[0].message.content or "{}"
+
+            result = _parse_json_response(content, 'subjective')
+            logger.debug(f"    Subjective LLM response | item={item.item_id} | status={result[0]} | confidence={result[2]}")
+            return result
+
+        except Exception as e:
+            logger.error(f"Subjective LLM error | provider={provider} | item={item.item_id} | error={e}")
+            return 'unclear', '', 0.5, None
+
+    return answer_fn
+
+
+def _display_llm_suggestion(item: DiagnosticItem, result: tuple):
+    """Display LLM assessment for clinician review."""
+    status, evidence, confidence, _ = result
+    print(f"\n{'─' * 60}")
+    print(f"SUBJECTIVE CRITERION: {item.description}")
+    print(f"LLM Assessment: {status.upper()} (confidence: {confidence:.0%})")
+    if evidence:
+        print(f"Evidence: \"{evidence}\"")
+    print(f"{'─' * 60}")
+
+
+def _get_override_input(llm_result: tuple) -> tuple[str, str, float, Optional[int]]:
+    """Prompt user to accept, override, or mark unclear."""
+    while True:
+        choice = input("[a]ccept LLM / [o]verride / [u]nclear: ").strip().lower()
+        if not choice or choice[0] not in ('a', 'o', 'u'):
+            print("Invalid input. Please enter 'a' to accept, 'o' to override, or 'u' for unclear.")
+            continue
+        if choice[0] == 'a':
+            return llm_result  # Accept LLM suggestion as-is
+        elif choice[0] == 'o':
+            while True:
+                status = input("Your assessment - [m]et / [n]ot_met: ").strip().lower()
+                if not status or status[0] not in ('m', 'n'):
+                    print("Invalid input. Please enter 'm' for met or 'n' for not_met.")
+                    continue
+                if status[0] == 'm':
+                    return 'met', '', 1.0, None
+                else:
+                    return 'not_met', '', 1.0, None
+        else:  # choice[0] == 'u'
+            return 'unclear', '', 0.5, None
+
+
+def create_hybrid_answer_fn(
+    base_answer_fn: Callable[[DiagnosticItem], tuple],
+    llm_answer_fn: Callable[[DiagnosticItem], tuple],
+    interactive_override: bool = False
+) -> Callable[[DiagnosticItem], tuple]:
+    """Create hybrid answer function that routes subjective criteria to LLM.
+
+    Args:
+        base_answer_fn: Handles symptom, exclusion, duration, onset, settings
+        llm_answer_fn: Handles subjective criteria with clinical judgment
+        interactive_override: If True, show LLM suggestion and allow user override
+
+    Returns:
+        Hybrid answer function matching standard callback signature
+    """
+    def answer_fn(item: DiagnosticItem) -> tuple[str, str, float, Optional[int]]:
+        if item.item_type == 'subjective':
+            llm_result = llm_answer_fn(item)
+
+            if interactive_override:
+                _display_llm_suggestion(item, llm_result)
+                return _get_override_input(llm_result)
+
+            return llm_result
+
+        return base_answer_fn(item)
+
+    return answer_fn

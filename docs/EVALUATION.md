@@ -67,6 +67,98 @@ This performance is enabled by the `next_question/2` optimisation described belo
 - Tests the full pipeline: LLM interpretation → Prolog reasoning
 - More realistic evaluation of end-to-end system
 
+## Tier B: Subjective Criteria LLM (--subjective-model)
+
+The `--subjective-model` flag enables optional LLM processing for subjective criteria only, while keeping objective criteria handled by the base mode.
+
+### What Are Subjective Criteria?
+
+Subjective criteria require clinical judgment rather than objective counting:
+
+| Assessment Type | Example Criterion | Disorder |
+|-----------------|-------------------|----------|
+| clinical_significance | "Symptoms cause clinically significant distress or impairment" | MDD, GAD, PTSD, ASD |
+| excessiveness | "Anxiety and worry are excessive/disproportionate" | GAD |
+| functional_impairment | "Clear evidence symptoms interfere with functioning" | ADHD |
+| severity | "Severity level for social communication impairments" | ASD |
+| quality | "Exposure involves death, serious injury, or sexual violence" | PTSD |
+
+### How It Works
+
+When `--subjective-model` is set to `claude` or `openai`:
+
+1. **Objective criteria** (symptoms, exclusions, duration, onset, settings) → handled by base mode (preextracted or interactive)
+2. **Subjective criteria** → routed to LLM for clinical judgment
+
+```
+Question loop:
+    item = get_next_question()
+
+    if item.type == 'subjective':
+        → LLM assesses criterion with confidence score
+        → (if interactive) Clinician can accept/override
+    else:
+        → Base answer mode handles it
+```
+
+### Provider Options
+
+| Provider | Model | Prompt Format | Best For |
+|----------|-------|---------------|----------|
+| `claude` | Claude Sonnet 4.5 | XML | Highest quality clinical judgment |
+| `openai` | GPT-5-mini | Markdown | Faster, lower cost |
+| `none` | (disabled) | - | Default behaviour (no LLM for subjective) |
+
+### Interactive Override
+
+When combined with `--mode interactive`, the clinician sees:
+
+```
+────────────────────────────────────────────────────────────
+SUBJECTIVE CRITERION: Symptoms cause clinically significant
+distress or impairment in social, occupational, or other
+important areas of functioning.
+LLM Assessment: MET (confidence: 85%)
+Evidence: "significant distress at work and relationship strain"
+────────────────────────────────────────────────────────────
+[a]ccept LLM / [o]verride / [u]nclear: _
+```
+
+- **Accept**: Use LLM's assessment (with its confidence score)
+- **Override**: Clinician provides their own assessment (confidence 1.0)
+- **Unclear**: Mark as unclear (confidence 0.5)
+
+### Confidence Propagation
+
+LLM confidence scores flow through to the final diagnosis:
+
+1. LLM returns: `{"status": "met", "confidence": 0.85, "evidence": "..."}`
+2. Stored in Prolog: `subjective_assessment(patient_001, mdd_subj_01, met, 0.85)`
+3. Affects `calculate_enhanced_confidence/4` in final diagnosis
+4. Lower LLM confidence → lower overall diagnosis confidence
+
+### Usage Examples
+
+```bash
+# Pre-extracted + Claude for subjective (recommended)
+python -m src.evaluation.evaluate \
+    --vignettes data/vignettes/*.json \
+    --mode preextracted \
+    --subjective-model claude
+
+# Interactive with Claude suggestions and override
+python -m src.evaluation.evaluate \
+    --vignettes data/vignettes/*.json \
+    --mode interactive \
+    --subjective-model claude
+
+# Pre-extracted + OpenAI for subjective (faster)
+python -m src.evaluation.evaluate \
+    --vignettes data/vignettes/*.json \
+    --mode preextracted \
+    --subjective-model openai
+```
+
 ## Usage
 
 ```bash
@@ -128,8 +220,10 @@ src/evaluation/
 - `create_preextracted_answer_fn(answers)` - Dict lookup mode
 - `create_interactive_answer_fn(clinical_text)` - Terminal prompt mode
 - `create_llm_answer_fn(clinical_text)` - GPT-5-mini inference mode
+- `create_subjective_llm_answer_fn(clinical_text, provider)` - LLM for subjective criteria only
+- `create_hybrid_answer_fn(base_fn, llm_fn, interactive_override)` - Routes subjective to LLM
 
-All three return the same interface: `(DiagnosticItem) -> (status, evidence, confidence, value)`
+All return the same interface: `(DiagnosticItem) -> (status, evidence, confidence, value)`
 
 ## Design Decisions
 

@@ -73,6 +73,9 @@ src/
 │   ├── evaluate.py           # CLI for vignette evaluation
 │   └── answer_modes.py       # Answer mode factories (preextracted/interactive/llm)
 │
+├── diagnosis/                 # Diagnostic Driver
+│   └── driver.py             # Orchestrates Prolog reasoning with answer callbacks
+│
 └── reasoning/                 # Python↔Prolog Interface
     └── engine.py             # Thin pyswip wrapper
 
@@ -172,11 +175,21 @@ python -m src.evaluation.evaluate --vignettes data/vignettes/*.json --mode inter
 
 # Filter by disorder or difficulty
 python -m src.evaluation.evaluate --vignettes data/vignettes/*.json --disorder mdd --difficulty CLEAR
+
+# Tier B: Route subjective criteria to LLM (claude or openai)
+python -m src.evaluation.evaluate --vignettes data/vignettes/*.json --mode preextracted --subjective-model claude
 ```
 
 Logs: `logs/evaluation/{timestamp}.log`
 
 See `docs/EVALUATION.md` for answer modes and metrics.
+
+**Interactive Diagnosis** (single disorder, CLI prompts):
+```bash
+# Run interactive diagnosis for a specific disorder
+python -m src.diagnosis.driver mdd
+python -m src.diagnosis.driver gad
+```
 
 **Prolog Interactive Testing**:
 ```bash
@@ -276,6 +289,13 @@ See `src/prolog/gold_standard/README.md` for complete predicate reference and te
 3. Query `full_diagnosis/3` → triggers inference rules
 4. Rules check symptom counts, duration, onset, exclusions, subjective criteria
 5. Return diagnosis with confidence score and explanation
+
+**Differential Diagnosis Mode** (used by evaluation):
+1. All 5 disorders start as active candidates
+2. `next_question/2` returns single next question (sorted by priority, deduplicated across disorders)
+3. Answer callback provides: `(status, evidence, confidence, value)`
+4. `disorder_pruned/2` automatically eliminates candidates as answers rule them out
+5. Loop ends when all candidates resolved (met/not_met) or pruned
 
 **Key Design Principles** (see `docs/IMPLEMENTATION_PLAN.md`):
 1. Prolog does the reasoning — Python is just glue

@@ -5,6 +5,7 @@ Usage:
     python -m src.evaluation.evaluate --vignettes data/vignettes/*.json
     python -m src.evaluation.evaluate --vignettes data/vignettes/*.json --mode llm
     python -m src.evaluation.evaluate --vignettes data/vignettes/*.json --mode interactive
+    python -m src.evaluation.evaluate --vignettes data/vignettes/*.json --subjective-model claude
 """
 
 import argparse
@@ -20,6 +21,8 @@ from src.evaluation.answer_modes import (
     create_preextracted_answer_fn,
     create_interactive_answer_fn,
     create_llm_answer_fn,
+    create_subjective_llm_answer_fn,
+    create_hybrid_answer_fn,
 )
 
 # Logging setup
@@ -59,23 +62,47 @@ def evaluate_vignette(
     driver: DiagnosticDriver,
     vignette: dict,
     mode: str = 'preextracted',
-    verbose: bool = False
+    verbose: bool = False,
+    subjective_model: str = 'none'
 ) -> list[EvaluationResult]:
-    """Evaluate a single vignette using differential diagnosis."""
+    """Evaluate a single vignette using differential diagnosis.
+
+    Args:
+        driver: The diagnostic driver instance
+        vignette: Vignette data dict
+        mode: Answer mode ('preextracted', 'interactive', 'llm')
+        verbose: Print detailed output
+        subjective_model: LLM for subjective criteria ('none', 'claude', 'openai')
+    """
     is_comorbid = len(vignette['ground_truth']) > 1
     disorders_str = '+'.join(vignette['ground_truth'])
     expected = 'meets' if vignette['meets_criteria'] else 'does_not_meet'
 
-    logger.info(f"VIGNETTE | {vignette['id']} | disorders={disorders_str} | difficulty={vignette['difficulty']} | comorbid={is_comorbid} | expected={expected}")
+    logger.info(f"VIGNETTE | {vignette['id']} | disorders={disorders_str} | difficulty={vignette['difficulty']} | comorbid={is_comorbid} | expected={expected} | subjective_model={subjective_model}")
 
     if mode == 'preextracted':
-        answer_fn = create_preextracted_answer_fn(vignette['answers'])
+        base_answer_fn = create_preextracted_answer_fn(vignette['answers'])
     elif mode == 'interactive':
-        answer_fn = create_interactive_answer_fn(vignette['clinical_text'])
+        base_answer_fn = create_interactive_answer_fn(vignette['clinical_text'])
     elif mode == 'llm':
+        # LLM mode handles all questions - subjective_model doesn't apply
         answer_fn = create_llm_answer_fn(vignette['clinical_text'])
     else:
         raise ValueError(f"Unknown mode: {mode}")
+
+    # Apply hybrid routing for subjective criteria if LLM provider specified
+    if subjective_model != 'none' and mode in ('preextracted', 'interactive'):
+        llm_fn = create_subjective_llm_answer_fn(
+            vignette['clinical_text'],
+            provider=subjective_model
+        )
+        answer_fn = create_hybrid_answer_fn(
+            base_answer_fn,
+            llm_fn,
+            interactive_override=(mode == 'interactive')
+        )
+    elif mode != 'llm':
+        answer_fn = base_answer_fn
 
     # Run differential diagnosis across ALL disorders
     diagnosis_results = driver.run_differential_diagnosis(
@@ -136,10 +163,11 @@ def evaluate_on_vignettes(
     mode: str = 'preextracted',
     disorder: Optional[str] = None,
     difficulty: Optional[str] = None,
-    verbose: bool = False
+    verbose: bool = False,
+    subjective_model: str = 'none'
 ) -> list[EvaluationResult]:
     """Run evaluation on vignettes and report metrics."""
-    logger.info(f"Starting evaluation | mode={mode} | path={vignettes_path}")
+    logger.info(f"Starting evaluation | mode={mode} | subjective_model={subjective_model} | path={vignettes_path}")
     print(f"Log file: {LOG_FILE}")
 
     vignettes = load_vignettes(vignettes_path, disorder, difficulty)
@@ -148,7 +176,8 @@ def evaluate_on_vignettes(
         logger.warning("No vignettes found matching filters")
         return []
 
-    print(f"Loaded {len(vignettes)} vignettes (mode: {mode})")
+    subj_info = f", subjective: {subjective_model}" if subjective_model != 'none' else ""
+    print(f"Loaded {len(vignettes)} vignettes (mode: {mode}{subj_info})")
 
     driver = DiagnosticDriver()
     if not driver.load():
@@ -163,7 +192,7 @@ def evaluate_on_vignettes(
         if verbose:
             print(f"\nEvaluating {v['id']} ({v['difficulty']})...")
 
-        results = evaluate_vignette(driver, v, mode, verbose)
+        results = evaluate_vignette(driver, v, mode, verbose, subjective_model)
         all_results.extend(results)
 
         if verbose:
@@ -250,6 +279,9 @@ def main():
                         help="Path to vignettes JSON file")
     parser.add_argument('--mode', choices=['preextracted', 'interactive', 'llm'],
                         default='preextracted', help="Answer mode")
+    parser.add_argument('--subjective-model', choices=['none', 'claude', 'openai'],
+                        default='none', dest='subjective_model',
+                        help="LLM for subjective criteria (default: none)")
     parser.add_argument('--disorder', type=str, default=None,
                         help="Filter by disorder ID (e.g., mdd)")
     parser.add_argument('--difficulty', type=str, default=None,
@@ -267,7 +299,8 @@ def main():
         mode=args.mode,
         disorder=args.disorder,
         difficulty=args.difficulty,
-        verbose=args.verbose
+        verbose=args.verbose,
+        subjective_model=args.subjective_model
     )
 
 
