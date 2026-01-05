@@ -7,10 +7,13 @@ Supports three answer modes:
 3. Vignette data: Callback looks up pre-extracted answers
 """
 
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Optional
 from src.reasoning.engine import PrologEngine
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -95,12 +98,25 @@ class DiagnosticDriver:
             return self.engine.assert_fact(
                 f"patient_duration({patient_id}, {item.disorder_id}, {value})"
             )
-        elif item.item_type == 'onset' and value is not None:
-            return self.engine.assert_fact(f"patient_onset_age({patient_id}, {value})")
+        elif item.item_type == 'onset':
+            # Check if age-based or event-based onset
+            onset_req = self.engine.query_one(f"onset_requirement({item.disorder_id}, Type, Val)")
+            if onset_req:
+                onset_type = str(onset_req.get('Type', ''))
+                if onset_type == 'before_age' and value is not None:
+                    return self.engine.assert_fact(f"patient_onset_age({patient_id}, {value})")
+                elif onset_type == 'after_event':
+                    event_type = str(onset_req.get('Val', ''))
+                    return self.engine.assert_fact(
+                        f"patient_context({patient_id}, {event_type}, {status})"
+                    )
+            return False
         elif item.item_type == 'settings' and evidence:
-            return self.engine.assert_fact(
-                f"patient_context({patient_id}, setting, {evidence})"
-            )
+            # Assert each setting as separate fact (e.g., "home,school" -> two facts)
+            settings = [s.strip() for s in evidence.split(',')]
+            for setting in settings:
+                self.engine.assert_fact(f"patient_context({patient_id}, setting, {setting})")
+            return True
         return False
 
     def get_diagnosis(self, disorder_id: str, patient_id: str) -> Optional[dict]:
@@ -116,12 +132,35 @@ class DiagnosticDriver:
         """Check if disorder is ruled out."""
         return len(self.engine.query(f"disorder_pruned({patient_id}, {disorder_id})")) > 0
 
+    def get_active_candidates(self, patient_id: str) -> list[str]:
+        """Get all disorders not yet pruned."""
+        results = self.engine.query(f"active_candidates({patient_id}, Candidates)")
+        if not results:
+            return []
+        candidates = results[0].get('Candidates', [])
+        return [str(c) for c in candidates] if candidates else []
+
+    def get_all_missing_items(self, patient_id: str) -> list[DiagnosticItem]:
+        """Get unevaluated items across all active candidates (deduplicated)."""
+        candidates = self.get_active_candidates(patient_id)
+
+        all_items = []
+        seen_ids = set()
+
+        for disorder_id in candidates:
+            items = self.get_missing_items(disorder_id, patient_id)
+            for item in items:
+                if item.item_id not in seen_ids:
+                    all_items.append(item)
+                    seen_ids.add(item.item_id)
+
+        return sorted(all_items, key=lambda x: (x.priority, x.item_id))
+
     def run_diagnosis(
         self,
         disorder_id: str,
         patient_id: str = 'patient',
         answer_fn: Optional[Callable[[DiagnosticItem], tuple[str, str, float, Optional[int]]]] = None,
-        max_questions: int = 100,
         verbose: bool = False
     ) -> DiagnosisResult:
         """
@@ -132,13 +171,12 @@ class DiagnosticDriver:
             patient_id: Patient identifier
             answer_fn: Callback returning (status, evidence, confidence, value).
                       If None, uses interactive prompts.
-            max_questions: Limit on questions asked
             verbose: Print progress
         """
         self.clear_patient(patient_id)
         questions_asked = 0
 
-        while questions_asked < max_questions:
+        while True:
             if self.is_pruned(disorder_id, patient_id):
                 if verbose:
                     print(f"{disorder_id} ruled out")
@@ -178,6 +216,85 @@ class DiagnosticDriver:
             questions_asked=questions_asked,
             missing_items=len(missing)
         )
+
+    def run_differential_diagnosis(
+        self,
+        patient_id: str = 'patient',
+        answer_fn: Optional[Callable[[DiagnosticItem], tuple[str, str, float, Optional[int]]]] = None,
+        verbose: bool = False
+    ) -> dict[str, DiagnosisResult]:
+        """
+        Run differential diagnosis across all disorders.
+
+        Returns: dict mapping disorder_id -> DiagnosisResult for all non-pruned disorders
+        """
+        self.clear_patient(patient_id)
+        questions_asked = 0
+        prev_candidates = set()
+
+        while True:
+            candidates = self.get_active_candidates(patient_id)
+            candidates_set = set(candidates)
+
+            # Log when disorders are pruned
+            pruned = prev_candidates - candidates_set
+            if pruned:
+                logger.info(f"  PRUNED | {'+'.join(sorted(pruned))} | remaining={len(candidates)}")
+
+            prev_candidates = candidates_set
+
+            if not candidates:
+                logger.debug(f"  DIFFERENTIAL | all candidates pruned")
+                break
+
+            # Check if all remaining candidates have final diagnosis
+            all_resolved = True
+            for disorder_id in candidates:
+                diagnosis = self.get_diagnosis(disorder_id, patient_id)
+                if not diagnosis or diagnosis.get('overall_status') not in ['met', 'not_met']:
+                    all_resolved = False
+                    break
+
+            if all_resolved:
+                logger.debug(f"  DIFFERENTIAL | all candidates resolved")
+                break
+
+            missing = self.get_all_missing_items(patient_id)
+            if not missing:
+                logger.debug(f"  DIFFERENTIAL | no more missing items")
+                break
+
+            item = missing[0]
+            if verbose:
+                print(f"[{questions_asked + 1}] {item.disorder_id}.{item.item_type}: {item.description[:50]}...")
+
+            if answer_fn:
+                status, evidence, confidence, value = answer_fn(item)
+            else:
+                status, evidence, confidence, value = self._prompt(item)
+
+            self.assert_answer(patient_id, item, status, evidence, confidence, value)
+            questions_asked += 1
+
+        # Build results for all non-pruned disorders
+        results = {}
+        all_disorders = self.engine.query("disorder(D, _, _)")
+        for d in all_disorders:
+            disorder_id = str(d.get('D', ''))
+            if not self.is_pruned(disorder_id, patient_id):
+                diagnosis = self.get_diagnosis(disorder_id, patient_id)
+                disorder_info = self.engine.query_one(f"disorder({disorder_id}, Name, _)")
+                results[disorder_id] = DiagnosisResult(
+                    disorder_id=disorder_id,
+                    disorder_name=str(disorder_info.get('Name', disorder_id)) if disorder_info else disorder_id,
+                    status=diagnosis.get('overall_status', 'incomplete') if diagnosis else 'incomplete',
+                    confidence=float(diagnosis.get('confidence', 0.0)) if diagnosis else 0.0,
+                    questions_asked=questions_asked,
+                    missing_items=len(self.get_missing_items(disorder_id, patient_id))
+                )
+
+        logger.info(f"  DIFFERENTIAL | complete | questions={questions_asked} | results={list(results.keys())}")
+        return results
 
     def _prompt(self, item: DiagnosticItem) -> tuple[str, str, float, Optional[int]]:
         """Interactive prompt for answer."""
