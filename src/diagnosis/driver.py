@@ -94,28 +94,36 @@ class DiagnosticDriver:
             return self.engine.assert_fact(
                 f"subjective_assessment({patient_id}, {item.item_id}, {status}, {confidence})"
             )
-        elif item.item_type == 'duration' and value is not None:
+        elif item.item_type == 'duration':
+            # If no value provided, use 0 (doesn't meet duration requirement)
+            days = value if value is not None else 0
             return self.engine.assert_fact(
-                f"patient_duration({patient_id}, {item.disorder_id}, {value})"
+                f"patient_duration({patient_id}, {item.disorder_id}, {days})"
             )
         elif item.item_type == 'onset':
             # Check if age-based or event-based onset
             onset_req = self.engine.query_one(f"onset_requirement({item.disorder_id}, Type, Val)")
             if onset_req:
                 onset_type = str(onset_req.get('Type', ''))
-                if onset_type == 'before_age' and value is not None:
-                    return self.engine.assert_fact(f"patient_onset_age({patient_id}, {value})")
+                if onset_type == 'before_age':
+                    # If no value provided, use 999 (adult onset - fails early onset check)
+                    age = value if value is not None else 999
+                    return self.engine.assert_fact(f"patient_onset_age({patient_id}, {age})")
                 elif onset_type == 'after_event':
                     event_type = str(onset_req.get('Val', ''))
                     return self.engine.assert_fact(
                         f"patient_context({patient_id}, {event_type}, {status})"
                     )
             return False
-        elif item.item_type == 'settings' and evidence:
+        elif item.item_type == 'settings':
             # Assert each setting as separate fact (e.g., "home,school" -> two facts)
-            settings = [s.strip() for s in evidence.split(',')]
-            for setting in settings:
-                self.engine.assert_fact(f"patient_context({patient_id}, setting, {setting})")
+            if evidence:
+                settings = [s.strip() for s in evidence.split(',')]
+                for setting in settings:
+                    self.engine.assert_fact(f"patient_context({patient_id}, setting, {setting})")
+            else:
+                # No settings provided - assert 'none' to mark as answered
+                self.engine.assert_fact(f"patient_context({patient_id}, setting, none)")
             return True
         return False
 
@@ -140,21 +148,23 @@ class DiagnosticDriver:
         candidates = results[0].get('Candidates', [])
         return [str(c) for c in candidates] if candidates else []
 
-    def get_all_missing_items(self, patient_id: str) -> list[DiagnosticItem]:
-        """Get unevaluated items across all active candidates (deduplicated)."""
-        candidates = self.get_active_candidates(patient_id)
+    def get_next_question(self, patient_id: str) -> Optional[DiagnosticItem]:
+        """Get the single next question to ask. Returns None if no more questions."""
+        result = self.engine.query_one(f"next_question({patient_id}, Item)")
+        if not result:
+            return None
 
-        all_items = []
-        seen_ids = set()
+        item = result.get('Item', {})
+        if not item:
+            return None
 
-        for disorder_id in candidates:
-            items = self.get_missing_items(disorder_id, patient_id)
-            for item in items:
-                if item.item_id not in seen_ids:
-                    all_items.append(item)
-                    seen_ids.add(item.item_id)
-
-        return sorted(all_items, key=lambda x: (x.priority, x.item_id))
+        return DiagnosticItem(
+            item_type=str(item.get('type', '')),
+            item_id=str(item.get('id', '')),
+            category=str(item.get('category', 'none')),
+            description=str(item.get('description', '')),
+            disorder_id=str(item.get('disorder', ''))
+        )
 
     def run_diagnosis(
         self,
@@ -230,41 +240,22 @@ class DiagnosticDriver:
         """
         self.clear_patient(patient_id)
         questions_asked = 0
-        prev_candidates = set()
+        prev_candidates = set(self.get_active_candidates(patient_id))
 
         while True:
-            candidates = self.get_active_candidates(patient_id)
-            candidates_set = set(candidates)
+            # Single query: get next question (or None if done)
+            item = self.get_next_question(patient_id)
+            if not item:
+                logger.debug(f"  DIFFERENTIAL | no more questions")
+                break
 
-            # Log when disorders are pruned
-            pruned = prev_candidates - candidates_set
+            # Log pruning by checking current candidates
+            current_candidates = set(self.get_active_candidates(patient_id))
+            pruned = prev_candidates - current_candidates
             if pruned:
-                logger.info(f"  PRUNED | {'+'.join(sorted(pruned))} | remaining={len(candidates)}")
+                logger.info(f"  PRUNED | {'+'.join(sorted(pruned))} | remaining={len(current_candidates)}")
+            prev_candidates = current_candidates
 
-            prev_candidates = candidates_set
-
-            if not candidates:
-                logger.debug(f"  DIFFERENTIAL | all candidates pruned")
-                break
-
-            # Check if all remaining candidates have final diagnosis
-            all_resolved = True
-            for disorder_id in candidates:
-                diagnosis = self.get_diagnosis(disorder_id, patient_id)
-                if not diagnosis or diagnosis.get('overall_status') not in ['met', 'not_met']:
-                    all_resolved = False
-                    break
-
-            if all_resolved:
-                logger.debug(f"  DIFFERENTIAL | all candidates resolved")
-                break
-
-            missing = self.get_all_missing_items(patient_id)
-            if not missing:
-                logger.debug(f"  DIFFERENTIAL | no more missing items")
-                break
-
-            item = missing[0]
             if verbose:
                 print(f"[{questions_asked + 1}] {item.disorder_id}.{item.item_type}: {item.description[:50]}...")
 

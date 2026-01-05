@@ -740,6 +740,79 @@ get_missing_item(PatientID, DisorderID, item{type: settings, id: DisorderID, cat
 
 
 %% =============================================================================
+%% PART 8b: OPTIMISED NEXT QUESTION RETRIEVAL
+%% =============================================================================
+%% Returns the single next question to ask, with description included.
+%% Handles all active candidates, deduplication, and priority sorting in Prolog.
+%% =============================================================================
+
+%% missing_item_with_priority/7 - Get missing item with its priority value
+missing_item_with_priority(PatientID, DID, symptom, SID, Cat, Desc, 1) :-
+    symptom(DID, SID, Cat, Desc),
+    \+ patient_symptom(PatientID, SID, _, _).
+
+missing_item_with_priority(PatientID, DID, exclusion, ExcID, Type, Desc, 2) :-
+    exclusion_criterion(DID, ExcID, Type, Desc),
+    \+ patient_exclusion_status(PatientID, ExcID, _).
+
+missing_item_with_priority(PatientID, DID, duration, DID, none, 'How long have these symptoms been present?', 3) :-
+    duration_requirement(DID, _, _),
+    \+ patient_duration(PatientID, DID, _).
+
+missing_item_with_priority(PatientID, DID, onset, DID, none, 'At what age did symptoms first appear?', 4) :-
+    onset_requirement(DID, before_age, _),
+    \+ patient_onset_age(PatientID, _).
+
+missing_item_with_priority(PatientID, DID, onset, DID, none, 'When did symptoms begin relative to the event?', 4) :-
+    onset_requirement(DID, after_event, EventType),
+    \+ patient_context(PatientID, EventType, _).
+
+missing_item_with_priority(PatientID, DID, subjective, CritID, Type, Desc, 5) :-
+    subjective_criterion(DID, CritID, Desc, Type),
+    \+ subjective_assessment(PatientID, CritID, _, _).
+
+missing_item_with_priority(PatientID, DID, settings, DID, none, 'In which settings do these symptoms occur?', 6) :-
+    setting_requirement(DID, _),
+    \+ patient_context(PatientID, setting, _).
+
+%% compare_questions/3 - Sort by priority, then by ID alphabetically
+compare_questions(Order, Q1, Q2) :-
+    P1 = Q1.priority, P2 = Q2.priority,
+    ID1 = Q1.id, ID2 = Q2.id,
+    (P1 < P2 -> Order = (<)
+    ; P1 > P2 -> Order = (>)
+    ; compare(Order, ID1, ID2)).
+
+%% dedupe_by_id/2 - Remove items with duplicate IDs (keep first)
+dedupe_by_id([], []).
+dedupe_by_id([H|T], [H|Result]) :-
+    H_ID = H.id,
+    exclude(has_same_id(H_ID), T, Filtered),
+    dedupe_by_id(Filtered, Result).
+
+%% has_same_id/2 - Helper for dedupe
+has_same_id(ID, X) :- X.id = ID.
+
+%% next_question(+PatientID, -Item)
+%% Returns the single next question to ask, with description included.
+next_question(PatientID, Item) :-
+    findall(
+        q{priority: Priority, id: ID, disorder: DID, type: Type, category: Cat, description: Desc},
+        (
+            disorder(DID, _, _),
+            \+ disorder_pruned(PatientID, DID),
+            missing_item_with_priority(PatientID, DID, Type, ID, Cat, Desc, Priority)
+        ),
+        AllItems
+    ),
+    AllItems \= [],
+    predsort(compare_questions, AllItems, Sorted),
+    dedupe_by_id(Sorted, Deduped),
+    Deduped = [First|_],
+    Item = First.
+
+
+%% =============================================================================
 %% PART 9: ENHANCED DIAGNOSIS PREDICATE
 %% =============================================================================
 %% Comprehensive diagnosis with full status tracking.
