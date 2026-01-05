@@ -1,0 +1,802 @@
+{
+  "timestamp": "20260105_071929",
+  "mode": "preextracted",
+  "subjective_model": "none",
+  "filters": {
+    "disorder": null,
+    "difficulty": null
+  },
+  "summary": {
+    "total": 59,
+    "correct": 59,
+    "accuracy": 1.0,
+    "avg_questions": 136.64406779661016
+  },
+  "results": [
+    {
+      "vignette_id": "vig_000_mdd_moderate_6d110b04",
+      "ground_truth": [
+        "mdd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_001_adhd_gad_comorbid_b5c0c3e8",
+      "ground_truth": [
+        "adhd",
+        "gad"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "adhd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_001_adhd_gad_comorbid_b5c0c3e8",
+      "ground_truth": [
+        "adhd",
+        "gad"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "gad",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_002_adhd_moderate_15f4ee36",
+      "ground_truth": [
+        "adhd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "predicted_disorder": "adhd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_003_ptsd_clear_d5c317d9",
+      "ground_truth": [
+        "ptsd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "ptsd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_004_asd_clear_6fdf7043",
+      "ground_truth": [
+        "asd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "asd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_005_adhd_mdd_comorbid_a7563885",
+      "ground_truth": [
+        "adhd",
+        "mdd"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "adhd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_005_adhd_mdd_comorbid_a7563885",
+      "ground_truth": [
+        "adhd",
+        "mdd"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_006_gad_clear_37bab702",
+      "ground_truth": [
+        "gad"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "gad",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_007_adhd_moderate_97994ac9",
+      "ground_truth": [
+        "adhd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "predicted_disorder": "adhd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_008_ptsd_clear_6041dda1",
+      "ground_truth": [
+        "ptsd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "ptsd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_009_asd_clear_127c909a",
+      "ground_truth": [
+        "asd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "asd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_010_mdd_moderate_241acc52",
+      "ground_truth": [
+        "mdd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_011_gad_moderate_70b950d5",
+      "ground_truth": [
+        "gad"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "predicted_disorder": "gad",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_012_adhd_mdd_comorbid_ca95b66b",
+      "ground_truth": [
+        "adhd",
+        "mdd"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "adhd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_012_adhd_mdd_comorbid_ca95b66b",
+      "ground_truth": [
+        "adhd",
+        "mdd"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_013_ptsd_clear_8159e0a2",
+      "ground_truth": [
+        "ptsd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "ptsd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_014_asd_ambiguous_dfa6d193",
+      "ground_truth": [
+        "asd"
+      ],
+      "difficulty": "AMBIGUOUS",
+      "meets_criteria": true,
+      "predicted_disorder": "asd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_015_mdd_clear_934b1b51",
+      "ground_truth": [
+        "mdd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_016_gad_clear_c1f5370b",
+      "ground_truth": [
+        "gad"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "gad",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_017_adhd_ambiguous_6110c579",
+      "ground_truth": [
+        "adhd"
+      ],
+      "difficulty": "AMBIGUOUS",
+      "meets_criteria": true,
+      "predicted_disorder": "adhd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_018_ptsd_clear_4c1daf02",
+      "ground_truth": [
+        "ptsd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "ptsd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_019_mdd_ptsd_comorbid_212a8c8c",
+      "ground_truth": [
+        "mdd",
+        "ptsd"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_019_mdd_ptsd_comorbid_212a8c8c",
+      "ground_truth": [
+        "mdd",
+        "ptsd"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "ptsd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_020_mdd_clear_64a5507f",
+      "ground_truth": [
+        "mdd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_021_mdd_gad_comorbid_ac1ddf67",
+      "ground_truth": [
+        "mdd",
+        "gad"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_021_mdd_gad_comorbid_ac1ddf67",
+      "ground_truth": [
+        "mdd",
+        "gad"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "gad",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_022_adhd_clear_fee6e789",
+      "ground_truth": [
+        "adhd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "adhd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_023_ptsd_moderate_2a07d37d",
+      "ground_truth": [
+        "ptsd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "predicted_disorder": "ptsd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_024_asd_clear_1ba247f5",
+      "ground_truth": [
+        "asd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "asd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_025_mdd_moderate_86437d5b",
+      "ground_truth": [
+        "mdd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_026_gad_clear_76960f8d",
+      "ground_truth": [
+        "gad"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "gad",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_027_adhd_ambiguous_5ae11509",
+      "ground_truth": [
+        "adhd"
+      ],
+      "difficulty": "AMBIGUOUS",
+      "meets_criteria": false,
+      "predicted_disorder": "adhd",
+      "predicted_status": "not_met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 0.9583333333333333
+    },
+    {
+      "vignette_id": "vig_028_ptsd_moderate_2826a7f0",
+      "ground_truth": [
+        "ptsd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "predicted_disorder": "ptsd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_029_asd_clear_44959497",
+      "ground_truth": [
+        "asd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "asd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_030_mdd_ambiguous_67aa769e",
+      "ground_truth": [
+        "mdd"
+      ],
+      "difficulty": "AMBIGUOUS",
+      "meets_criteria": false,
+      "predicted_disorder": "mdd",
+      "predicted_status": "not_met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 0.8333333333333334
+    },
+    {
+      "vignette_id": "vig_031_gad_moderate_0c06b9b2",
+      "ground_truth": [
+        "gad"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "predicted_disorder": "gad",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_032_adhd_clear_448b5aa9",
+      "ground_truth": [
+        "adhd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "adhd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_033_mdd_gad_comorbid_10591358",
+      "ground_truth": [
+        "mdd",
+        "gad"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_033_mdd_gad_comorbid_10591358",
+      "ground_truth": [
+        "mdd",
+        "gad"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "gad",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_034_asd_clear_c9491d99",
+      "ground_truth": [
+        "asd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "asd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_035_mdd_gad_comorbid_cc50c52f",
+      "ground_truth": [
+        "mdd",
+        "gad"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_035_mdd_gad_comorbid_cc50c52f",
+      "ground_truth": [
+        "mdd",
+        "gad"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "gad",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_036_gad_clear_eb46e453",
+      "ground_truth": [
+        "gad"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "gad",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_037_adhd_ambiguous_2cca9d6a",
+      "ground_truth": [
+        "adhd"
+      ],
+      "difficulty": "AMBIGUOUS",
+      "meets_criteria": true,
+      "predicted_disorder": "adhd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_038_ptsd_moderate_53e37834",
+      "ground_truth": [
+        "ptsd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "predicted_disorder": "ptsd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_039_asd_moderate_783eb9f5",
+      "ground_truth": [
+        "asd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "predicted_disorder": "asd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_040_mdd_moderate_1a9d2a36",
+      "ground_truth": [
+        "mdd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_041_gad_ambiguous_94b63c63",
+      "ground_truth": [
+        "gad"
+      ],
+      "difficulty": "AMBIGUOUS",
+      "meets_criteria": false,
+      "predicted_disorder": "gad",
+      "predicted_status": "pruned",
+      "correct": true,
+      "questions_asked": 0,
+      "confidence": 0.0
+    },
+    {
+      "vignette_id": "vig_042_adhd_clear_6a6937d9",
+      "ground_truth": [
+        "adhd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "adhd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_043_ptsd_clear_f3fe1ae4",
+      "ground_truth": [
+        "ptsd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "ptsd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_044_asd_moderate_55a82d03",
+      "ground_truth": [
+        "asd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "predicted_disorder": "asd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_045_mdd_gad_comorbid_66b258a2",
+      "ground_truth": [
+        "mdd",
+        "gad"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_045_mdd_gad_comorbid_66b258a2",
+      "ground_truth": [
+        "mdd",
+        "gad"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "gad",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_046_mdd_ptsd_comorbid_d0df1e71",
+      "ground_truth": [
+        "mdd",
+        "ptsd"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_046_mdd_ptsd_comorbid_d0df1e71",
+      "ground_truth": [
+        "mdd",
+        "ptsd"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "predicted_disorder": "ptsd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_047_adhd_clear_b587b5f5",
+      "ground_truth": [
+        "adhd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "adhd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_048_ptsd_clear_f57ed1c5",
+      "ground_truth": [
+        "ptsd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "ptsd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    },
+    {
+      "vignette_id": "vig_049_asd_clear_f37ad925",
+      "ground_truth": [
+        "asd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "asd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 1.0
+    }
+  ]
+}
