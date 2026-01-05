@@ -716,10 +716,15 @@ get_missing_item(PatientID, DisorderID, item{type: duration, id: DisorderID, cat
     duration_requirement(DisorderID, _, _),
     \+ patient_duration(PatientID, DisorderID, _).
 
+% For before_age onset - check patient_onset_age
 get_missing_item(PatientID, DisorderID, item{type: onset, id: DisorderID, category: none}) :-
-    onset_requirement(DisorderID, ConstraintType, _),
-    ConstraintType \= any,
+    onset_requirement(DisorderID, before_age, _),
     \+ patient_onset_age(PatientID, _).
+
+% For after_event onset - check patient_context
+get_missing_item(PatientID, DisorderID, item{type: onset, id: DisorderID, category: none}) :-
+    onset_requirement(DisorderID, after_event, EventType),
+    \+ patient_context(PatientID, EventType, _).
 
 get_missing_item(PatientID, DisorderID, item{type: exclusion, id: ExcID, category: Type}) :-
     exclusion_criterion(DisorderID, ExcID, Type, _),

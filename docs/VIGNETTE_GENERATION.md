@@ -133,7 +133,7 @@ ONSET: Symptoms first appeared around age 10. State this explicitly.
 
 ```json
 {
-  "id": "vig_000_mdd_moderate",
+  "id": "vig_000_mdd_moderate_a1b2c3d4",
   "ground_truth": ["mdd"],
   "difficulty": "MODERATE",
   "meets_criteria": true,
@@ -170,16 +170,16 @@ ONSET: Symptoms first appeared around age 10. State this explicitly.
 
 ### Verification Checks
 
-The `verify_vignette()` function checks:
+The `verify_vignette()` function uses LLM-based validation (gpt-5-nano) to check:
 
 | Check | Failure Criteria | Retry? |
 |-------|------------------|--------|
-| Diagnostic labels | Contains "MDD", "ADHD", etc. | Yes |
-| Duration | No temporal patterns found | Yes |
+| Diagnostic labels | Contains forbidden terms for disorder | Yes |
+| Duration | No timeline/duration stated | Yes |
 | Pertinent negatives | < 2 denial patterns | Yes |
-| Onset age | Required but not stated | Yes |
-| Word count | < 200 words | Yes |
-| Labs/substances/meds | Not mentioned | Warning only |
+| Onset age | Required but not stated (ADHD/ASD) | Yes |
+| Word count | < 50 words (hard check before LLM) | Yes |
+| Medical context | Labs/substances/meds not mentioned | Yes |
 
 ## Evaluation Considerations
 
@@ -223,15 +223,95 @@ by_disorder = {
 
 ## Configuration
 
-### Model
+### Models
 
-Uses `gpt-5-mini` for vignette generation. No temperature parameter (model default).
+| Purpose | Model | Token Limit | Notes |
+|---------|-------|-------------|-------|
+| Vignette generation | `gpt-5-mini` | 10,000 | High limit for internal reasoning |
+| Validation | `gpt-5-nano` | 5,000 | LLM-based validation, replaces regex |
+
+**Why high token limits?**
+
+GPT-5 models use internal reasoning that consumes tokens before generating visible output. With insufficient limits, the model exhausts tokens during reasoning and returns empty content. Symptoms: `finish_reason: length` with `content: ''`.
+
+### Validation
+
+Verification uses `gpt-5-nano` instead of regex patterns. The LLM checks:
+- No diagnostic labels present
+- Timeline/duration stated
+- Pertinent negatives included (≥2)
+- Medical context mentioned
+- Onset age stated (for ADHD/ASD)
+
+Response format:
+```json
+{"status": "accepted", "reason": ""}
+{"status": "rejected", "reason": "No clear timeline found"}
+```
+
+### Logging
+
+Logs saved to `logs/vignettes/{timestamp}.log` with:
+- Vignette index, disorder, difficulty
+- Full API response metadata (ID, model, finish_reason, token usage)
+- Content length and preview
+- Validation results
+
+Log path printed at startup for easy access.
+
+### Vignette IDs
+
+Format: `vig_{idx}_{disorder}_{difficulty}_{uuid8}`
+
+Example: `vig_000_mdd_moderate_a1b2c3d4`
+
+**Why UUID suffix?**
+
+IDs must be unique across all vignette files, not just within a single run. Without a unique suffix, running generation twice would create duplicate IDs (`vig_000_mdd_moderate` in both files).
+
+We use 8 hex characters from UUID4 (32 bits of randomness):
+
+| Vignettes | Collision probability |
+|-----------|----------------------|
+| 1,000 | 0.0001% |
+| 10,000 | 0.01% |
+| 77,000 | 50% (birthday paradox threshold) |
+
+For typical usage (hundreds to low thousands of vignettes), collision risk is negligible.
+
+**Alternatives considered:**
+- Full UUID (32 chars): Overkill, reduces readability
+- Timestamp prefix: Redundant with filename, still not guaranteed unique within same second
+- Sequential counter across files: Requires scanning existing files, complex
+
+### Forbidden Labels
+
+Diagnostic labels are dynamically generated based on the disorder being created:
+
+```python
+label_map = {
+    'mdd': ['major depressive', 'mdd', 'major depression', 'clinical depression'],
+    'gad': ['generalized anxiety', 'gad', 'anxiety disorder'],
+    'adhd': ['adhd', 'add', 'attention deficit', 'attention-deficit'],
+    'ptsd': ['ptsd', 'post-traumatic', 'posttraumatic'],
+    'asd': ['autism spectrum', 'asd', 'autism', 'asperger'],
+}
+```
+
+This ensures that when generating an MDD vignette, we check for MDD-specific labels, and when generating ADHD, we check for ADHD-specific labels. For comorbid cases, labels from both disorders are combined.
 
 ### Retry Behaviour
 
 - Max retries: 2
 - Retry delay: 0.5s
 - Retry triggers: Verification failures (not API errors)
+
+### Progress Tracking
+
+Uses `tqdm` for progress bar with:
+- Completion percentage and ETA
+- Current disorder and difficulty in postfix
+- Warnings printed via `tqdm.write()` to avoid breaking progress bar
 
 ### Rate Limiting
 
@@ -263,3 +343,15 @@ Uses `gpt-5-mini` for vignette generation. No temperature parameter (model defau
 3. **No symptom truncation**: Full DSM symptom descriptions provide context the LLM needs for accurate portrayal.
 
 4. **Dynamic prompt sections**: Different disorders need different evidence (onset, MSE depth, exclusions).
+
+5. **UUID suffix for IDs**: Ensures uniqueness across files without complex state management. 8 hex chars balance readability with collision resistance.
+
+6. **Dynamic forbidden labels**: Each disorder has its own set of diagnostic terms to block. Static lists miss disorder-specific terminology and include irrelevant checks.
+
+7. **tqdm for progress**: Long-running generation (50 vignettes × 20s each = 15+ minutes) benefits from progress visibility. Warnings use `tqdm.write()` to preserve progress bar.
+
+8. **High token limits for reasoning models**: GPT-5 models consume tokens for internal reasoning before producing output. Low limits cause empty responses with `finish_reason: length`. Use 10,000+ for generation, 5,000+ for validation.
+
+9. **LLM-based validation**: Regex patterns are brittle and miss valid variations. Using gpt-5-nano for validation is more robust and handles natural language flexibility.
+
+10. **Verbose logging**: API debugging requires full response metadata. Log finish_reason, token usage, and content previews to diagnose issues like empty responses.

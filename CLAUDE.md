@@ -9,6 +9,35 @@ Write in British English only
 Avoid using =s to break up print statements
 Write efficient, concise code - no unnecessary verbosity or fluff
 
+## Logging Standards
+
+All modules should log to `logs/{module_name}/` with timestamped files.
+
+**Setup pattern:**
+```python
+import logging
+from datetime import datetime
+from pathlib import Path
+
+LOG_DIR = Path(__file__).parent.parent.parent / 'logs' / 'module_name'
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+LOG_FILE = LOG_DIR / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+file_handler = logging.FileHandler(LOG_FILE)
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
+logger.addHandler(file_handler)
+```
+
+**Requirements:**
+- Logs go to files, not terminal (use `print()` for user-facing output)
+- Format: `%(asctime)s | %(levelname)s | %(message)s`
+- Use pipe `|` as delimiter for easy parsing
+- Log file path printed to terminal at start: `print(f"Log file: {LOG_FILE}")`
+- DEBUG for detailed tracing, INFO for key events, WARNING/ERROR for issues
+
 ## Project Overview
 
 Hybrid Category 3 AI system combining Prolog-based symbolic reasoning (Tier A: objective criteria) with LLM-assisted judgment (Tier B: subjective criteria) for mental health diagnostic assessment using DSM-5-TR (2022).
@@ -39,17 +68,28 @@ src/
 │   ├── providers/            # OpenAI, Anthropic, Ollama
 │   └── evaluate.py           # Validation pipeline
 │
+├── evaluation/                # Vignette Generation & Testing
+│   ├── generate_vignettes.py # CLI for synthetic case generation
+│   ├── evaluate.py           # CLI for vignette evaluation
+│   └── answer_modes.py       # Answer mode factories (preextracted/interactive/llm)
+│
 └── reasoning/                 # Python↔Prolog Interface
     └── engine.py             # Thin pyswip wrapper
 
 data/
 ├── dsm5_text/                # DSM-5-TR source text
-└── vignettes/                # Clinical test cases
+└── vignettes/                # Generated clinical test cases
+
+logs/
+├── vignettes/                # Vignette generation logs
+└── evaluation/               # Evaluation run logs
 
 docs/
 ├── DSM_VERSION_NOTES.md      # DSM-5 vs DSM-5-TR differences
 ├── EXTRACTION_BENCHMARKS.md  # LLM provider comparison
 ├── IMPLEMENTATION_PLAN.md    # Simplified rebuild plan
+├── VIGNETTE_GENERATION.md    # Vignette generation architecture
+├── EVALUATION.md             # Evaluation system and answer modes
 └── LEGACY_SYSTEM.md          # Old architecture (archived)
 
 archive/                       # Previous over-engineered implementation
@@ -101,6 +141,42 @@ python -m src.extraction.run_extraction --disorder gad --provider ollama --model
 # List available Ollama models
 python -m src.extraction.run_extraction --list-models
 ```
+
+**Vignette Generation** (synthetic clinical cases):
+```bash
+# Generate 50 vignettes (default)
+python -m src.evaluation.generate_vignettes --count 50
+
+# Generate 10 vignettes for quick testing
+python -m src.evaluation.generate_vignettes --count 10
+
+# Custom output directory
+python -m src.evaluation.generate_vignettes --count 20 --output data/vignettes/custom/
+```
+
+Output: `data/vignettes/vignettes_{timestamp}.json`
+Logs: `logs/vignettes/{timestamp}.log`
+
+See `docs/VIGNETTE_GENERATION.md` for architecture and configuration details.
+
+**Vignette Evaluation** (test diagnostic accuracy):
+```bash
+# Pre-extracted mode (fast baseline)
+python -m src.evaluation.evaluate --vignettes data/vignettes/*.json
+
+# LLM mode (GPT-5-mini infers from clinical text)
+python -m src.evaluation.evaluate --vignettes data/vignettes/*.json --mode llm
+
+# Interactive mode (clinician answers)
+python -m src.evaluation.evaluate --vignettes data/vignettes/*.json --mode interactive
+
+# Filter by disorder or difficulty
+python -m src.evaluation.evaluate --vignettes data/vignettes/*.json --disorder mdd --difficulty CLEAR
+```
+
+Logs: `logs/evaluation/{timestamp}.log`
+
+See `docs/EVALUATION.md` for answer modes and metrics.
 
 **Prolog Interactive Testing**:
 ```bash

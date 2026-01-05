@@ -7,15 +7,29 @@ Usage:
 
 import argparse
 import json
+import logging
 import random
-import re
 import time
+import uuid
 from datetime import datetime
 from pathlib import Path
 
 from openai import OpenAI
+from tqdm import tqdm
 from src.reasoning.engine import PrologEngine
 from src.extraction.config import Config
+
+# Logging setup - logs to project root /logs/vignettes directory
+LOG_DIR = Path(__file__).parent.parent.parent / 'logs' / 'vignettes'
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+LOG_FILE = LOG_DIR / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+file_handler = logging.FileHandler(LOG_FILE)
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
+logger.addHandler(file_handler)
 
 # Distribution: 40% CLEAR, 35% MODERATE, 15% AMBIGUOUS, 10% COMORBID
 CASE_WEIGHTS = {'CLEAR': 0.4, 'MODERATE': 0.35, 'AMBIGUOUS': 0.15, 'COMORBID': 0.1}
@@ -308,51 +322,80 @@ def get_forbidden_labels(specs: list[dict]) -> list[str]:
     return list(forbidden)
 
 
-def verify_vignette(text: str, specs: list[dict], requires_onset: bool = False) -> dict:
-    """Verify generated vignette meets requirements."""
-    text_lower = text.lower()
-    issues, warnings = [], []
-
-    # Dynamic forbidden labels based on disorders being generated
-    for term in get_forbidden_labels(specs):
-        if re.search(rf'\b{re.escape(term)}\b', text_lower):
-            issues.append(f"Contains forbidden label: '{term}'")
-
-    # Duration check
-    duration_patterns = [r'\d+\s*(day|week|month|year)', r'(past|last|over the)\s*(few|several)?\s*(day|week|month)']
-    if not any(re.search(p, text_lower) for p in duration_patterns):
-        issues.append("No clear duration/timeline found")
-
-    # Pertinent negatives
-    denial_patterns = ['denies', 'no evidence of', 'without', 'absent', 'normal', 'intact', 'negative for']
-    if sum(1 for p in denial_patterns if p in text_lower) < 2:
-        issues.append("Insufficient pertinent negatives")
-
-    # Onset check
-    if requires_onset:
-        onset_patterns = [r'(since|from)\s*(age|childhood)', r'(began|started)\s*(at age|around age)', r'as a child']
-        if not any(re.search(p, text_lower) for p in onset_patterns):
-            issues.append("Onset age not stated (required for this disorder)")
-
-    # Medical context
-    if not any(x in text_lower for x in ['tsh', 'lab', 'toxicology', 'metabolic', 'normal']):
-        warnings.append("No laboratory investigations mentioned")
-    if not any(x in text_lower for x in ['alcohol', 'drink', 'cannabis', 'drug', 'denies substance']):
-        warnings.append("No substance use history")
-    if not any(x in text_lower for x in ['medication', 'prescription', 'mg', 'no current medication']):
-        warnings.append("No medication list")
-
-    # Word count
+def verify_vignette(client: OpenAI, text: str, specs: list[dict], requires_onset: bool = False) -> dict:
+    """Verify generated vignette using LLM-based validation."""
     word_count = len(text.split())
-    if word_count < 200:
-        issues.append(f"Too short: {word_count} words")
+    logger.debug(f"Verifying vignette: {word_count} words, requires_onset={requires_onset}")
 
-    return {'valid': len(issues) == 0, 'issues': issues, 'warnings': warnings, 'word_count': word_count}
+    if word_count < 50:
+        logger.warning(f"Vignette too short: {word_count} words")
+        return {'valid': False, 'issues': [f'Too short: {word_count} words'], 'warnings': [], 'word_count': word_count}
+
+    forbidden = get_forbidden_labels(specs)
+    onset_instruction = "- onset_stated: Does the text explicitly state when symptoms first appeared (childhood, specific age, or early life)?" if requires_onset else ""
+
+    prompt = f"""Validate this psychiatric intake note against these criteria. Respond ONLY with valid JSON.
+
+<criteria>
+- no_diagnostic_labels: Text must NOT contain any diagnostic labels or disorder names: {', '.join(forbidden)}
+- has_timeline: Text must state when symptoms began or how long they've been present
+- has_pertinent_negatives: Text must explicitly deny at least 2 symptoms (using "denies", "no evidence of", "normal", "intact", etc.)
+- has_medical_context: Text should mention labs, substances, or medications
+{onset_instruction}
+</criteria>
+
+<text>
+{text}
+</text>
+
+Respond with this exact JSON structure:
+{{"status": "accepted" or "rejected", "reason": "rejection reason or empty string if accepted"}}"""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-5-nano",
+            messages=[{"role": "user", "content": prompt}],
+            max_completion_tokens=5000  # Higher limit for models with internal reasoning
+        )
+
+        logger.debug(f"Validation response ID: {response.id}")
+        logger.debug(f"Validation finish reason: {response.choices[0].finish_reason}")
+
+        content = response.choices[0].message.content
+        if not content:
+            logger.warning("Validation API returned empty content")
+            logger.debug(f"Validation message: {response.choices[0].message}")
+            return {'valid': False, 'issues': ['Validation returned empty'], 'warnings': [], 'word_count': word_count}
+
+        logger.debug(f"Validation raw response: {content}")
+
+        # Parse JSON from response (handle potential markdown wrapping)
+        content = content.strip()
+        if content.startswith('```'):
+            content = content.split('```')[1]
+            if content.startswith('json'):
+                content = content[4:]
+        result = json.loads(content.strip())
+
+        logger.debug(f"Validation parsed: {result}")
+
+        if result.get('status') == 'accepted':
+            return {'valid': True, 'issues': [], 'warnings': [], 'word_count': word_count}
+        else:
+            return {'valid': False, 'issues': [result.get('reason', 'Unknown')], 'warnings': [], 'word_count': word_count}
+
+    except (json.JSONDecodeError, KeyError) as e:
+        logger.error(f"Validation parse error: {e}")
+        logger.debug(f"Failed to parse: {content if 'content' in dir() else 'no content'}")
+        return {'valid': False, 'issues': [f'Validation parse error: {e}'], 'warnings': [], 'word_count': word_count}
 
 
 def generate_vignette(client: OpenAI, specs: list[dict], difficulty: str, idx: int,
                       max_retries: int = 2) -> dict:
     """Generate one vignette with verification and retry."""
+    disorder_ids = [s['id'] for s in specs]
+    logger.info(f"=== Vignette {idx} | {disorder_ids} | {difficulty} ===")
+
     if len(specs) > 1:
         answers = generate_answers_comorbid(specs)
         meets = True
@@ -362,32 +405,68 @@ def generate_vignette(client: OpenAI, specs: list[dict], difficulty: str, idx: i
     prompt = build_prompt(specs, answers, difficulty)
     requires_onset = any(spec['onset'] and str(spec['onset']['Type']) == 'before_age' for spec in specs)
 
+    logger.debug(f"Prompt length: {len(prompt)} chars")
+    logger.debug(f"Prompt preview: {prompt[:500]}...")
+
     vignette_text = ""
     verification = {'valid': False, 'issues': ['Not generated'], 'warnings': []}
 
     for attempt in range(max_retries + 1):
-        response = client.chat.completions.create(
-            model="gpt-5-mini",
-            messages=[
-                {"role": "system", "content": "You are an expert psychiatrist writing clinical intake notes. Be realistic and follow the format exactly."},
-                {"role": "user", "content": prompt}
-            ],
-            max_completion_tokens=2000
-        )
-        vignette_text = response.choices[0].message.content.strip()
-        verification = verify_vignette(vignette_text, specs, requires_onset)
+        logger.info(f"Generation attempt {attempt + 1}/{max_retries + 1}")
+        try:
+            response = client.chat.completions.create(
+                model="gpt-5-mini",
+                messages=[
+                    {"role": "system", "content": "You are an expert psychiatrist writing clinical intake notes. Be realistic and follow the format exactly."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_completion_tokens=10_000  # Higher limit for models with internal reasoning
+            )
 
-        if verification['valid']:
-            break
-        elif attempt < max_retries:
-            print(f"    Retry {attempt + 1}: {verification['issues']}", flush=True)
-            time.sleep(0.5)
+            # Log full response metadata
+            logger.debug(f"Response ID: {response.id}")
+            logger.debug(f"Model: {response.model}")
+            logger.debug(f"Finish reason: {response.choices[0].finish_reason}")
+            if response.usage:
+                logger.debug(f"Usage: prompt={response.usage.prompt_tokens}, completion={response.usage.completion_tokens}, total={response.usage.total_tokens}")
 
-    disorder_ids = [s['id'] for s in specs]
+            content = response.choices[0].message.content
+            refusal = getattr(response.choices[0].message, 'refusal', None)
+
+            if refusal:
+                logger.warning(f"API refusal: {refusal}")
+                tqdm.write(f"    Refusal: {refusal}")
+
+            if not content or not content.strip():
+                logger.warning(f"Empty content. Finish reason: {response.choices[0].finish_reason}")
+                logger.debug(f"Full message object: {response.choices[0].message}")
+                tqdm.write(f"    API returned empty content (attempt {attempt + 1})")
+                time.sleep(0.5)
+                continue
+
+            logger.debug(f"Content length: {len(content)} chars")
+            logger.debug(f"Content preview: {content[:300]}...")
+
+            vignette_text = content.strip()
+            verification = verify_vignette(client, vignette_text, specs, requires_onset)
+
+            logger.info(f"Verification: valid={verification['valid']}, issues={verification['issues']}")
+
+            if verification['valid']:
+                break
+            elif attempt < max_retries:
+                tqdm.write(f"    Retry {attempt + 1}: {verification['issues']}")
+                time.sleep(0.5)
+
+        except Exception as e:
+            logger.error(f"API exception: {type(e).__name__}: {e}")
+            tqdm.write(f"    API error: {e}")
+            time.sleep(1)
+
     difficulty_label = 'COMORBID' if len(specs) > 1 else difficulty
 
     return {
-        "id": f"vig_{idx:03d}_{'_'.join(disorder_ids)}_{difficulty_label.lower()}",
+        "id": f"vig_{idx:03d}_{'_'.join(disorder_ids)}_{difficulty_label.lower()}_{uuid.uuid4().hex[:8]}",
         "ground_truth": disorder_ids,
         "difficulty": difficulty_label,
         "meets_criteria": meets,
@@ -410,6 +489,9 @@ def select_case_type() -> str:
 
 def generate_vignettes(count: int = 50, output_dir: Path = None):
     """Generate vignettes and save to JSON."""
+    print(f"Log file: {LOG_FILE}", flush=True)
+    logger.info(f"Starting vignette generation: count={count}")
+
     output_dir = output_dir or Path(__file__).parent.parent.parent / 'data' / 'vignettes'
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -421,12 +503,15 @@ def generate_vignettes(count: int = 50, output_dir: Path = None):
     disorder_ids = list(specs.keys())
 
     print(f"Loaded {len(specs)} disorders: {disorder_ids}", flush=True)
+    logger.info(f"Loaded disorders: {disorder_ids}")
 
     config = Config.from_env()
     client = OpenAI(api_key=config.openai_api_key)
+    logger.info(f"OpenAI client initialised")
 
     vignettes = []
-    for i in range(count):
+    pbar = tqdm(range(count), desc="Generating", unit="vignette")
+    for i in pbar:
         case_type = select_case_type()
 
         if case_type == 'COMORBID':
@@ -438,15 +523,15 @@ def generate_vignettes(count: int = 50, output_dir: Path = None):
             spec_list = [specs[disorder_id]]
             difficulty = case_type
 
-        print(f"[{i+1}/{count}] {[s['id'] for s in spec_list]} - {difficulty}", flush=True)
+        pbar.set_postfix(disorder=spec_list[0]['id'], difficulty=difficulty)
         try:
             v = generate_vignette(client, spec_list, difficulty, i)
             vignettes.append(v)
-            status = "OK" if v['verification']['valid'] else f"WARN: {v['verification']['issues']}"
-            print(f"  {status}", flush=True)
+            if not v['verification']['valid']:
+                tqdm.write(f"  WARN [{spec_list[0]['id']}]: {v['verification']['issues']}")
             time.sleep(0.3)
         except Exception as e:
-            print(f"  Error: {e}", flush=True)
+            tqdm.write(f"  Error [{spec_list[0]['id']}]: {e}")
 
     # Summary
     valid_count = sum(1 for v in vignettes if v['verification']['valid'])
