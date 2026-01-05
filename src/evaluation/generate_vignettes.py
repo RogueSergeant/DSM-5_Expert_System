@@ -68,25 +68,60 @@ def days_from_duration(dur: dict) -> int:
 
 
 def generate_answers_single(spec: dict, difficulty: str) -> tuple[dict, bool]:
-    """Generate answers for single disorder."""
+    """Generate answers respecting symptom category requirements."""
     answers = {}
-    required = get_required_count(spec)
-    symptoms = spec['symptoms'].copy()
-    random.shuffle(symptoms)
+    present_ids = set()
 
-    if difficulty == 'CLEAR':
-        for s in symptoms:
-            answers[s['id']] = 'present'
-        meets = True
-    elif difficulty == 'MODERATE':
-        for i, s in enumerate(symptoms):
-            answers[s['id']] = 'present' if i < required else 'absent'
-        meets = True
-    else:  # AMBIGUOUS
+    # Sort categories: stricter first (exactly/all before at_least), smaller lists first
+    sorted_cats = sorted(spec['categories'], key=lambda c: (
+        0 if str(c['ReqType']) in ['all', 'exactly'] else 1,
+        len(c['SymList'])
+    ))
+
+    for cat in sorted_cats:
+        cat_symptoms = [str(s) for s in cat['SymList']]
+        req_count = cat['Req']
+        req_type = str(cat['ReqType'])
+
+        # Count how many we already have from this category
+        already_present = sum(1 for s in cat_symptoms if s in present_ids)
+
+        # Determine how many more we need
+        if req_type in ['all', 'exactly']:
+            needed = req_count - already_present
+        elif req_type == 'at_least':
+            base_need = req_count if difficulty != 'CLEAR' else len(cat_symptoms)
+            needed = max(0, base_need - already_present)
+        elif req_type == 'at_least_one_of':
+            needed = 0 if already_present > 0 else 1
+        else:
+            needed = max(0, req_count - already_present)
+
+        # Add more symptoms if needed
+        if needed > 0:
+            available = [s for s in cat_symptoms if s not in present_ids]
+            random.shuffle(available)
+            for sid in available[:needed]:
+                present_ids.add(sid)
+
+    # For AMBIGUOUS, possibly remove a non-essential symptom
+    if difficulty == 'AMBIGUOUS':
         meets = random.random() < 0.5
-        target = required if meets else required - 1
-        for i, s in enumerate(symptoms):
-            answers[s['id']] = 'present' if i < target else 'absent'
+        if not meets:
+            # Find symptoms that can be removed without breaking strict requirements
+            essential = set()
+            for cat in spec['categories']:
+                if str(cat['ReqType']) in ['all', 'exactly']:
+                    essential.update(str(s) for s in cat['SymList'])
+            removable = [s for s in present_ids if s not in essential]
+            if removable:
+                present_ids.discard(random.choice(removable))
+    else:
+        meets = True
+
+    # Assign present/absent to all symptoms
+    for s in spec['symptoms']:
+        answers[s['id']] = 'present' if s['id'] in present_ids else 'absent'
 
     for e in spec['exclusions']:
         answers[e['id']] = 'cleared'
@@ -129,56 +164,60 @@ def generate_answers_comorbid(specs: list[dict]) -> dict:
 
 
 def build_prompt(specs: list[dict], answers: dict, difficulty: str) -> str:
-    """Build LLM prompt."""
-    disorder_names = ' and '.join(s['name'] for s in specs)
-
-    symptom_lines = []
+    """Build LLM prompt using research-informed vignette methodology."""
+    present_symptoms, absent_symptoms = [], []
     for spec in specs:
-        symptom_lines.extend(
-            f"- {s['id']}: {answers[s['id']]} - {s['desc']}" for s in spec['symptoms']
-        )
-    excl_lines = []
-    for spec in specs:
-        excl_lines.extend(
-            f"- {e['id']}: cleared - {e['desc']}" for e in spec['exclusions']
-        )
-    subj_lines = []
-    for spec in specs:
-        subj_lines.extend(
-            f"- {s['id']}: {answers[s['id']]} - {s['desc']}" for s in spec['subjective']
-        )
+        for s in spec['symptoms']:
+            if answers.get(s['id']) == 'present':
+                present_symptoms.append(s['desc'][:80])
+            else:
+                absent_symptoms.append(s['desc'][:50])
 
-    comorbid_note = ""
-    if len(specs) > 1:
-        comorbid_note = f"\nThis is a COMORBID case: patient meets criteria for BOTH {disorder_names}. Ensure symptoms from all disorders are clearly present.\n"
+    duration = answers.get('duration_days', 14)
+    duration_text = f"{duration // 7} weeks" if duration >= 14 else f"{duration} days"
 
-    return f"""Generate a clinical vignette for evaluation of {disorder_names}.
+    style = {
+        'CLEAR': "Symptoms clearly evident. Patient describes experiences vividly with specific examples.",
+        'MODERATE': "Symptoms present but subtly described. Patient uses hedging language ('kind of', 'sometimes').",
+        'AMBIGUOUS': "Borderline presentation. Patient minimises or is uncertain about symptom severity.",
+        'COMORBID': "Multiple distinct symptom clusters clearly present."
+    }.get(difficulty, "Symptoms present but require clinical inference.")
 
-DIFFICULTY: {difficulty}
-{comorbid_note}
-FINDINGS TO MATCH:
+    return f"""Write a realistic psychiatric case presentation (200-350 words).
 
-Symptoms:
-{chr(10).join(symptom_lines)}
+ABSOLUTE RULES:
+- NEVER name any psychiatric diagnosis, disorder, or syndrome
+- NEVER use clinical labels (e.g., "depression", "anxiety", "ADHD", "trauma")
+- Write as an intake note describing observations and patient reports only
 
-Exclusions (cleared = does NOT apply):
-{chr(10).join(excl_lines)}
+STYLE: {style}
 
-Clinical judgment:
-{chr(10).join(subj_lines)}
+SYMPTOMS TO PORTRAY (describe phenomenologically - HOW they feel, not just that they exist):
+{chr(10).join(f'- {s}' for s in present_symptoms)}
 
-Duration: {answers.get('duration_days', 14)} days
+PERTINENT NEGATIVES (explicitly deny these in the vignette):
+{chr(10).join(f'- {s}' for s in absent_symptoms[:4])}
 
-Write a 300-500 word clinical vignette including:
-- Demographics
-- Chief complaint with patient quotes
-- History of present illness
-- Mental status findings
+DURATION: Approximately {duration_text}
 
-For 'present' symptoms: describe clearly
-For 'absent' symptoms: note absence or contradicting evidence
+REQUIRED SECTIONS:
+1. Opening: "[Age]-year-old [occupation] presents with..." (use patient's words for chief complaint)
+2. History of present illness: Narrative prose with 2-3 direct patient quotes
+3. Past psychiatric history: Brief (prior episodes, treatment, or "no prior psychiatric history")
+4. Family history: One sentence (e.g., "Mother treated for mood problems" or "No known family psychiatric history")
+5. Mental status exam: 3-4 observations (appearance, affect, thought process, cognition)
 
-Output ONLY the clinical text."""
+CRITICAL - AVOID THESE PHRASES:
+- "preserved interest" or "maintained interest" (contradicts anhedonia if testing it)
+- "consistent with" or "suggestive of" or "classic presentation"
+- Any diagnostic terminology
+
+FOR ABSENT SYMPTOMS: Use explicit denial language, e.g.:
+- "Denies feelings of worthlessness or guilt"
+- "No psychomotor changes observed"
+- "Sleep remains normal"
+
+Output ONLY the clinical vignette text. No preamble."""
 
 
 def generate_vignette(client: OpenAI, specs: list[dict], difficulty: str, idx: int) -> dict:
@@ -237,7 +276,7 @@ def generate_vignettes(count: int = 50, output_dir: Path = None):
     specs = load_disorders(engine)
     disorder_ids = list(specs.keys())
 
-    print(f"Loaded {len(specs)} disorders: {disorder_ids}")
+    print(f"Loaded {len(specs)} disorders: {disorder_ids}", flush=True)
 
     # OpenAI client
     config = Config.from_env()
@@ -256,13 +295,14 @@ def generate_vignettes(count: int = 50, output_dir: Path = None):
             spec_list = [specs[disorder_id]]
             difficulty = case_type
 
-        print(f"[{i+1}/{count}] {[s['id'] for s in spec_list]} - {difficulty}")
+        print(f"[{i+1}/{count}] {[s['id'] for s in spec_list]} - {difficulty}", flush=True)
         try:
             v = generate_vignette(client, spec_list, difficulty, i)
             vignettes.append(v)
+            print(f"  Done", flush=True)
             time.sleep(0.3)
         except Exception as e:
-            print(f"  Error: {e}")
+            print(f"  Error: {e}", flush=True)
 
     # Save
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
