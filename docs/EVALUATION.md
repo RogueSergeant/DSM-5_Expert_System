@@ -394,3 +394,294 @@ run_differential_diagnosis()
 ### Future Optimisation Opportunities
 
 The current implementation still makes multiple queries at the end to build final results. This could be further optimised with a batch `all_diagnosis_results/2` predicate, but current performance (~0.19s per vignette) is acceptable.
+
+## Rich Terminal Output
+
+The evaluation system uses ANSI colour codes and formatted tables for clear, scannable output.
+
+### Formatting Utilities
+
+Located in `src/utils/formatting.py`:
+
+| Function | Purpose |
+|----------|---------|
+| `status_badge(status)` | Coloured badges: [MET], [NOT MET], [PRUNED] |
+| `format_table(headers, rows)` | ASCII table with borders |
+| `format_header(title)` | Boxed section header |
+| `format_metric(label, value)` | Metric with percentage colouring |
+| `format_run_header(...)` | Evaluation run metadata |
+| `format_vignette_result(...)` | Single vignette result line |
+
+### Colour Scheme
+
+| Colour | Statuses |
+|--------|----------|
+| Green | `met`, `cleared`, `correct`, `present` |
+| Red | `not_met`, `excluded`, `incorrect`, `absent` |
+| Yellow | `missing_data`, `unclear`, `pruned`, `incomplete` |
+| Cyan | Headers, labels |
+
+Colours are automatically disabled when output is piped (non-TTY).
+
+### Example Output
+
+```
++----------------------------------------------------------+
+|                     EVALUATION RUN                       |
++----------------------------------------------------------+
+Date: 2026-01-05 10:30:22
+Mode: preextracted | Subjective: none
+Vignettes: 50
+
++----------------------------------------------------------+
+|                        RESULTS                           |
++----------------------------------------------------------+
+Overall Accuracy: 100.0% (59/59)
+Average Questions: 136.6
+
+By Difficulty:
++------------+----------+---------+--------+
+| Difficulty | Accuracy | Correct | Avg Qs |
++------------+----------+---------+--------+
+| CLEAR      |  100.0%  |  22/22  | 139.0  |
+| MODERATE   |  100.0%  |  13/13  | 139.0  |
+| AMBIGUOUS  |  100.0%  |   6/6   | 115.8  |
+| COMORBID   |  100.0%  |  18/18  | 139.0  |
++------------+----------+---------+--------+
+
+Predicted Statuses:
+  [MET] 56
+  [NOT MET] 2
+  [PRUNED] 1
+```
+
+## Proof Tree Explanations
+
+The evaluation system generates structured explanations of diagnostic reasoning, formatted as readable proof trees.
+
+### How It Works
+
+1. **Prolog generates structure**: `explain_diagnosis/3` collects evidence for each criterion
+2. **Python formats output**: `format_proof_tree()` renders as readable tree
+3. **Always shown**: In verbose mode (`-v`) and interactive diagnosis
+
+### Prolog Predicates (schema.pl)
+
+| Predicate | Purpose |
+|-----------|---------|
+| `explain_diagnosis/3` | Main entry - builds structured explanation dict |
+| `get_symptom_evidence/3` | Collects all evaluated symptoms with evidence |
+| `get_exclusion_evidence/3` | Collects all evaluated exclusions |
+| `get_subjective_evidence/3` | Collects all subjective assessments with confidence |
+
+### Explanation Structure
+
+```python
+explanation = {
+    'disorder': 'Major Depressive Disorder',
+    'disorder_id': 'mdd',
+    'category': 'depressive',
+    'overall_status': 'met',
+    'confidence': 0.95,
+    'criteria': {
+        'symptoms': {
+            'status': 'met',
+            'category_results': [...],
+            'evidence': [
+                {'symptom_id': 'mdd_a1', 'status': 'present', 'evidence': '...'},
+                ...
+            ]
+        },
+        'duration': {'status': 'met', 'details': [...]},
+        'onset': {'status': 'not_applicable', 'details': []},
+        'exclusions': {'status': 'met', 'evidence': [...]},
+        'subjective': {'status': 'met', 'evidence': [...]}
+    }
+}
+```
+
+### Example Proof Tree
+
+```
+Major Depressive Disorder (MDD)
+Status: [MET]  Confidence: 95%
+
+Symptoms [MET]
+  core_symptoms: 2/1 [MET]
+  all_symptoms: 6/5 [MET]
+  Evidence:
+    [+] mdd_a1: Depressed mood most of the day, nearly eve
+    [+] mdd_a2: Markedly diminished interest or pleasure i
+    [+] mdd_a3: Significant weight loss when not dieting o
+    [-] mdd_a4: Insomnia or hypersomnia nearly every day
+    [+] mdd_a5: Psychomotor agitation or retardation nearl
+    [+] mdd_a6: Fatigue or loss of energy nearly every day
+
+Duration [MET]
+  Required: 14 days | Actual: 21 days
+
+Onset [NOT APPLICABLE]
+
+Exclusions [MET]
+  [ok] mdd_exc_substance: Substance-induced mood disorder
+  [ok] mdd_exc_medical: Mood disorder due to medical condi
+
+Subjective [MET]
+  [+] mdd_subj_clinical_significance: Clinically signific (100%)
+```
+
+### Python API
+
+```python
+from src.diagnosis.driver import DiagnosticDriver
+from src.utils.explain import format_proof_tree
+
+driver = DiagnosticDriver()
+driver.load()
+
+# After running diagnosis...
+explanation = driver.get_explanation('mdd', 'patient_001')
+print(format_proof_tree(explanation))
+```
+
+## Results Export
+
+Evaluation results are automatically exported to JSON for analysis and record-keeping.
+
+### Output Location
+
+```
+data/results/evaluation/{timestamp}_results.json
+```
+
+### JSON Structure
+
+```json
+{
+  "timestamp": "20260105_103045",
+  "mode": "preextracted",
+  "subjective_model": "none",
+  "filters": {
+    "disorder": null,
+    "difficulty": null
+  },
+  "summary": {
+    "total": 59,
+    "correct": 59,
+    "accuracy": 1.0,
+    "avg_questions": 136.6
+  },
+  "results": [
+    {
+      "vignette_id": "vig_001",
+      "ground_truth": ["mdd"],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "predicted_disorder": "mdd",
+      "predicted_status": "met",
+      "correct": true,
+      "questions_asked": 139,
+      "confidence": 0.95,
+      "explanation": { ... }
+    },
+    ...
+  ]
+}
+```
+
+### Prolog Object Serialisation
+
+The `_serialize_for_json()` helper handles Prolog terms that pyswip returns:
+
+```python
+# Prolog term like: actual_days(21)
+# Serialised as: {"functor": "actual_days", "args": [21]}
+```
+
+## Test Suite
+
+Phase 4 added meaningful test coverage across three layers.
+
+### Test Files
+
+| File | Focus | Tests |
+|------|-------|-------|
+| `tests/conftest.py` | Shared fixtures | `engine`, `driver`, `sample_vignette` |
+| `tests/test_engine.py` | Python↔Prolog bridge | Schema loading, queries, assert/retract |
+| `tests/test_driver.py` | Diagnostic driver | Question flow, answers, differential diagnosis |
+| `tests/test_integration.py` | End-to-end pipeline | Evaluation modes, proof tree formatting |
+
+### Key Fixtures (conftest.py)
+
+```python
+@pytest.fixture
+def prolog_dir():
+    """Path to Prolog source directory."""
+
+@pytest.fixture
+def engine(prolog_dir):
+    """Loaded PrologEngine with schema and gold standards."""
+
+@pytest.fixture
+def driver():
+    """Loaded DiagnosticDriver ready for diagnosis."""
+
+@pytest.fixture
+def sample_vignette():
+    """Minimal valid vignette dict for testing."""
+
+@pytest.fixture
+def clear_patient(engine):
+    """Clears patient facts after test."""
+```
+
+### Test Categories
+
+**PrologEngine Tests** (`test_engine.py`):
+- Schema and gold standard loading
+- Query returning dicts
+- `query_one()` returning first match
+- Assert and retract of facts
+- All 6 disorders loaded (mdd, gad, adhd, ptsd, ptsd_preschool, asd)
+
+**DiagnosticDriver Tests** (`test_driver.py`):
+- `load()` succeeds
+- `get_next_question()` returns DiagnosticItem
+- `assert_answer()` persists facts
+- Duration handles None value (defaults to 0)
+- `get_diagnosis()` returns result dict
+- `clear_patient()` removes all facts
+- Active candidates starts with all disorders
+- Pruning after exclusion
+
+**Integration Tests** (`test_integration.py`):
+- Preextracted mode completes without error
+- Clear case returns valid status
+- Explanation included in result
+- Driver diagnoses clear case with callback
+- Proof tree formatter handles real data
+
+### Running Tests
+
+```bash
+# All tests
+pytest tests/ -v
+
+# Single file
+pytest tests/test_engine.py -v
+
+# Single class
+pytest tests/test_driver.py::TestDiagnosticDriver -v
+
+# With output
+pytest tests/ -v -s
+```
+
+### Current Coverage
+
+73 tests passing:
+- `test_prolog_schema.py`: 28 tests (Prolog schema validation)
+- `test_answer_modes.py`: 18 tests (answer mode factories)
+- `test_engine.py`: 12 tests (Python-Prolog bridge)
+- `test_driver.py`: 10 tests (diagnostic driver)
+- `test_integration.py`: 5 tests (end-to-end)

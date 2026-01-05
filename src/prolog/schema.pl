@@ -280,37 +280,99 @@ normalise_to_days(N, years, Days) :- Days is N * 365.
 %% =============================================================================
 
 %% explain_diagnosis(+PatientID, +DisorderID, -Explanation)
-%% Generates structured explanation of diagnostic reasoning.
+%% Generates structured explanation of diagnostic reasoning with proof tree details.
 explain_diagnosis(PatientID, DisorderID, Explanation) :-
-    disorder(DisorderID, Name, _),
-    criterion_check(PatientID, DisorderID, symptoms, SympStatus, _),
-    criterion_check(PatientID, DisorderID, duration, DurStatus, _),
-    criterion_check(PatientID, DisorderID, onset, OnsetStatus, _),
-    criterion_check(PatientID, DisorderID, exclusions, ExclStatus, _),
-    criterion_check(PatientID, DisorderID, subjective, SubjStatus, _),
-    get_symptom_details(PatientID, DisorderID, SymptomDetails),
+    disorder(DisorderID, Name, Category),
+    full_diagnosis(PatientID, DisorderID, DiagResult),
+    criterion_check(PatientID, DisorderID, symptoms, SympStatus, SympDetails),
+    criterion_check(PatientID, DisorderID, duration, DurStatus, DurDetails),
+    criterion_check(PatientID, DisorderID, onset, OnsetStatus, OnsetDetails),
+    criterion_check(PatientID, DisorderID, exclusions, ExclStatus, ExclDetails),
+    criterion_check(PatientID, DisorderID, subjective, SubjStatus, SubjDetails),
+    get_symptom_evidence(PatientID, DisorderID, SymptomEvidence),
+    get_exclusion_evidence(PatientID, DisorderID, ExclusionEvidence),
+    get_subjective_evidence(PatientID, DisorderID, SubjectiveEvidence),
     Explanation = explanation{
         disorder: Name,
         disorder_id: DisorderID,
+        category: Category,
+        overall_status: DiagResult.overall_status,
+        confidence: DiagResult.confidence,
         criteria: criteria{
-            symptoms: SympStatus,
-            duration: DurStatus,
-            onset: OnsetStatus,
-            exclusions: ExclStatus,
-            subjective: SubjStatus
-        },
-        symptom_evidence: SymptomDetails
+            symptoms: symptoms_detail{
+                status: SympStatus,
+                category_results: SympDetails,
+                evidence: SymptomEvidence
+            },
+            duration: duration_detail{
+                status: DurStatus,
+                details: DurDetails
+            },
+            onset: onset_detail{
+                status: OnsetStatus,
+                details: OnsetDetails
+            },
+            exclusions: exclusions_detail{
+                status: ExclStatus,
+                details: ExclDetails,
+                evidence: ExclusionEvidence
+            },
+            subjective: subjective_detail{
+                status: SubjStatus,
+                details: SubjDetails,
+                evidence: SubjectiveEvidence
+            }
+        }
     }.
 
-%% get_symptom_details/3 - Collect evidence for present symptoms
-get_symptom_details(PatientID, DisorderID, Details) :-
+%% get_symptom_evidence/3 - Collect evidence for all evaluated symptoms
+get_symptom_evidence(PatientID, DisorderID, Evidence) :-
     findall(
-        detail{symptom_id: SID, description: Desc, evidence: Ev},
+        symptom_ev{
+            symptom_id: SID,
+            category: Cat,
+            description: Desc,
+            status: Status,
+            evidence: Ev
+        },
         (
-            symptom(DisorderID, SID, _, Desc),
-            patient_symptom(PatientID, SID, present, Ev)
+            symptom(DisorderID, SID, Cat, Desc),
+            patient_symptom(PatientID, SID, Status, Ev)
         ),
-        Details
+        Evidence
+    ).
+
+%% get_exclusion_evidence/3 - Collect evidence for all evaluated exclusions
+get_exclusion_evidence(PatientID, DisorderID, Evidence) :-
+    findall(
+        exclusion_ev{
+            exclusion_id: EID,
+            exclusion_type: EType,
+            description: Desc,
+            status: Status
+        },
+        (
+            exclusion_criterion(DisorderID, EID, EType, Desc),
+            patient_exclusion_status(PatientID, EID, Status)
+        ),
+        Evidence
+    ).
+
+%% get_subjective_evidence/3 - Collect evidence for all evaluated subjective criteria
+get_subjective_evidence(PatientID, DisorderID, Evidence) :-
+    findall(
+        subjective_ev{
+            criterion_id: CID,
+            description: Desc,
+            assessment_type: AType,
+            status: Status,
+            confidence: Conf
+        },
+        (
+            subjective_criterion(DisorderID, CID, Desc, AType),
+            subjective_assessment(PatientID, CID, Status, Conf)
+        ),
+        Evidence
     ).
 
 

@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Optional
 from src.reasoning.engine import PrologEngine
+from src.utils.formatting import status_badge, format_header, format_table, Colours, _c
+from src.utils.explain import format_proof_tree
 
 logger = logging.getLogger(__name__)
 
@@ -132,6 +134,13 @@ class DiagnosticDriver:
         result = self.engine.query_one(f"full_diagnosis({patient_id}, {disorder_id}, Result)")
         return result.get('Result') if result else None
 
+    def get_explanation(self, disorder_id: str, patient_id: str) -> Optional[dict]:
+        """Get structured explanation from Prolog."""
+        result = self.engine.query_one(
+            f"explain_diagnosis({patient_id}, {disorder_id}, Explanation)"
+        )
+        return result.get('Explanation', {}) if result else {}
+
     def clear_patient(self, patient_id: str) -> bool:
         """Clear all patient facts."""
         return bool(self.engine.query(f"clear_patient_facts({patient_id})"))
@@ -189,13 +198,13 @@ class DiagnosticDriver:
         while True:
             if self.is_pruned(disorder_id, patient_id):
                 if verbose:
-                    print(f"{disorder_id} ruled out")
+                    print(f"{status_badge('pruned')} {disorder_id} ruled out")
                 break
 
             diagnosis = self.get_diagnosis(disorder_id, patient_id)
             if diagnosis and diagnosis.get('overall_status') in ['met', 'not_met']:
                 if verbose:
-                    print(f"Diagnosis: {diagnosis.get('overall_status')}")
+                    print(f"{status_badge(diagnosis.get('overall_status'))} Diagnosis complete")
                 break
 
             missing = self.get_missing_items(disorder_id, patient_id)
@@ -204,7 +213,8 @@ class DiagnosticDriver:
 
             item = missing[0]
             if verbose:
-                print(f"[{questions_asked + 1}] {item.item_type}: {item.description[:60]}...")
+                progress = _c(f"[{questions_asked + 1}]", Colours.CYAN)
+                print(f"{progress} {item.item_type}: {item.description[:60]}...")
 
             if answer_fn:
                 status, evidence, confidence, value = answer_fn(item)
@@ -257,7 +267,8 @@ class DiagnosticDriver:
             prev_candidates = current_candidates
 
             if verbose:
-                print(f"[{questions_asked + 1}] {item.disorder_id}.{item.item_type}: {item.description[:50]}...")
+                progress = _c(f"[{questions_asked + 1}]", Colours.CYAN)
+                print(f"{progress} {item.disorder_id}.{item.item_type}: {item.description[:50]}...")
 
             if answer_fn:
                 status, evidence, confidence, value = answer_fn(item)
@@ -334,14 +345,31 @@ def run_interactive(disorder_id: str = 'mdd') -> DiagnosisResult:
         print("Failed to load")
         return None
 
-    print(f"\nDiagnosis: {disorder_id}\n")
+    print(format_header(f"Diagnosis: {disorder_id.upper()}"))
+    print()
     result = driver.run_diagnosis(disorder_id, verbose=True)
 
-    print(f"\nResult: {result.disorder_name}")
-    print(f"  Status: {result.status}")
-    print(f"  Confidence: {result.confidence:.1%}")
-    print(f"  Questions: {result.questions_asked}")
-    print(f"  Remaining: {result.missing_items}")
+    # Format result as table
+    print()
+    print(format_header("Result"))
+    print(f"Disorder: {result.disorder_name}")
+    print(f"Status: {status_badge(result.status)}")
+    rows = [
+        ['Confidence', f"{result.confidence:.1%}"],
+        ['Questions Asked', str(result.questions_asked)],
+        ['Missing Items', str(result.missing_items)]
+    ]
+    print(format_table(['Metric', 'Value'], rows))
+
+    # Show proof tree explanation
+    print()
+    print(format_header("Proof Tree"))
+    explanation = driver.get_explanation(disorder_id, 'patient')
+    if explanation:
+        print(format_proof_tree(explanation))
+    else:
+        print("(No explanation available)")
+
     return result
 
 

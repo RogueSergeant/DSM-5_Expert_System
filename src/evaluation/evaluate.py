@@ -11,7 +11,7 @@ Usage:
 import argparse
 import json
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict, field
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -24,11 +24,26 @@ from src.evaluation.answer_modes import (
     create_subjective_llm_answer_fn,
     create_hybrid_answer_fn,
 )
+from src.utils.formatting import (
+    format_header,
+    format_table,
+    format_metric,
+    format_run_header,
+    format_vignette_result,
+    status_badge,
+)
+from src.utils.explain import format_proof_tree
 
 # Logging setup
 LOG_DIR = Path(__file__).parent.parent.parent / 'logs' / 'evaluation'
 LOG_DIR.mkdir(parents=True, exist_ok=True)
-LOG_FILE = LOG_DIR / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+TIMESTAMP = datetime.now().strftime('%Y%m%d_%H%M%S')
+LOG_FILE = LOG_DIR / f"{TIMESTAMP}.log"
+
+# Results output
+RESULTS_DIR = Path(__file__).parent.parent.parent / 'data' / 'results' / 'evaluation'
+RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+RESULTS_FILE = RESULTS_DIR / f"{TIMESTAMP}_results.json"
 
 # Configure file handler for all evaluation loggers
 file_handler = logging.FileHandler(LOG_FILE)
@@ -56,6 +71,7 @@ class EvaluationResult:
     correct: bool
     questions_asked: int
     confidence: float
+    explanation: dict = None  # Proof tree explanation from Prolog
 
 
 def evaluate_vignette(
@@ -115,6 +131,7 @@ def evaluate_vignette(
     results = []
     expected_status = 'met' if vignette['meets_criteria'] else 'not_met'
 
+    patient_id = f"patient_{vignette['id']}"
     for disorder_id in vignette['ground_truth']:
         if disorder_id in diagnosis_results:
             result = diagnosis_results[disorder_id]
@@ -123,6 +140,9 @@ def evaluate_vignette(
             # Disorder was pruned - counts as 'not_met'
             correct = (expected_status == 'not_met')
             result = DiagnosisResult(disorder_id, disorder_id, 'pruned', 0.0, 0, 0)
+
+        # Get explanation for this disorder
+        explanation = driver.get_explanation(disorder_id, patient_id)
 
         logger.info(f"  RESULT | {disorder_id} | predicted={result.status} | expected={expected_status} | correct={correct} | questions={result.questions_asked} | confidence={result.confidence:.2f}")
 
@@ -135,7 +155,8 @@ def evaluate_vignette(
             predicted_status=result.status,
             correct=correct,
             questions_asked=result.questions_asked,
-            confidence=result.confidence
+            confidence=result.confidence,
+            explanation=explanation
         ))
 
     return results
@@ -176,8 +197,15 @@ def evaluate_on_vignettes(
         logger.warning("No vignettes found matching filters")
         return []
 
-    subj_info = f", subjective: {subjective_model}" if subjective_model != 'none' else ""
-    print(f"Loaded {len(vignettes)} vignettes (mode: {mode}{subj_info})")
+    # Print run header with metadata
+    print(format_run_header(
+        mode=mode,
+        vignette_count=len(vignettes),
+        disorder_filter=disorder,
+        difficulty_filter=difficulty,
+        subjective_model=subjective_model
+    ))
+    print()
 
     driver = DiagnosticDriver()
     if not driver.load():
@@ -197,19 +225,36 @@ def evaluate_on_vignettes(
 
         if verbose:
             for r in results:
-                status = "✓" if r.correct else "✗"
-                print(f"  {status} {r.predicted_disorder}: {r.predicted_status} "
-                      f"(expected {'met' if r.meets_criteria else 'not_met'}, "
-                      f"{r.questions_asked} questions)")
+                print(f"  {format_vignette_result(
+                    vignette_id=r.vignette_id,
+                    difficulty=r.difficulty,
+                    ground_truth=r.ground_truth,
+                    predicted=r.predicted_disorder,
+                    status=r.predicted_status,
+                    correct=r.correct,
+                    questions=r.questions_asked
+                )}")
+                # Show proof tree in verbose mode
+                if r.explanation:
+                    print()
+                    print(format_proof_tree(r.explanation))
+                    print()
 
-    print_metrics(all_results)
+    print_metrics(all_results, mode, disorder, difficulty, subjective_model)
+    save_results(all_results, mode, disorder, difficulty, subjective_model)
     logger.info(f"Evaluation complete | total={len(all_results)}")
 
     return all_results
 
 
-def print_metrics(results: list[EvaluationResult]):
-    """Print and log evaluation metrics."""
+def print_metrics(
+    results: list[EvaluationResult],
+    mode: str = 'preextracted',
+    disorder_filter: str = None,
+    difficulty_filter: str = None,
+    subjective_model: str = 'none'
+):
+    """Print and log evaluation metrics with formatted tables."""
     if not results:
         print("No results to analyse")
         return
@@ -252,25 +297,99 @@ def print_metrics(results: list[EvaluationResult]):
         dis_acc = stats['correct'] / stats['total'] if stats['total'] > 0 else 0
         logger.info(f"  {disorder}: {dis_acc:.1%} ({stats['correct']}/{stats['total']})")
 
-    # Print to terminal
-    print("\nEVALUATION RESULTS")
-    print(f"Overall Accuracy: {accuracy:.1%} ({correct}/{total})")
+    # Print results header
+    print()
+    print(format_header("Results"))
+    print(format_metric("Overall Accuracy", accuracy, total))
     print(f"Average Questions: {avg_questions:.1f}")
 
+    # Difficulty table
     print("\nBy Difficulty:")
+    diff_rows = []
     for diff, stats in sorted(difficulties.items()):
         diff_acc = stats['correct'] / stats['total'] if stats['total'] > 0 else 0
         avg_q = stats['questions'] / stats['total'] if stats['total'] > 0 else 0
-        print(f"  {diff:12s}: {diff_acc:5.1%} ({stats['correct']}/{stats['total']}), avg {avg_q:.1f} questions")
+        diff_rows.append([
+            diff,
+            f"{diff_acc:.1%}",
+            f"{stats['correct']}/{stats['total']}",
+            f"{avg_q:.1f}"
+        ])
+    print(format_table(['Difficulty', 'Accuracy', 'Correct', 'Avg Qs'], diff_rows))
 
+    # Disorder table
     print("\nBy Disorder:")
+    disorder_rows = []
     for disorder, stats in sorted(disorders.items()):
         dis_acc = stats['correct'] / stats['total'] if stats['total'] > 0 else 0
-        print(f"  {disorder:12s}: {dis_acc:5.1%} ({stats['correct']}/{stats['total']})")
+        disorder_rows.append([
+            disorder.upper(),
+            f"{dis_acc:.1%}",
+            f"{stats['correct']}/{stats['total']}"
+        ])
+    print(format_table(['Disorder', 'Accuracy', 'Correct'], disorder_rows))
 
+    # Status breakdown
     print("\nPredicted Statuses:")
     for status, count in sorted(statuses.items()):
-        print(f"  {status:12s}: {count}")
+        print(f"  {status_badge(status)} {count}")
+
+
+def _serialize_for_json(obj):
+    """Convert Prolog objects to JSON-serializable format."""
+    if obj is None:
+        return None
+    if isinstance(obj, (str, int, float, bool)):
+        return obj
+    if isinstance(obj, dict):
+        return {str(k): _serialize_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_serialize_for_json(item) for item in obj]
+    # Handle Prolog terms
+    if hasattr(obj, 'functor') and hasattr(obj, 'args'):
+        return {'functor': str(obj.functor), 'args': [_serialize_for_json(a) for a in obj.args]}
+    return str(obj)
+
+
+def save_results(
+    results: list[EvaluationResult],
+    mode: str,
+    disorder_filter: str,
+    difficulty_filter: str,
+    subjective_model: str
+):
+    """Save evaluation results to JSON file."""
+    total = len(results)
+    correct = sum(1 for r in results if r.correct)
+
+    # Serialize results, handling Prolog objects
+    serialized_results = []
+    for r in results:
+        result_dict = asdict(r)
+        result_dict['explanation'] = _serialize_for_json(r.explanation)
+        serialized_results.append(result_dict)
+
+    output = {
+        'timestamp': TIMESTAMP,
+        'mode': mode,
+        'subjective_model': subjective_model,
+        'filters': {
+            'disorder': disorder_filter,
+            'difficulty': difficulty_filter
+        },
+        'summary': {
+            'total': total,
+            'correct': correct,
+            'accuracy': correct / total if total > 0 else 0,
+            'avg_questions': sum(r.questions_asked for r in results) / total if total > 0 else 0
+        },
+        'results': serialized_results
+    }
+
+    with open(RESULTS_FILE, 'w') as f:
+        json.dump(output, f, indent=2)
+
+    print(f"\nResults saved to: {RESULTS_FILE}")
 
 
 def main():

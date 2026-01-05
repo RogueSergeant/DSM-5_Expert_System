@@ -76,12 +76,17 @@ src/
 ├── diagnosis/                 # Diagnostic Driver
 │   └── driver.py             # Orchestrates Prolog reasoning with answer callbacks
 │
-└── reasoning/                 # Python↔Prolog Interface
-    └── engine.py             # Thin pyswip wrapper
+├── reasoning/                 # Python↔Prolog Interface
+│   └── engine.py             # Thin pyswip wrapper
+│
+└── utils/                     # Formatting & Explanation
+    ├── formatting.py         # ANSI colours, status badges, ASCII tables
+    └── explain.py            # Proof tree formatter for diagnostic explanations
 
 data/
 ├── dsm5_text/                # DSM-5-TR source text
-└── vignettes/                # Generated clinical test cases
+├── vignettes/                # Generated clinical test cases
+└── results/evaluation/       # Evaluation results JSON exports
 
 logs/
 ├── vignettes/                # Vignette generation logs
