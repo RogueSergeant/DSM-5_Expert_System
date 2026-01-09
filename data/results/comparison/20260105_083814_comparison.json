@@ -1,0 +1,18 @@
+{
+  "timestamp": "20260105_083814",
+  "metrics": {
+    "total": 0,
+    "hybrid": {
+      "correct": 0,
+      "accuracy": 0,
+      "avg_questions": 0,
+      "avg_confidence": 0
+    },
+    "pure_llm": {
+      "correct": 0,
+      "accuracy": 0
+    },
+    "by_difficulty": {}
+  },
+  "results": []
+}

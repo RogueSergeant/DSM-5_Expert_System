@@ -1,0 +1,394 @@
+{
+  "timestamp": "20260105_090343",
+  "metrics": {
+    "total": 20,
+    "hybrid": {
+      "correct": 20,
+      "accuracy": 1.0,
+      "avg_questions": 139.0,
+      "avg_confidence": 0.9691666666666666
+    },
+    "pure_llm": {
+      "correct": 19,
+      "accuracy": 0.95
+    },
+    "by_difficulty": {
+      "MODERATE": {
+        "hybrid_correct": 5,
+        "pure_llm_correct": 5,
+        "total": 5,
+        "hybrid_accuracy": 1.0,
+        "pure_llm_accuracy": 1.0
+      },
+      "COMORBID": {
+        "hybrid_correct": 4,
+        "pure_llm_correct": 3,
+        "total": 4,
+        "hybrid_accuracy": 1.0,
+        "pure_llm_accuracy": 0.75
+      },
+      "CLEAR": {
+        "hybrid_correct": 9,
+        "pure_llm_correct": 9,
+        "total": 9,
+        "hybrid_accuracy": 1.0,
+        "pure_llm_accuracy": 1.0
+      },
+      "AMBIGUOUS": {
+        "hybrid_correct": 2,
+        "pure_llm_correct": 2,
+        "total": 2,
+        "hybrid_accuracy": 1.0,
+        "pure_llm_accuracy": 1.0
+      }
+    }
+  },
+  "results": [
+    {
+      "vignette_id": "vig_000_mdd_moderate_6d110b04",
+      "ground_truth": [
+        "mdd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 1.0,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "mdd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets DSM-5-TR criteria for Major Depressive Disorder: >2 weeks duration (\u22483 weeks) with at least five symptoms including depressed mood, markedly diminished interest/pleasure, unintentional weight loss/decreased appetite, psychomotor retardation, and feelings of worthlessness; symptoms cause functional impairment and are not attributable to substances or a medical condition. Does not meet GAD (no excessive worry for \u22656 months), ADHD (no childhood-onset inattention/hyperactivity reported), PTSD (no qualifying traumatic exposure or symptoms), or ASD (no lifelong social-communication deficits or developmental history consistent with autism)."
+    },
+    {
+      "vignette_id": "vig_001_adhd_gad_comorbid_b5c0c3e8",
+      "ground_truth": [
+        "adhd",
+        "gad"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 0.9666666666666666,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "adhd",
+        "gad"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "ADHD: History of persistent inattention, hyperactivity and impulsivity beginning in childhood (symptoms noted since ~age 9), present for >6 months, causing current occupational impairment and evident in multiple settings (childhood and work/appointment) \u2014 meets DSM-5-TR criteria for ADHD, combined presentation. GAD: Excessive worry about work/performance for months, difficulty controlling worry, and \u22653 associated symptoms (restlessness, fatigue, difficulty concentrating, irritability, muscle tension, sleep disturbance) with functional impairment and not better explained by substance/medical condition \u2014 meets DSM-5-TR criteria for GAD. MDD, PTSD, and ASD are not met based on the information provided (no persistent depressed mood/anhedonia or suicidal ideation, no traumatic exposure/symptom cluster for PTSD, and no developmental/social-communication plus restricted/repetitive patterns for ASD)."
+    },
+    {
+      "vignette_id": "vig_002_adhd_moderate_15f4ee36",
+      "ground_truth": [
+        "adhd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 0.9416666666666667,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "adhd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets DSM\u20115\u2011TR criteria for ADHD (adult): symptoms began ~age 10 (onset <12), >6 months duration with impairment at school/work and across settings (misplaced items, missed deadlines, disruptive in lectures/meetings), and multiple inattention (overlooks details, disorganization, avoids sustained mental effort, loses things, distractibility, forgetfulness) and hyperactivity/impulsivity symptoms (fidgeting, leaving seat, blurting answers, impatience) \u2014 exceeding the adult threshold (\u22655 symptoms). Other listed disorders not met: MDD lacks sufficient depressive symptoms (no persistent depressed mood/anhedonia or other cardinal criteria), GAD lacks pervasive excessive uncontrollable worry across domains, PTSD lacks trauma exposure and characteristic symptom clusters, and ASD lacks early, pervasive social-communication deficits or restricted/repetitive behaviors."
+    },
+    {
+      "vignette_id": "vig_003_ptsd_clear_d5c317d9",
+      "ground_truth": [
+        "ptsd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 1.0,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "ptsd",
+        "mdd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "PTSD: Patient had direct exposure to a traumatic event and meets DSM-5-TR criteria\u2014persistent intrusive memories and nightmares, dissociative flashbacks, physiological reactivity to cues, avoidance of reminders, negative alterations in cognition/mood (self-blame, negative beliefs), and marked hyperarousal (hypervigilance, exaggerated startle, irritability, concentration and sleep disturbance) with functional impairment; symptoms have persisted beyond the acute month after the event. MDD: Patient endorses \u22655 depressive symptoms for >2 weeks (depressed/numb mood, marked decreased interest in hobbies, insomnia, impaired concentration, excessive guilt/self-blame) with functional impairment, meeting criteria for a major depressive episode. GAD not met (worry duration <6 months and trauma-focused), ADHD not met (no childhood history or pervasive lifelong symptoms), ASD not met (symptoms persist beyond the 3 days\u20131 month window for acute stress disorder)."
+    },
+    {
+      "vignette_id": "vig_004_asd_clear_6fdf7043",
+      "ground_truth": [
+        "asd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 0.94375,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "asd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets DSM-5-TR criteria for Autism Spectrum Disorder: clear, persistent deficits in social-emotional reciprocity (poor conversational reciprocity, runs out of things to say, limited insight into social impact), deficits in nonverbal communicative behaviors (poor eye contact, limited facial expression), and deficits in developing/maintaining relationships; restricted, repetitive patterns of behavior, interests, and activities (insistence on sameness/rigid routines, intense preoccupation with train timetables, lining up objects, stereotyped hand-flapping, sensory hypersensitivity). Symptoms are longstanding with recent exacerbation and cause clinically significant impairment. Does not meet criteria for MDD (no 2-week pervasive depressed mood or anhedonia, symptoms recent and more anxiety-related), GAD (no \u22656 months of pervasive excessive worry across multiple domains), ADHD (no clear childhood-onset pervasive inattention/hyperactivity), or PTSD (no trauma exposure reported)."
+    },
+    {
+      "vignette_id": "vig_005_adhd_mdd_comorbid_a7563885",
+      "ground_truth": [
+        "adhd",
+        "mdd"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 0.9750000000000001,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "adhd",
+        "mdd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "ADHD: Meets DSM-5-TR criteria \u2014 symptoms of inattention and hyperactivity-impulsivity present for >6 months, several symptoms evident before age 12 (onset ~age 9), multiple symptoms across settings (work, appointments, daily life), and clear impairment in occupational functioning (missed deadlines, errors, disorganization). MDD: Meets criteria for a major depressive episode \u2014 \u22655 symptoms over >2 weeks including depressed mood, decreased sleep and appetite/weight loss, diminished energy, feelings of worthlessness/excessive guilt, impaired concentration, and recurrent passive thoughts of death; symptoms cause clinically significant distress/impairment. GAD, PTSD, and ASD are less likely: no clear pervasive excessive worry meeting GAD criteria, no trauma history or PTSD symptom cluster, and no developmental social-communication or restricted/repetitive behavior history to support ASD."
+    },
+    {
+      "vignette_id": "vig_006_gad_clear_37bab702",
+      "ground_truth": [
+        "gad"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 0.95,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "gad"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets DSM-5-TR criteria for Generalized Anxiety Disorder: >6 months of excessive worry about multiple domains, difficulty controlling worry, and multiple associated symptoms (restlessness, muscle tension, fatigue, concentration problems, irritability, sleep disturbance) causing impairment; medical/toxin causes excluded. Does not meet MDD (insufficient depressive symptoms), ADHD (no childhood-onset or pervasive attentional disorder outside anxiety), PTSD (no qualifying trauma or symptom cluster), or ASD (no developmental/social-communication history)."
+    },
+    {
+      "vignette_id": "vig_007_adhd_moderate_97994ac9",
+      "ground_truth": [
+        "adhd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 0.95,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "adhd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets DSM-5-TR criteria for ADHD: history of symptoms beginning around age 10 (before age 12), persistent for >6 months with both inattention (careless mistakes, difficulty sustaining attention, appears not to listen, poor follow-through, disorganization, frequently misplacing items) and hyperactivity/impulsivity (fidgeting, leaves seat, talks a lot, interrupts) causing impairment in academic/work, relationships, and daily functioning and present in multiple settings. Symptoms in an adult are consistent in number/severity and not better explained by mood, anxiety, trauma, or autism. MDD, GAD, PTSD, and ASD are not supported by the history (no pervasive depressed mood/anhedonia, no excessive generalized worry for \u22656 months, no trauma/intrusion/avoidance symptoms, and no persistent social-communication deficits or restricted/repetitive behaviors)."
+    },
+    {
+      "vignette_id": "vig_008_ptsd_clear_6041dda1",
+      "ground_truth": [
+        "ptsd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 1.0,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "ptsd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets DSM-5-TR PTSD criteria: direct exposure to death/serious injury (ambulance crash, colleague death), intrusion symptoms (recurrent intrusive memories, nightmares, dissociative flashbacks), persistent avoidance (avoids route, coworkers, highway shifts), negative alterations in cognition/mood (guilt, detachment, inability to recall parts of event, decreased interest), and marked arousal/reactivity (hypervigilance, exaggerated startle, irritability, reckless speeding, sleep/concentration problems) with significant functional impairment. Duration is approximately one month (beyond the acute stress window), so ASD is not indicated. Does not meet criteria for MDD (insufficient depressive symptom count/duration), GAD (worry \u22656 months required), or ADHD (no childhood-onset, pervasive attentional history)."
+    },
+    {
+      "vignette_id": "vig_009_asd_clear_127c909a",
+      "ground_truth": [
+        "asd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 0.98125,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "asd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets DSM-5-TR criteria for Autism Spectrum Disorder: persistent deficits in social communication and social interaction (limited back-and-forth conversation, poor eye contact, limited gestures, difficulty understanding tone/gestures), plus restricted, repetitive patterns of behavior, interests, and activities (lining up objects, intense narrow interest in transit schedules, insistence on sameness, repetitive motor mannerisms, echolalia) and sensory sensitivity. Symptoms are reported since childhood (\"liked lining things up since I was a kid\") with current functional impairment (academic, social, daily routines). Does not meet criteria for MDD (no pervasive depressed mood or cardinal symptom cluster), GAD (no >6 months of generalized excessive worry), ADHD (no clear history of pervasive inattention/hyperactivity beginning before age 12), or PTSD (no trauma exposure or trauma-related symptom cluster)."
+    },
+    {
+      "vignette_id": "vig_010_mdd_moderate_241acc52",
+      "ground_truth": [
+        "mdd"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 0.975,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "mdd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets DSM-5-TR major depressive disorder: duration ~3 weeks (>2 weeks) and \u22655 depressive symptoms (markedly diminished interest/pleasure, significant weight loss, insomnia/early awakening, feelings of worthlessness/excessive guilt, diminished concentration/indecisiveness) with clinically significant impairment in functioning. No history of mania/hypomania to suggest bipolar disorder. GAD not met (worry symptoms <6 months). ADHD not met (no childhood history or pervasive, longstanding symptoms). PTSD not met (no qualifying trauma exposure). ASD not met (no lifelong developmental/social-communication history)."
+    },
+    {
+      "vignette_id": "vig_011_gad_moderate_70b950d5",
+      "ground_truth": [
+        "gad"
+      ],
+      "difficulty": "MODERATE",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 0.95,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "gad"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets criteria for Generalized Anxiety Disorder: >6 months of excessive, difficult-to-control worry about multiple domains (work, social, financial); significant functional impairment (reduced work efficiency, longer hours, missed deadlines, social withdrawal); and associated symptoms including persistent muscle tension/jaw clenching and sleep disruption. Symptoms are not better explained by MDD (no persistent depressed mood or other depressive symptoms), ADHD (no childhood history or core inattentive/hyperactive symptoms and concentration problems are secondary to worry), PTSD (no qualifying trauma), or ASD (no developmental history or core social-communication/restrictive behavior features)."
+    },
+    {
+      "vignette_id": "vig_012_adhd_mdd_comorbid_ca95b66b",
+      "ground_truth": [
+        "adhd",
+        "mdd"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 0.9666666666666666,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "mdd",
+        "adhd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets criteria for Major Depressive Disorder: \u22655 core symptoms (depressed mood, anhedonia, weight loss/decreased appetite, insomnia, fatigue/low energy, feelings of worthlessness, impaired concentration) present for ~6 months with clinically significant distress/impairment. Meets criteria for ADHD (combined presentation): clear history of symptoms beginning in childhood (~age 9), current persistent inattentive (difficulty sustaining attention, careless mistakes, forgetfulness, distractibility, avoidance of sustained mental effort) and hyperactive-impulsive symptoms (restlessness, leaving seat, excessive talking, interrupting) across settings causing impairment at work. Other listed disorders (GAD, PTSD, ASD) not supported by history (no pervasive excessive worry for >6 months, no trauma history, no early/social communication and restrictive/repetitive symptom pattern)."
+    },
+    {
+      "vignette_id": "vig_013_ptsd_clear_8159e0a2",
+      "ground_truth": [
+        "ptsd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 1.0,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "ptsd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets DSM-5-TR criteria for PTSD: direct exposure to traumatic event (crash, witnessing child die, death of colleague, repeated occupational exposure), persistent intrusive symptoms (recurrent involuntary memories, vivid flashbacks, dissociative re-experiencing, distressing dreams), avoidance of trauma reminders (routes, coworkers, debriefs), negative alterations in cognition/mood (guilt, shame, withdrawal, diminished interest), marked arousal/reactivity (hypervigilance, exaggerated startle, irritability/anger outbursts, concentration and sleep disturbance), duration greater than one month, and clinically significant distress/impairment. ASD is not diagnosed because symptoms have persisted beyond one month. MDD is not met due to insufficient number of core depressive symptoms (symptoms appear better accounted for by PTSD). GAD is not met (required \u22656 months of excessive worry). ADHD is not met (no history of childhood-onset, pervasive attentional/impulsivity symptoms)."
+    },
+    {
+      "vignette_id": "vig_014_asd_ambiguous_dfa6d193",
+      "ground_truth": [
+        "asd"
+      ],
+      "difficulty": "AMBIGUOUS",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 0.925,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "asd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets DSM-5-TR criteria for Autism Spectrum Disorder: persistent deficits in social-emotional reciprocity, nonverbal communicative behaviors, and developing/maintaining relationships (limited eye contact, reduced sharing of emotions/interests, poor back-and-forth conversation); restricted, repetitive patterns of behavior and interests (echolalic/repetitive speech, repetitive motor behavior, intensely focused special interest occupying hours/day). Symptoms began in adolescence (patient reports similar features since ~age 16), cause functional impairment (reduced participation in class/group projects, social isolation, interference with studying), and are not better explained by another condition. Does not meet criteria for MDD (no pervasive depressed mood or \u22655 symptoms for 2+ weeks), GAD (no >6 months of excessive worry), ADHD (no childhood-onset inattentive/hyperactive symptoms reported), or PTSD (no trauma exposure)."
+    },
+    {
+      "vignette_id": "vig_015_mdd_clear_934b1b51",
+      "ground_truth": [
+        "mdd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 1.0,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "mdd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets DSM-5-TR criteria for Major Depressive Disorder (current major depressive episode): >2 weeks of symptoms with depressed mood and anhedonia plus \u22655 additional symptoms (weight/appetite loss, insomnia/early awakening, psychomotor retardation, fatigue, feelings of worthlessness/excessive guilt, impaired concentration, recurrent thoughts of death), causing occupational impairment; no history of a manic/hypomanic episode. Does not meet GAD (no >6 months of pervasive excessive anxiety/worry), ADHD (no developmental/childhood history), PTSD (no qualifying trauma or PTSD-specific symptom cluster), or ASD (no lifelong developmental history consistent with autism)."
+    },
+    {
+      "vignette_id": "vig_016_gad_clear_c1f5370b",
+      "ground_truth": [
+        "gad"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 0.95,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "gad"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets DSM-5-TR criteria for Generalized Anxiety Disorder: >6 months of excessive uncontrollable worry about multiple domains, difficulty controlling worry, and \u22653 associated symptoms (restlessness, muscle tension, fatigue, difficulty concentrating, irritability, sleep disturbance) with functional impact (avoidance at work). Medical, toxicologic causes excluded. Does not meet criteria for MDD (no persistent depressed mood or anhedonia, no suicidal ideation), ADHD (no childhood-onset attentional/hyperactivity history or cross-situational developmental pattern), PTSD (no trauma exposure or intrusive/avoidance symptoms), or ASD (no lifelong social-communication deficits or restrictive/repetitive behavioral history)."
+    },
+    {
+      "vignette_id": "vig_017_adhd_ambiguous_6110c579",
+      "ground_truth": [
+        "adhd"
+      ],
+      "difficulty": "AMBIGUOUS",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 0.9083333333333334,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "adhd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets DSM-5-TR criteria for ADHD: patient reports a longstanding pattern of inattention and impulsivity beginning around age 10 (onset before age 12) with current symptoms lasting \u22656 months and causing clinically significant impairment at work (frequent errors, missed instructions, incomplete tasks). Multiple inattentive symptoms (overlooking details, difficulty sustaining attention, failure to follow through on tasks, procrastination/avoidance of lengthy tasks, losing items) and multiple hyperactive/impulsive symptoms (leaving seat, difficulty remaining quiet, talking/excessive interruptions, blurting answers) are present \u2014 consistent with combined presentation. Symptoms occur in work and daily life (\u22652 settings). Other disorders considered (MDD, GAD, PTSD, ASD) are not supported by the history/exam (no persistent depressed mood or anhedonia, no pervasive excessive worry meeting GAD criteria, no trauma history for PTSD, no early pervasive social-communication deficits or restrictive/repetitive behaviors for ASD)."
+    },
+    {
+      "vignette_id": "vig_018_ptsd_clear_4c1daf02",
+      "ground_truth": [
+        "ptsd"
+      ],
+      "difficulty": "CLEAR",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 1.0,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [
+        "ptsd"
+      ],
+      "pure_llm_correct": true,
+      "pure_llm_reasoning": "Meets DSM-5-TR PTSD criteria: exposure as a first responder to actual death/threat (A); recurrent intrusive memories, nightmares, and dissociative flashbacks (intrusion symptoms); persistent avoidance of reminders; negative alterations in cognitions/mood (guilt, numbness, inability to recall aspects of death); marked alterations in arousal/reactivity (irritability, reckless behavior, hypervigilance, exaggerated startle, concentration problems, sleep disturbance). Symptoms began ~1 month ago and are causing occupational/functional impairment. Does not meet criteria for ASD (duration \u22651 month). GAD and ADHD not supported (no pervasive 6+ month generalized worry or lifelong attention symptoms). MDD not clearly met\u2014mood/cognitive symptoms are better accounted for by PTSD and full depressive syndrome criteria are not clearly present."
+    },
+    {
+      "vignette_id": "vig_019_mdd_ptsd_comorbid_212a8c8c",
+      "ground_truth": [
+        "mdd",
+        "ptsd"
+      ],
+      "difficulty": "COMORBID",
+      "meets_criteria": true,
+      "hybrid_status": "met",
+      "hybrid_correct": true,
+      "hybrid_confidence": 1.0,
+      "hybrid_questions": 139,
+      "pure_llm_predicted": [],
+      "pure_llm_correct": false,
+      "pure_llm_reasoning": "Error: Expecting ',' delimiter: line 1 column 1001 (char 1000)"
+    }
+  ]
+}
