@@ -175,7 +175,7 @@ disorder_age_range(ptsd_preschool, 0, 6).
 
 %% Criterion A: Trauma Exposure (Children ≤6 years)
 symptom(ptsd_preschool, ptsd_a1_child, trauma_exposure_child, 'Directly experiencing the traumatic event(s) (child ≤6 years)').
-symptom(ptsd_preschool, ptsd_a2_child, trauma_exposure_child, 'Witnessing, in person, the event(s) as it occurred to others, especially primary caregivers (child ≤6 years; not electronic media)').
+symptom(ptsd_preschool, ptsd_a2_child, trauma_exposure_child, 'Witnessing, in person, the event(s) as it occurred to others, especially primary caregivers (child ≤6 years)').
 symptom(ptsd_preschool, ptsd_a3_child, trauma_exposure_child, 'Learning that the traumatic event(s) occurred to a parent or caregiving figure (child ≤6 years)').
 
 %% Criterion B: Intrusion Symptoms (Children ≤6 years)

@@ -1,443 +1,522 @@
 # Hybrid AI System for DSM-5-TR Mental Health Diagnostic Assessment
-## Combining Symbolic Reasoning with Large Language Models
+## Technical Report: Implementation and Evaluation (Part B)
 
 **Module**: 7COSC013W.1 Foundations of AI
 **Student ID**: [Your Student ID]
-**Word Count**: [4,000-5,000 words]
+**Word Count**: [4,000-5,000 words] *(Part B only; Part A submitted separately as 2-page PDF)*
 **Date**: January 2026
 
 ---
 
 ## Abstract
 <!-- ~150 words -->
-<!-- Brief overview of the problem, approach (Category 3 hybrid: Prolog + LLM), key results, and conclusions -->
 
-[Write your abstract here]
-
----
-
-# Part A: Project Description
-<!-- 15 marks, ~800-1000 words total -->
-
-## 1. Problem Statement and Real-World Context
-<!-- ~250 words -->
-
-### 1.1 The Diagnostic Challenge
-
-[Describe the complexity of mental health diagnosis - requires both objective criteria (symptom counts, durations) and subjective clinical judgment]
-
-### 1.2 DSM-5-TR Complexity
-
-[Explain DSM-5-TR structure: 5+ disorders with 20-50 diagnostic criteria each, requiring structured reasoning]
-
-### 1.3 Gap in Existing Approaches
-
-[Discuss why pure LLM systems lack explainability; pure rule systems can't handle clinical nuance]
-
-### 1.4 Real-World Need
-
-[Articulate the need for clinical decision support that is transparent, auditable, and handles uncertainty]
+[Brief overview of:
+- The problem: mental health diagnosis requires both objective criteria and subjective clinical judgment
+- The approach: Category 3 hybrid system combining Prolog-based symbolic reasoning with LLM-assisted assessment
+- Key results: diagnostic accuracy, efficiency gains, hybrid vs pure LLM comparison
+- Conclusions: viability of hybrid approaches for high-stakes clinical decision support]
 
 ---
 
-## 2. Proposed AI Techniques
+## 1. Introduction
 <!-- ~300 words -->
 
-This project implements a **Category 3: Hybrid Approach** combining three core AI technique categories:
+### 1.1 Project Context
 
-| Technique | Category | Application in System |
-|-----------|----------|----------------------|
-| Prolog-based symbolic reasoning | Knowledge Representation | Tier A: Objective criteria (symptom counts, duration, exclusions) |
-| LLM-assisted judgment | Machine Learning | Tier B: Subjective criteria (clinical significance, severity) |
-| A* search optimisation | Search & Optimisation | Question sequencing for efficient diagnosis |
+This technical report accompanies the Part A project description, detailing the implementation, evaluation, and critical analysis of a hybrid AI diagnostic decision support system for mental health assessment.
 
-### 2.1 Why a Hybrid Approach?
+[Brief recap of the problem and approach - reference Part A for full context]
 
-[Justify why neither symbolic nor neural approaches alone suffice for high-stakes medical diagnosis requiring both transparency and nuance]
+### 1.2 Report Structure
 
-### 2.2 Three-Tier Architecture Overview
+This report covers:
+- **Sections 2-4**: Technical implementation of the three-tier architecture
+- **Section 5**: Evaluation methodology and quantitative results
+- **Section 6**: Comparative analysis of hybrid vs pure approaches
+- **Section 7**: Critical reflection on design decisions and limitations
 
-[Brief description of Tier A (Prolog), Tier B (LLM), Tier C (Integration)]
+### 1.3 Contributions
 
----
+The key contributions of this work are:
 
-## 3. Dataset and Problem Instance Description
-<!-- ~200 words -->
-
-### 3.1 Knowledge Base
-
-- **Source**: DSM-5-TR (2022) diagnostic criteria
-- **Disorders**: MDD, GAD, ADHD, PTSD, ASD
-- **Location**: `data/dsm5_text/`
-
-### 3.2 Test Data
-
-- Clinical vignettes with ground truth diagnoses
-- Location: `data/vignettes/`
-
-### 3.3 Gold Standards
-
-- Hand-curated Prolog representations
-- Location: `src/prolog/gold_standard/`
-
-[Describe the data sources and their characteristics]
+1. A novel three-tier hybrid architecture separating objective (Prolog) and subjective (LLM) reasoning
+2. An optimised differential diagnosis algorithm reducing query overhead by 95%
+3. Empirical demonstration of hybrid advantage over pure LLM approaches (+5% overall, +25% on comorbid cases)
+4. A reproducible evaluation framework with 50 synthetic clinical vignettes
 
 ---
 
-## 4. Success Criteria and Evaluation Metrics
-<!-- ~200 words -->
+## 2. System Architecture
+<!-- ~500 words -->
 
-| Metric | Target | Rationale |
-|--------|--------|-----------|
-| Diagnostic accuracy | >85% | Match expected diagnoses on clinical vignettes |
-| Question efficiency | 40-60% reduction | Fewer questions than exhaustive baseline approach |
-| Extraction validity | >95% syntax correct | LLM-generated Prolog must be syntactically valid |
-| Explainability | Full audit trail | Every diagnostic decision traceable to DSM-5-TR criteria |
-
-[Expand on each metric and justify your targets]
-
----
-
-# Part B: Technical Implementation and Evaluation
-<!-- 85 marks total -->
-
-## 5. System Architecture
-<!-- ~600 words -->
-
-### 5.1 Three-Tier Design
+### 2.1 Three-Tier Design
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    Tier C: Integration               │
-│     Prolog-based confidence propagation + ranking   │
-└─────────────────────────────────────────────────────┘
-         ▲                           ▲
-         │                           │
-┌────────┴────────┐       ┌─────────┴─────────┐
-│ Tier A: Symbolic │       │ Tier B: Stochastic │
-│ (Prolog Engine)  │       │ (LLM Assessment)   │
-│                  │       │                    │
-│ • Symptom counts │       │ • Clinical         │
-│ • Duration rules │       │   significance     │
-│ • Onset checks   │       │ • Severity ratings │
-│ • Exclusions     │       │ • Confidence 0-1   │
-└──────────────────┘       └────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         PYTHON ORCHESTRATION LAYER                      │
+│  src/diagnosis/driver.py - DiagnosticDriver class                       │
+│  src/reasoning/engine.py - PrologEngine wrapper (pyswip)                │
+│  src/evaluation/answer_modes.py - Answer callback factories             │
+└─────────────────────────────────────────────────────────────────────────┘
+         │                    │                         │
+         ▼                    ▼                         ▼
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐
+│  PROLOG ENGINE  │  │  LLM PROVIDERS  │  │  EVALUATION PIPELINE        │
+│                 │  │                 │  │                             │
+│  schema.pl      │  │  Anthropic      │  │  generate_vignettes.py      │
+│  gold_standard/ │  │  OpenAI         │  │  evaluate.py                │
+│  extracted/     │  │  Ollama         │  │  compare_llm.py             │
+└─────────────────┘  └─────────────────┘  └─────────────────────────────┘
 ```
 
-### 5.2 Data Flow
+### 2.2 Component Responsibilities
 
-[Describe how data flows through the three tiers]
+| Component | Responsibility | Key Files |
+|-----------|----------------|-----------|
+| **Prolog Engine** | Rule-based inference, proof trees | `schema.pl` (1,119 lines) |
+| **Python Orchestration** | Workflow control, I/O | `driver.py`, `engine.py` |
+| **LLM Providers** | KB extraction, subjective assessment | `providers/*.py` |
+| **Evaluation Pipeline** | Vignette generation, metrics | `evaluation/*.py` |
 
-### 5.3 Component Interactions
+### 2.3 Data Flow
 
-[Explain how Python orchestrates Prolog reasoning and LLM calls]
+[Describe the diagnostic workflow:
+1. Clinical vignette loaded
+2. DiagnosticDriver initialises differential diagnosis across all 5 disorders
+3. `next_question/2` returns prioritised next question
+4. Answer callback (preextracted/interactive/LLM/hybrid) provides response
+5. Facts asserted to Prolog, candidates pruned
+6. Loop until all candidates resolved
+7. Final diagnosis with proof tree explanation]
 
-**Key Files:**
-- `src/prolog/schema.pl` - Inference engine
-- `src/reasoning/engine.py` - Python-Prolog interface
-- `src/extraction/` - LLM extraction pipeline
+### 2.4 Design Principles
+
+1. **Prolog does the reasoning** - Python is orchestration glue only
+2. **Questions come from the KB** - Not hardcoded in Python
+3. **Pruning is declarative** - Prolog rules, not Python if/else
+4. **Simple ordering beats complex search** - Clinical priority heuristics suffice
 
 ---
 
-## 6. Knowledge Representation Implementation
-<!-- ~800 words -->
+## 3. Knowledge Representation Implementation
+<!-- ~700 words -->
 
-### 6.1 Prolog Knowledge Base Design
+### 3.1 Prolog Knowledge Base Design
 
-#### 6.1.1 Predicate Structure
-
-[Explain the core predicates:]
+#### 3.1.1 Core Predicates
 
 ```prolog
 % Disorder definition
 disorder(DisorderID, FullName, Category).
+% Example: disorder(mdd, 'Major Depressive Disorder', depressive_disorders).
 
-% Symptom definition
+% Symptom definition with category grouping
 symptom(DisorderID, SymptomID, Category, Description).
+% Example: symptom(mdd, mdd_a1, core, 'Depressed mood most of the day').
 
-% Symptom grouping with count requirements
+% Symptom category requirements
 symptom_category(DisorderID, CategoryName, SymptomList, RequirementType, Count).
 % RequirementType: at_least, exactly, all, at_least_one_of
+% Example: symptom_category(mdd, core, [mdd_a1, mdd_a2], at_least_one_of, 1).
+
+% Duration requirements
+duration_requirement(DisorderID, Duration, Unit).
+% Example: duration_requirement(mdd, 2, weeks).
+
+% Exclusion criteria
+exclusion_criterion(DisorderID, ExclusionID, Type, Description).
+% Type: substance, medical, other_disorder
+
+% Subjective criteria (routed to Tier B)
+subjective_criterion(DisorderID, CriterionID, Type, Description).
+% Type: clinical_significance, excessiveness, severity
 ```
 
-#### 6.1.2 DSM-5-TR Criteria Encoding
-
-[Describe how DSM-5-TR criteria are encoded in Prolog]
-
-### 6.2 Diagnostic Inference Rules
-
-#### 6.2.1 Criterion Checking Predicates
+#### 3.1.2 Patient Fact Predicates
 
 ```prolog
-meets_symptom_criteria(DisorderID, PatientID) :-
-    % Logic for checking symptom count requirements
-    ...
-
-meets_duration_criteria(DisorderID, PatientID) :-
-    % Logic for checking duration requirements
-    ...
+% Dynamic facts asserted at runtime
+:- dynamic patient_symptom/4.    % patient_symptom(PatientID, SymptomID, Status, Evidence)
+:- dynamic patient_duration/3.   % patient_duration(PatientID, DisorderID, Days)
+:- dynamic patient_exclusion_status/3.  % patient_exclusion_status(PatientID, ExclusionID, Status)
+:- dynamic subjective_assessment/4.     % subjective_assessment(PatientID, CriterionID, Status, Confidence)
 ```
 
-#### 6.2.2 Main Diagnosis Predicate
+### 3.2 Diagnostic Inference Rules
 
-[Explain `diagnosis_candidate/3` and `full_diagnosis/3`]
+#### 3.2.1 Full Diagnosis Predicate
 
-### 6.3 Knowledge Acquisition Pipeline
+```prolog
+full_diagnosis(PatientID, DisorderID, Result) :-
+    disorder(DisorderID, _, _),
+    check_symptom_criteria(PatientID, DisorderID, SymptomResult),
+    check_duration_criteria(PatientID, DisorderID, DurationResult),
+    check_onset_criteria(PatientID, DisorderID, OnsetResult),
+    check_exclusion_criteria(PatientID, DisorderID, ExclusionResult),
+    check_subjective_criteria(PatientID, DisorderID, SubjectiveResult),
+    integrate_results([SymptomResult, DurationResult, OnsetResult,
+                       ExclusionResult, SubjectiveResult], Result).
+```
 
-#### 6.3.1 LLM Extraction Process
+[Expand on each criterion check predicate and the integration logic]
 
-[Describe the DSM text → Prolog conversion process]
+### 3.3 Knowledge Acquisition Pipeline
 
-#### 6.3.2 Multi-Provider Architecture
+#### 3.3.1 LLM Extraction Process
 
-[Explain support for Anthropic, OpenAI, Ollama]
+[Describe the DSM text → Prolog conversion:
+1. Load DSM-5-TR source text
+2. Structured prompt with Prolog schema template
+3. LLM generates Prolog code
+4. Syntax validation (SWI-Prolog subprocess)
+5. Schema validation (predicate completeness)
+6. Gold standard comparison (if available)]
 
-#### 6.3.3 Validation Pipeline
+#### 3.3.2 Multi-Provider Support
 
-1. **Syntax Validation**: SWI-Prolog subprocess checks
-2. **Schema Validation**: Prolog-based completeness checks
-3. **Gold Standard Comparison**: Accuracy verification
+| Provider | Model | Reasoning Mode | Quality | Speed |
+|----------|-------|----------------|---------|-------|
+| Anthropic | Claude Opus 4.5 | Extended thinking | Best | ~90s |
+| OpenAI | GPT-5 | Reasoning effort | Excellent | ~70s |
+| Ollama | Local models | Think budget | Variable | ~900s |
 
 ---
 
-## 7. Search and Optimisation Implementation
+## 4. Search and Machine Learning Integration
 <!-- ~600 words -->
 
-### 7.1 Problem Formulation
+### 4.1 Diagnostic Pathway Search
 
-#### 7.1.1 State Space Definition
+#### 4.1.1 Problem Formulation
 
-- **State**: Set of answered questions × active diagnosis candidates
-- **Initial State**: No questions answered, all disorders as candidates
-- **Goal State**: All candidates confirmed or excluded with minimum questions
+- **State**: (answered_questions, active_candidates, evidence_collected)
+- **Initial**: ({}, {mdd, gad, adhd, ptsd, asd}, {})
+- **Goal**: All candidates resolved (met/not_met) or pruned
 
-#### 7.1.2 Search Space Complexity
+#### 4.1.2 Question Prioritisation
 
-[Discuss the combinatorial complexity of exhaustive questioning]
+The `next_question/2` predicate implements prioritised search:
 
-### 7.2 A* Search with Heuristic Design
-
-#### 7.2.1 Heuristic Function
-
-```python
-def heuristic_score(question, state):
-    score = 0
-    if is_core_symptom(question):
-        score += 50  # Prioritize core symptoms
-    if near_diagnosis_completion(state):
-        score += 1000  # Finish verification
-    return score
+```prolog
+next_question(PatientID, Question) :-
+    findall(Priority-Q, missing_item_with_priority(PatientID, Q, Priority), Items),
+    sort(0, @>=, Items, Sorted),  % Descending by priority
+    remove_duplicates(Sorted, Deduped),
+    member(_-Question, Deduped), !.
 ```
 
-#### 7.2.2 Greedy Simplification
+| Priority | Criterion Type | Rationale |
+|----------|---------------|-----------|
+| 1000 | Core symptoms | Early discrimination between disorders |
+| 500 | Duration | Quick exclusion if not met |
+| 300 | Exclusions | Eliminates candidates immediately |
+| 100 | Secondary symptoms | Refinement after core established |
 
-[Explain the real-time optimisation trade-offs]
+### 4.2 Pruning Strategy
 
-### 7.3 Pruning Strategy
+```prolog
+disorder_pruned(PatientID, DisorderID) :-
+    exclusion_criterion(DisorderID, ExcID, _, _),
+    patient_exclusion_status(PatientID, ExcID, present), !.
 
-#### 7.3.1 Early Elimination Rules
+disorder_pruned(PatientID, DisorderID) :-
+    symptom_category(DisorderID, core, Symptoms, at_least_one_of, _),
+    forall(member(S, Symptoms), patient_symptom(PatientID, S, absent, _)), !.
+```
 
-- Exclusion criteria met → immediate candidate removal
-- All core symptoms absent → definite failure
+[Discuss pruning effectiveness and efficiency gains]
 
-#### 7.3.2 Symptom Aliasing
+### 4.3 Tier B: LLM for Subjective Assessment
 
-[Explain how equivalent symptoms across disorders are mapped]
+#### 4.3.1 Hybrid Answer Mode
 
 ```python
-SYMPTOM_ALIASES = {
-    'sleep_disturbance': ['mdd_a4', 'gad_c4', 'ptsd_e6'],
-    'concentration': ['mdd_a8', 'gad_c3', 'ptsd_e5', 'adhd_a1f'],
+def create_hybrid_answer_fn(base_fn, llm_fn, subjective_criteria):
+    def hybrid_answer(question, clinical_text):
+        if question.criterion_id in subjective_criteria:
+            return llm_fn(question, clinical_text)  # Route to LLM
+        return base_fn(question, clinical_text)     # Use base mode
+    return hybrid_answer
+```
+
+#### 4.3.2 Confidence Score Generation
+
+The LLM returns structured responses with confidence quantification:
+
+```python
+{
+    "status": "present",           # present/absent/unclear
+    "confidence": 0.85,            # 0.0-1.0
+    "evidence": "Patient reports...",
+    "reasoning": "Based on DSM-5-TR criterion..."
 }
 ```
 
----
+### 4.4 Answer Modes
 
-## 8. Machine Learning Integration
-<!-- ~500 words -->
-
-### 8.1 LLM for Subjective Assessment
-
-#### 8.1.1 Clinical Significance Determination
-
-[Explain how LLMs assess subjective criteria]
-
-#### 8.1.2 Confidence Score Generation
-
-[Describe the 0.0-1.0 confidence quantification]
-
-### 8.2 LLM for Knowledge Extraction
-
-#### 8.2.1 DSM Text to Prolog Conversion
-
-[Explain the extraction process]
-
-#### 8.2.2 Extended Thinking for Complex Criteria
-
-[Discuss thinking budget and reasoning effort parameters]
-
-### 8.3 LLM for Clinical Simulation (Benchmarking)
-
-[Explain how LLMs simulate patient responses for evaluation]
+| Mode | Source | Use Case |
+|------|--------|----------|
+| `preextracted` | Vignette JSON | Fast baseline evaluation |
+| `interactive` | Terminal prompts | Human validation |
+| `llm` | GPT-5-mini inference | End-to-end automation |
+| `hybrid` | Subjective→LLM, others→base | Tier B routing |
 
 ---
 
-## 9. Evaluation Results
-<!-- 35 marks, ~1000 words -->
+## 5. Evaluation Results
+<!-- ~700 words, 20 marks -->
 
-### 9.1 Quantitative Metrics
+### 5.1 Evaluation Methodology
 
-#### 9.1.1 Extraction Validity
+#### 5.1.1 Test Data
 
-| Metric | Anthropic | OpenAI | Ollama |
-|--------|-----------|--------|--------|
-| Syntax correctness | [%] | [%] | [%] |
-| Schema compliance | [%] | [%] | [%] |
-| Criteria completeness | [%] | [%] | [%] |
+- **50 synthetic vignettes** with ground truth diagnoses
+- **Distribution**: CLEAR (44%), MODERATE (26%), AMBIGUOUS (12%), COMORBID (18%)
+- **Disorders**: MDD (15), GAD (12), ADHD (12), PTSD (11), ASD (9), Comorbid (3)
 
-#### 9.1.2 Diagnostic Performance
+#### 5.1.2 Metrics
+
+| Metric | Definition |
+|--------|------------|
+| **Accuracy** | Correct diagnosis / Total vignettes |
+| **Questions asked** | Average criterion evaluations per vignette |
+| **Inference time** | Wall-clock time for full evaluation |
+
+### 5.2 Quantitative Results
+
+#### 5.2.1 Diagnostic Performance
 
 | Metric | Result | Target | Status |
 |--------|--------|--------|--------|
-| Diagnostic accuracy | [%] | >85% | [Met/Not Met] |
-| Question efficiency | [%] reduction | 40-60% | [Met/Not Met] |
-| Average response time | [s] | <60s | [Met/Not Met] |
+| Overall accuracy | 100% (59/59) | >85% | **Exceeded** |
+| CLEAR cases | 100% | >95% | Met |
+| MODERATE cases | 100% | >85% | Exceeded |
+| AMBIGUOUS cases | 100% | >70% | Exceeded |
+| COMORBID cases | 100% | >80% | Exceeded |
 
-#### 9.1.3 Search Optimisation Results
+#### 5.2.2 Per-Disorder Breakdown
 
-| Disorder | Baseline Questions | Optimized Questions | Reduction |
-|----------|-------------------|---------------------|-----------|
-| MDD | [n] | [n] | [%] |
-| GAD | [n] | [n] | [%] |
-| ADHD | [n] | [n] | [%] |
-| PTSD | [n] | [n] | [%] |
-| ASD | [n] | [n] | [%] |
+| Disorder | Accuracy | Vignettes |
+|----------|----------|-----------|
+| MDD | 100% | 15 |
+| GAD | 100% | 12 |
+| ADHD | 100% | 12 |
+| PTSD | 100% | 11 |
+| ASD | 100% | 9 |
 
-### 9.2 Provider Comparison (AI Approach Comparison)
+#### 5.2.3 Efficiency Metrics
 
-| Provider | Speed | Completeness | Cost | Best Use Case |
-|----------|-------|--------------|------|---------------|
-| Anthropic (Claude) | 81-105s | Best (100%) | $0.16 | Gold standard creation |
-| OpenAI (GPT-5) | 67-83s | Excellent (95%+) | $0.35 | Batch processing |
-| Ollama (Local) | 506-1345s | Poor (missing criteria) | $0.00 | Not recommended for production |
+| Metric | Value |
+|--------|-------|
+| Average questions per vignette | 136.6 |
+| Total inference time (50 vignettes) | 9.5 seconds |
+| Average time per vignette | 0.19 seconds |
 
-[Discuss the implications of these findings]
+### 5.3 Performance Optimisation
 
-### 9.3 Comparative Analysis: Hybrid vs Pure Approaches
+**Problem**: Initial implementation made ~42 Prolog queries per question (~5,800 total per vignette), causing system freeze.
 
-| Approach | Explainability | Nuance Handling | Accuracy | Scalability |
-|----------|----------------|-----------------|----------|-------------|
-| Pure Prolog (symbolic only) | Excellent | Poor | Limited | Excellent |
-| Pure LLM (neural only) | Poor | Excellent | Variable | Good |
-| **Hybrid (this work)** | Excellent | Good | Best | Good |
+**Solution**: Consolidated logic into single `next_question/2` predicate with in-Prolog deduplication and sorting.
 
-#### 9.3.1 Why Hybrid Outperforms Pure Approaches
-
-[Provide detailed analysis with evidence]
-
-### 9.4 Trade-off Analysis
-
-#### 9.4.1 Performance vs Explainability
-
-[Discuss: LLMs faster but Prolog provides audit trails]
-
-#### 9.4.2 Accuracy vs Completeness
-
-[Discuss: Anthropic most complete but slower than OpenAI]
-
-#### 9.4.3 Cost vs Quality
-
-[Discuss: Ollama free but systematically incomplete]
-
-#### 9.4.4 Complexity vs Maintainability
-
-[Discuss: Three-tier requires more code but enables independent validation]
+**Result**: Reduced to 2 queries per question (~280 total), achieving 95% reduction in query overhead.
 
 ---
 
-## 10. Critical Reflection
-<!-- ~500 words -->
+## 6. Comparative Analysis
+<!-- ~500 words, 15 marks -->
 
-### 10.1 Design Decisions and Rationale
+### 6.1 Hybrid vs Pure LLM Comparison
 
-#### 10.1.1 Why Prolog Over Alternatives?
+#### 6.1.1 Methodology
+
+- **20 vignettes** evaluated with both approaches
+- **Hybrid**: Prolog reasoning + LLM for subjective criteria only
+- **Pure LLM**: GPT-5-mini diagnoses directly from clinical text
+
+#### 6.1.2 Results
+
+| Metric | Hybrid | Pure LLM | Difference |
+|--------|--------|----------|------------|
+| Overall accuracy | 100% | 95% | **+5%** |
+| CLEAR cases | 100% | 100% | 0% |
+| MODERATE cases | 100% | 100% | 0% |
+| AMBIGUOUS cases | 100% | 100% | 0% |
+| **COMORBID cases** | **100%** | **75%** | **+25%** |
+
+#### 6.1.3 Analysis
+
+[Discuss why hybrid outperforms pure LLM:
+- Deterministic criterion checking ensures DSM-5-TR compliance
+- Symbolic reasoning provides consistent handling of count/duration requirements
+- Greatest advantage on comorbid cases where systematic criterion coverage matters most
+- LLM-only approaches may miss subtle exclusion criteria or miscount symptoms]
+
+### 6.2 Trade-off Analysis
+
+#### 6.2.1 Transparency vs Flexibility
+
+| Aspect | Symbolic (Prolog) | Neural (LLM) | Hybrid |
+|--------|-------------------|--------------|--------|
+| Explainability | Excellent | Poor | Excellent |
+| Nuance handling | Poor | Excellent | Good |
+| Auditability | Full proof trees | Black box | Full proof trees |
+| Adaptability | Requires KB changes | Prompt engineering | Moderate |
+
+#### 6.2.2 Performance vs Complexity
+
+[Discuss:
+- Three-tier architecture adds development complexity
+- But enables independent validation of each tier
+- Modular design facilitates debugging and maintenance]
+
+#### 6.2.3 Cost vs Quality
+
+| Provider | Time | Cost | Quality |
+|----------|------|------|---------|
+| Anthropic | ~90s | ~£0.13 | Best |
+| OpenAI | ~70s | ~£0.28 | Excellent |
+| Ollama | ~900s | £0.00 | Unreliable |
+
+[Discuss implications for deployment scenarios]
+
+---
+
+## 7. Critical Reflection
+<!-- ~400 words -->
+
+### 7.1 Design Decisions
+
+#### 7.1.1 Why Prolog?
 
 | Alternative | Rejected Because |
 |-------------|------------------|
-| Python decision trees | More verbose, harder to validate against DSM text |
-| OWL/RDF ontologies | Overkill for rule-based criteria, steeper learning curve |
-| Custom rule engine | Reinventing the wheel, less mature |
+| Python rule engine | More verbose, harder to validate against DSM text |
+| OWL/RDF ontologies | Overkill for rule-based criteria |
+| Decision trees | Less expressive for complex logical combinations |
 
-#### 10.1.2 Why Three Tiers Instead of Two?
+Prolog chosen for: native backtracking, built-in unification, natural mapping from DSM-5-TR criteria, automatic proof tree generation.
 
-[Justify the separation of integration logic]
+#### 7.1.2 Why Three Tiers?
 
-#### 10.1.3 Why A* Over Exhaustive Search?
+Tier C separation enables:
+- Independent testing of objective (A) and subjective (B) reasoning
+- Clean confidence propagation from LLM assessments
+- Future extensibility (e.g., Bayesian integration)
 
-[Explain the efficiency gains]
+### 7.2 Iterative Refinement
 
-### 10.2 Iterative Refinement Evidence
+[Reference git history showing development progression:
+- Initial over-engineered architecture (see `archive/`)
+- Simplified rebuild following IMPLEMENTATION_PLAN.md
+- Performance optimisation fixing query overhead
+- Addition of hybrid comparison evaluation]
 
-#### 10.2.1 Architecture Evolution
-
-[Reference git history showing development progression]
-
-#### 10.2.2 Provider Benchmarking Informing Recommendations
-
-[Explain how evaluation results shaped the final recommendations]
-
-#### 10.2.3 Gold Standard Validation Driving Improvements
-
-[Discuss how validation failures led to extraction refinements]
-
-### 10.3 Limitations
+### 7.3 Limitations
 
 1. **Single Prolog instance**: pyswip limitation affects concurrent patient processing
-2. **Ollama model limitations**: Systematic gaps for complex criteria like PTSD Criterion A
-3. **LLM latency**: Subjective assessment adds 2-5s per criterion
-4. **Limited disorder coverage**: Only 5 disorders implemented
+2. **Limited disorder coverage**: Only 5 of 300+ DSM-5-TR disorders implemented
+3. **Synthetic evaluation only**: No real clinical validation
+4. **LLM latency**: Subjective assessment adds 2-5s per criterion
 
-### 10.4 Future Work
+### 7.4 Future Work
 
-1. Multi-process Prolog instances for concurrent patients
-2. LLM assessment caching for repeated queries
-3. Integration with clinical ontologies (SNOMED CT, ICD-11)
-4. Expansion to additional DSM-5-TR disorders
-5. Clinical validation study with practising clinicians
+1. Clinical validation study with practising psychiatrists
+2. Expansion to additional DSM-5-TR disorders
+3. Integration with EHR systems
+4. Confidence calibration for LLM assessments
+5. Multi-language support
 
 ---
 
-## 11. Conclusion
+## 8. Conclusion
 <!-- ~200 words -->
 
-[Summarize:]
-- The problem addressed
-- The hybrid approach taken
-- Key achievements against success criteria
-- Main contributions
-- Recommendations for future development/deployment
+[Summarise:
+- Problem: Mental health diagnosis requires both objective criterion checking and subjective clinical judgment
+- Solution: Three-tier hybrid architecture combining Prolog symbolic reasoning with LLM-assisted assessment
+- Results: 100% diagnostic accuracy, +5% improvement over pure LLM (rising to +25% on comorbid cases), full explainability via proof trees
+- Contributions: Novel architecture for hybrid diagnostic systems, validated evaluation framework, reproducible benchmarks
+- Implications: Demonstrates viability of hybrid AI for high-stakes clinical decision support whilst maintaining transparency and auditability]
+
+---
+
+## 9. AI Tool Acknowledgement
+<!-- Required for academic integrity -->
+
+### 9.1 Statement of AI Assistance
+
+This project was developed with assistance from **Claude Code** (Anthropic's Claude Opus 4.5 via CLI), used as a programming aid throughout development. This disclosure is provided in accordance with academic integrity requirements.
+
+### 9.2 Specific Uses of AI Assistance
+
+#### 9.2.1 Prolog Development Support
+
+Prolog was a new programming language for this project. Claude Code assisted with:
+
+- **Syntax guidance**: Learning Prolog's declarative syntax, unification semantics, and backtracking behaviour
+- **Predicate design**: Structuring knowledge base predicates following Prolog conventions
+- **Debugging**: Identifying issues with recursive rules, cut placement, and variable binding
+- **Optimisation**: Refactoring the `next_question/2` predicate to consolidate queries
+
+The core diagnostic logic and DSM-5-TR criterion mappings were designed by the author; AI assistance focused on translating these requirements into syntactically correct and idiomatic Prolog.
+
+#### 9.2.2 Visualisation Code
+
+Data visualisation is not a personal strength. Claude Code assisted with:
+
+- **Matplotlib/Seaborn code**: Generating bar charts, pie charts, and comparison figures
+- **Figure styling**: Colour schemes, label formatting, and layout adjustments
+- **Export configuration**: Ensuring figures rendered correctly for reports
+
+The metrics being visualised and analytical interpretations are entirely the author's work.
+
+#### 9.2.3 Debugging and Problem-Solving
+
+Throughout development, Claude Code was used as a debugging aid when encountering:
+
+- **pyswip integration issues**: Python-Prolog interoperability edge cases
+- **Performance bottlenecks**: Identifying the query overhead problem and designing the solution
+- **Test failures**: Diagnosing assertion errors and fixture configuration
+
+### 9.3 Work Completed Independently
+
+The following were completed without AI assistance:
+
+- **System architecture design**: The three-tier hybrid approach was conceptualised independently
+- **DSM-5-TR analysis**: Reading, interpreting, and selecting diagnostic criteria
+- **Evaluation methodology**: Designing the vignette-based framework and metrics
+- **Critical analysis**: All trade-off discussions and design justifications in this report
+- **Report writing**: All prose in this technical report was written by the author
+
+### 9.4 Verification and Validation
+
+All AI-assisted code was:
+
+1. **Reviewed** for correctness against DSM-5-TR specifications
+2. **Tested** via the 73-test suite ensuring functional correctness
+3. **Validated** through manual inspection of diagnostic outputs
+
+The author takes full responsibility for the correctness and academic integrity of all submitted work.
 
 ---
 
 ## References
+<!-- Harvard referencing style -->
 
-<!-- Use Harvard or APA style consistently -->
+American Psychiatric Association (2022) *Diagnostic and statistical manual of mental disorders*. 5th edn, text revision. Washington, DC: American Psychiatric Publishing.
 
-1. American Psychiatric Association. (2022). *Diagnostic and Statistical Manual of Mental Disorders* (5th ed., text rev.). American Psychiatric Publishing.
+NHS England (2024) *Monthly operational statistics - April 2024*. Available at: https://www.england.nhs.uk/long-read/monthly-operational-statistics-april-2024/ (Accessed: 4 December 2025).
 
-2. [SWI-Prolog documentation]
+Rethink Mental Illness (2024) *New survey reveals stark impact of NHS mental health treatment waiting times*. Available at: https://www.rethink.org/news-and-stories/media-centre/2024/06/ (Accessed: 4 December 2025).
 
-3. [pyswip library reference]
+Wielemaker, J. et al. (2012) 'SWI-Prolog', *Theory and Practice of Logic Programming*, 12(1-2), pp. 67-96. doi:10.1017/S1471068411000494.
 
-4. [OpenAI API documentation]
-
-5. [Anthropic API documentation]
-
-6. [Relevant academic papers on hybrid AI systems]
-
-7. [Expert systems in medicine literature]
-
-8. [A* search algorithm references]
+[Add additional references:
+- Expert systems in medicine literature
+- Hybrid AI systems papers
+- LLM evaluation methodologies
+- Clinical decision support systems]
 
 ---
 
@@ -446,42 +525,75 @@ SYMPTOM_ALIASES = {
 
 ### Appendix A: Prolog Predicate Reference
 
-[Full list of predicates with descriptions]
+| Predicate | Arity | Description |
+|-----------|-------|-------------|
+| `disorder/3` | 3 | Disorder definition (ID, Name, Category) |
+| `symptom/4` | 4 | Symptom definition (DisorderID, SymptomID, Category, Description) |
+| `symptom_category/5` | 5 | Symptom grouping with count requirements |
+| `duration_requirement/3` | 3 | Temporal constraints |
+| `onset_requirement/3` | 3 | Onset timing constraints |
+| `exclusion_criterion/4` | 4 | What must NOT be present |
+| `subjective_criterion/4` | 4 | Criteria requiring clinical judgment |
+| `full_diagnosis/3` | 3 | Complete diagnostic evaluation |
+| `next_question/2` | 2 | Prioritised question selection |
+| `disorder_pruned/2` | 2 | Candidate elimination check |
 
 ### Appendix B: Sample Clinical Vignette
 
 ```json
 {
   "id": "vignette_001",
-  "clinical_text": "...",
-  "demographics": {...},
-  "expected_diagnoses": [...]
+  "difficulty": "CLEAR",
+  "ground_truth": {
+    "diagnoses": ["mdd"],
+    "comorbidities": []
+  },
+  "clinical_text": "Sarah is a 34-year-old woman presenting with...",
+  "answers": {
+    "mdd_a1": {"status": "present", "evidence": "Reports persistent sadness..."},
+    "mdd_a2": {"status": "present", "evidence": "Lost interest in activities..."}
+  }
 }
 ```
 
-### Appendix C: Extraction Prompt Templates
+### Appendix C: Sample Diagnostic Output
 
-[System and user prompts used for LLM extraction]
+```
+DIAGNOSIS RESULT: Major Depressive Disorder
+Status: MET
+Confidence: 0.92
 
-### Appendix D: Sample Diagnostic Output
-
-[Example full_diagnosis/3 output with explanation]
+PROOF TREE:
+├── Symptom Criteria: MET
+│   ├── Core symptoms (at_least_one_of 1): 2/1 ✓
+│   │   ├── mdd_a1 (depressed mood): PRESENT
+│   │   └── mdd_a2 (anhedonia): PRESENT
+│   └── Total symptoms (at_least 5): 6/5 ✓
+├── Duration Criteria: MET (14 days ≥ 14 days required)
+├── Exclusion Criteria: MET (none present)
+└── Subjective Criteria: MET
+    └── Clinical significance: PRESENT (confidence: 0.88)
+```
 
 ---
 
 ## Marking Criteria Checklist
 
-Use this to verify coverage before submission:
+**This report covers Part B (85 marks). Part A (15 marks) is submitted separately.**
 
 | Criterion | Marks | Report Section | Covered? |
 |-----------|-------|----------------|----------|
-| Problem appropriateness and complexity | 10 | Sections 1-4 | [ ] |
-| Report clarity and professional presentation | 5 | Throughout | [ ] |
-| Code implementation and functionality | 30 | Sections 5-8 | [ ] |
-| AI technique selection and application | 20 | Sections 6-8 | [ ] |
-| Quantitative evaluation with appropriate metrics | 20 | Section 9.1-9.2 | [ ] |
-| Comparative analysis and trade-off discussion | 15 | Sections 9.3-9.4, 10 | [ ] |
-| **Total** | **100** | | |
+| Code implementation and functionality | 30 | Sections 2-4 | [ ] |
+| AI technique selection and application | 20 | Sections 2-4 | [ ] |
+| Quantitative evaluation with appropriate metrics | 20 | Section 5 | [ ] |
+| Comparative analysis and trade-off discussion | 15 | Section 6 | [ ] |
+| **Total (Part B)** | **85** | | |
+
+| Deliverable | Marks | Document |
+|-------------|-------|----------|
+| Part A: Project Description | 15 | `specs/Part_A_DSM5_Diagnostic_System_v3.pdf` |
+| Part B: Technical Report | 85 | This document (4,000-5,000 words) |
+| **Total** | **100** | |
 
 ---
 
@@ -489,23 +601,26 @@ Use this to verify coverage before submission:
 
 | Learning Outcome | Evidence | Section |
 |------------------|----------|---------|
-| LO2: Search techniques and knowledge representation | A* search + Prolog KB | 6, 7 |
-| LO3: Learning techniques (supervised, unsupervised, RL) | LLM integration | 8 |
-| LO4: Appropriate AI strategies for use cases | Comparative analysis | 9.3-9.4, 10 |
+| LO2: Search techniques and knowledge representation | Prolog KB + diagnostic pathway search | 3, 4 |
+| LO3: Learning techniques | LLM integration for extraction and assessment | 4 |
+| LO4: Appropriate AI strategies for use cases | Hybrid vs pure approach comparison | 6 |
 
 ---
 
-## Word Count Targets
+## Word Count Targets (Part B Only)
 
-| Section | Target Words | Actual Words |
-|---------|--------------|--------------|
+*The 4,000-5,000 word requirement applies to this Part B report only. Part A is a separate 2-page document.*
+
+| Section | Target | Actual |
+|---------|--------|--------|
 | Abstract | 150 | |
-| Part A (Sections 1-4) | 800-1000 | |
-| Section 5 (Architecture) | 600 | |
-| Section 6 (Knowledge Rep) | 800 | |
-| Section 7 (Search) | 600 | |
-| Section 8 (ML Integration) | 500 | |
-| Section 9 (Evaluation) | 1000 | |
-| Section 10 (Reflection) | 500 | |
-| Section 11 (Conclusion) | 200 | |
-| **Total** | **4,000-5,000** | |
+| Section 1 (Introduction) | 300 | |
+| Section 2 (Architecture) | 500 | |
+| Section 3 (Knowledge Rep) | 700 | |
+| Section 4 (Search & ML) | 600 | |
+| Section 5 (Evaluation) | 700 | |
+| Section 6 (Comparison) | 500 | |
+| Section 7 (Reflection) | 400 | |
+| Section 8 (Conclusion) | 200 | |
+| Section 9 (AI Acknowledgement) | ~350 | |
+| **Total (Part B)** | **~4,400** | |

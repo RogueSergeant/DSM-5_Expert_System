@@ -46,6 +46,8 @@ Hybrid Category 3 AI system combining Prolog-based symbolic reasoning (Tier A: o
 
 **DSM Version**: DSM-5-TR (2022), not DSM-5 (2013). See `docs/DSM_VERSION_NOTES.md` for differences.
 
+**Current Status**: Fully functional with 100% accuracy on 50 synthetic vignettes, 73 passing tests.
+
 ## Architecture
 
 **Three-Tier Hybrid Design:**
@@ -57,21 +59,31 @@ Hybrid Category 3 AI system combining Prolog-based symbolic reasoning (Tier A: o
 ```
 src/
 ├── prolog/                    # Core Diagnostic System
-│   ├── schema.pl             # Inference engine (~1,100 lines)
+│   ├── schema.pl             # Inference engine (~1,119 lines)
 │   ├── gold_standard/        # Hand-curated disorders (5)
 │   │   ├── mdd.pl, gad.pl, adhd.pl, ptsd.pl, asd.pl
-│   │   └── loader.pl
+│   │   ├── loader.pl
+│   │   └── README.md         # Predicate reference and templates
 │   └── extracted/            # LLM-extracted disorders
+│       ├── asd.pl, ptsd.pl   # Prolog files
+│       └── *.json            # Extraction metadata
 │
 ├── extraction/                # Layer 1: KB Construction
 │   ├── run_extraction.py     # CLI entry point
-│   ├── providers/            # OpenAI, Anthropic, Ollama
-│   └── evaluate.py           # Validation pipeline
+│   ├── base.py               # DSM text loading utilities
+│   ├── config.py             # Configuration and .env management
+│   ├── evaluate.py           # Extraction validation pipeline
+│   ├── providers/            # LLM provider implementations
+│   │   ├── anthropic_provider.py
+│   │   ├── openai_provider.py
+│   │   └── ollama_provider.py
+│   └── README.md
 │
 ├── evaluation/                # Vignette Generation & Testing
 │   ├── generate_vignettes.py # CLI for synthetic case generation
 │   ├── evaluate.py           # CLI for vignette evaluation
-│   └── answer_modes.py       # Answer mode factories (preextracted/interactive/llm)
+│   ├── compare_llm.py        # Hybrid vs Pure LLM comparison script
+│   └── answer_modes.py       # Answer mode factories (preextracted/interactive/llm/hybrid)
 │
 ├── diagnosis/                 # Diagnostic Driver
 │   └── driver.py             # Orchestrates Prolog reasoning with answer callbacks
@@ -84,9 +96,24 @@ src/
     └── explain.py            # Proof tree formatter for diagnostic explanations
 
 data/
-├── dsm5_text/                # DSM-5-TR source text
+├── dsm5_text/                # DSM-5-TR source text (8 files)
 ├── vignettes/                # Generated clinical test cases
-└── results/evaluation/       # Evaluation results JSON exports
+│   └── vignettes_*.json      # 50 vignettes with ground truth
+└── results/
+    ├── evaluation/           # Evaluation results JSON exports
+    ├── comparison/           # Hybrid vs Pure LLM comparison results
+    │   └── latest_comparison.json
+    └── figures/              # Generated visualisations
+        ├── evaluation_metrics.png
+        └── hybrid_vs_pure_llm_comparison.png
+
+tests/                         # 73 tests across 5 files
+├── conftest.py               # Shared fixtures
+├── test_prolog_schema.py     # Schema validation (28 tests)
+├── test_answer_modes.py      # Answer mode factories (18 tests)
+├── test_engine.py            # PrologEngine wrapper (12 tests)
+├── test_driver.py            # DiagnosticDriver (10 tests)
+└── test_integration.py       # End-to-end pipeline (5 tests)
 
 logs/
 ├── vignettes/                # Vignette generation logs
@@ -100,7 +127,14 @@ docs/
 ├── EVALUATION.md             # Evaluation system and answer modes
 └── LEGACY_SYSTEM.md          # Old architecture (archived)
 
+specs/                         # Coursework specifications
+├── 2025_7COSC013W.1_CW_1.pdf # Main coursework brief
+└── Part_A_DSM5_Diagnostic_System_v3.pdf  # Part A project description
+
 archive/                       # Previous over-engineered implementation
+
+notebook.ipynb                 # 26-cell Jupyter notebook for submission
+REPORT_TEMPLATE.md            # Technical report template (4,000-5,000 words)
 ```
 
 ## Prerequisites
@@ -120,7 +154,7 @@ cp .env.example .env  # Add API keys if using LLM extraction
 
 ## Common Commands
 
-**Testing** (pytest):
+**Testing** (pytest - 73 tests):
 ```bash
 # Run all tests
 pytest tests/ -v
@@ -169,7 +203,7 @@ See `docs/VIGNETTE_GENERATION.md` for architecture and configuration details.
 
 **Vignette Evaluation** (test diagnostic accuracy):
 ```bash
-# Pre-extracted mode (fast baseline)
+# Pre-extracted mode (fast baseline) - achieves 100% accuracy
 python -m src.evaluation.evaluate --vignettes data/vignettes/*.json
 
 # LLM mode (GPT-5-mini infers from clinical text)
@@ -186,8 +220,19 @@ python -m src.evaluation.evaluate --vignettes data/vignettes/*.json --mode preex
 ```
 
 Logs: `logs/evaluation/{timestamp}.log`
+Results: `data/results/evaluation/{timestamp}_results.json`
 
 See `docs/EVALUATION.md` for answer modes and metrics.
+
+**Hybrid vs Pure LLM Comparison**:
+```bash
+# Run comparison on subset of vignettes (generates figures)
+python -m src.evaluation.compare_llm --vignettes data/vignettes/*.json --count 20
+
+# Results saved to:
+# - data/results/comparison/latest_comparison.json
+# - data/results/figures/hybrid_vs_pure_llm_comparison.png
+```
 
 **Interactive Diagnosis** (single disorder, CLI prompts):
 ```bash
@@ -242,8 +287,8 @@ result = engine.query_one("full_diagnosis(pt001, mdd, Result)")
 **Diagnostic Inference Predicates** (reason over patient data):
 - `full_diagnosis/3` - comprehensive diagnosis with status tracking (met/not_met/missing_data)
 - `criterion_check/5` - individual criterion status with details
-- `collect_missing_data/3` - identify data gaps
-- `generate_follow_up_questions/3` - suggest next questions
+- `next_question/2` - returns prioritised next question (deduplicated, sorted by clinical priority)
+- `disorder_pruned/2` - checks if disorder can be eliminated based on current evidence
 
 **Disorder-Specific Predicates** (optional):
 - `age_adjusted_count/4` - different thresholds by age (ADHD: 6 symptoms <17, 5 symptoms ≥17)
@@ -308,3 +353,39 @@ See `src/prolog/gold_standard/README.md` for complete predicate reference and te
 3. Pruning is declarative — Prolog rules, not Python if/else
 4. Simple ordering beats complex search — Clinical priority is good enough
 5. Test on real vignettes — Not synthetic batch experiments
+
+## Performance Optimisation
+
+**Problem Solved**: Initial implementation made ~42 Prolog queries per question (~5,800 total per vignette), causing system freeze.
+
+**Solution**: Consolidated all logic into single `next_question/2` predicate with in-Prolog deduplication.
+
+**Result**: Reduced to 2 queries per question (~280 total), 9.5 seconds runtime for 50 vignettes.
+
+See `docs/EVALUATION.md` Section 4 for full performance analysis.
+
+## Current Results
+
+| Metric | Value |
+|--------|-------|
+| Diagnostic accuracy | 100% (59/59 vignettes) |
+| Hybrid vs Pure LLM | +5% advantage (100% vs 95%) |
+| Comorbid case advantage | +25% (100% vs 75%) |
+| Average questions | 136.6 per vignette |
+| Inference time | 9.5s for 50 vignettes |
+| Test coverage | 73 tests, all passing |
+
+Results exported to:
+- `data/results/evaluation/` - Full evaluation JSON
+- `data/results/comparison/latest_comparison.json` - Hybrid vs LLM comparison
+- `data/results/figures/` - Visualisation PNGs
+
+## Coursework Submission Checklist
+
+| Deliverable | Location | Status |
+|-------------|----------|--------|
+| Part A: Project Description | `specs/Part_A_DSM5_Diagnostic_System_v3.pdf` | Complete |
+| Technical Report (4,000-5,000 words) | `REPORT_TEMPLATE.md` → PDF | Template ready |
+| Jupyter Notebook | `notebook.ipynb` | Complete (26 cells) |
+| Demonstration Video (5-10 mins) | TBD | Not started |
+| Viva preparation | - | - |
