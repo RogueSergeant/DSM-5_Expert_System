@@ -120,11 +120,16 @@ def evaluate_vignette(
     elif mode != 'llm':
         answer_fn = base_answer_fn
 
+    # Extract patient age for age-based disorder pruning (e.g., ptsd vs ptsd_preschool)
+    # In clinical settings, patient age is always known from the patient record
+    patient_age = vignette['answers'].get('age')
+
     # Run differential diagnosis across ALL disorders
     diagnosis_results = driver.run_differential_diagnosis(
         patient_id=f"patient_{vignette['id']}",
         answer_fn=answer_fn,
-        verbose=verbose
+        verbose=verbose,
+        patient_age=patient_age
     )
 
     # Evaluate against ground truth
@@ -162,12 +167,14 @@ def evaluate_vignette(
     return results
 
 
-def load_vignettes(path: Path, disorder: Optional[str] = None,
+def load_vignettes(paths: list[Path], disorder: Optional[str] = None,
                    difficulty: Optional[str] = None) -> list[dict]:
-    """Load vignettes from JSON, optionally filtering."""
-    logger.info(f"Loading vignettes from {path}")
-    with open(path) as f:
-        vignettes = json.load(f)
+    """Load vignettes from JSON file(s), optionally filtering."""
+    vignettes = []
+    for path in paths:
+        logger.info(f"Loading vignettes from {path}")
+        with open(path) as f:
+            vignettes.extend(json.load(f))
 
     initial_count = len(vignettes)
     if disorder:
@@ -180,7 +187,7 @@ def load_vignettes(path: Path, disorder: Optional[str] = None,
 
 
 def evaluate_on_vignettes(
-    vignettes_path: Path,
+    vignettes_paths: list[Path],
     mode: str = 'preextracted',
     disorder: Optional[str] = None,
     difficulty: Optional[str] = None,
@@ -188,10 +195,10 @@ def evaluate_on_vignettes(
     subjective_model: str = 'none'
 ) -> list[EvaluationResult]:
     """Run evaluation on vignettes and report metrics."""
-    logger.info(f"Starting evaluation | mode={mode} | subjective_model={subjective_model} | path={vignettes_path}")
+    logger.info(f"Starting evaluation | mode={mode} | subjective_model={subjective_model} | paths={vignettes_paths}")
     print(f"Log file: {LOG_FILE}")
 
-    vignettes = load_vignettes(vignettes_path, disorder, difficulty)
+    vignettes = load_vignettes(vignettes_paths, disorder, difficulty)
     if not vignettes:
         print("No vignettes found matching filters")
         logger.warning("No vignettes found matching filters")
@@ -394,8 +401,8 @@ def save_results(
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate diagnostic driver on vignettes")
-    parser.add_argument('--vignettes', type=Path, required=True,
-                        help="Path to vignettes JSON file")
+    parser.add_argument('--vignettes', type=Path, required=True, nargs='+',
+                        help="Path(s) to vignettes JSON file(s)")
     parser.add_argument('--mode', choices=['preextracted', 'interactive', 'llm'],
                         default='preextracted', help="Answer mode")
     parser.add_argument('--subjective-model', choices=['none', 'claude', 'openai'],
@@ -409,12 +416,14 @@ def main():
                         help="Print detailed output")
     args = parser.parse_args()
 
-    if not args.vignettes.exists():
-        print(f"Vignettes file not found: {args.vignettes}")
-        return
+    # Validate all paths exist
+    for path in args.vignettes:
+        if not path.exists():
+            print(f"Vignettes file not found: {path}")
+            return
 
     evaluate_on_vignettes(
-        vignettes_path=args.vignettes,
+        vignettes_paths=args.vignettes,
         mode=args.mode,
         disorder=args.disorder,
         difficulty=args.difficulty,

@@ -145,6 +145,10 @@ class DiagnosticDriver:
         """Clear all patient facts."""
         return bool(self.engine.query(f"clear_patient_facts({patient_id})"))
 
+    def assert_patient_age(self, patient_id: str, age: int) -> bool:
+        """Assert patient's current age for age-based disorder pruning."""
+        return self.engine.assert_fact(f"patient_context({patient_id}, age, {age})")
+
     def is_pruned(self, disorder_id: str, patient_id: str) -> bool:
         """Check if disorder is ruled out."""
         return len(self.engine.query(f"disorder_pruned({patient_id}, {disorder_id})")) > 0
@@ -241,14 +245,27 @@ class DiagnosticDriver:
         self,
         patient_id: str = 'patient',
         answer_fn: Optional[Callable[[DiagnosticItem], tuple[str, str, float, Optional[int]]]] = None,
-        verbose: bool = False
+        verbose: bool = False,
+        patient_age: Optional[int] = None
     ) -> dict[str, DiagnosisResult]:
         """
         Run differential diagnosis across all disorders.
 
+        Args:
+            patient_id: Patient identifier
+            answer_fn: Callback returning (status, evidence, confidence, value)
+            verbose: Print progress
+            patient_age: Patient's current age (enables age-based disorder pruning)
+
         Returns: dict mapping disorder_id -> DiagnosisResult for all non-pruned disorders
         """
         self.clear_patient(patient_id)
+
+        # Assert patient age if provided (enables age-based pruning via Rule 4)
+        if patient_age is not None:
+            self.assert_patient_age(patient_id, patient_age)
+            logger.debug(f"  DIFFERENTIAL | patient_age={patient_age} asserted")
+
         questions_asked = 0
         prev_candidates = set(self.get_active_candidates(patient_id))
 

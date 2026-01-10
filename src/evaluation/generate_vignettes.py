@@ -49,8 +49,9 @@ def load_disorders(engine: PrologEngine) -> dict:
     specs = {}
     for d in engine.query("disorder(ID, Name, Category)"):
         did = str(d['ID'])
-        if did == 'ptsd_preschool':
-            continue
+
+        # Load age range if defined (e.g., ptsd: 7-999, ptsd_preschool: 0-6)
+        age_range = engine.query_one(f"disorder_age_range({did}, MinAge, MaxAge)")
 
         specs[did] = {
             'id': did, 'name': str(d['Name']),
@@ -63,6 +64,7 @@ def load_disorders(engine: PrologEngine) -> dict:
             'categories': engine.query(f"symptom_category({did}, CatID, SymList, Req, ReqType)"),
             'duration': engine.query_one(f"duration_requirement({did}, N, Unit)"),
             'onset': engine.query_one(f"onset_requirement({did}, Type, Val)"),
+            'age_range': {'min': age_range['MinAge'], 'max': age_range['MaxAge']} if age_range else None,
         }
     return specs
 
@@ -78,6 +80,17 @@ def generate_answers_single(spec: dict, difficulty: str) -> tuple[dict, bool]:
     """Generate answers respecting symptom category requirements."""
     answers = {}
     present_ids = set()
+
+    # Generate patient age first (needed for onset_age calculation)
+    age_range = spec.get('age_range')
+    if age_range:
+        min_age, max_age = age_range['min'], age_range['max']
+        if max_age >= 999:  # No upper limit - generate adult age
+            answers['age'] = random.randint(max(18, min_age), 65)
+        else:  # Age-restricted disorder (e.g., ptsd_preschool: 0-6)
+            answers['age'] = random.randint(max(2, min_age), max_age)  # min 2 for realistic onset
+    else:
+        answers['age'] = random.randint(18, 65)  # Default adult age
 
     sorted_cats = sorted(spec['categories'], key=lambda c: (
         0 if str(c['ReqType']) in ['all', 'exactly'] else 1,
@@ -116,6 +129,21 @@ def generate_answers_single(spec: dict, difficulty: str) -> tuple[dict, bool]:
             removable = [s for s in present_ids if s not in essential]
             if removable:
                 present_ids.discard(random.choice(removable))
+        else:
+            # Verify minimum counts are met for meets=True cases
+            for cat in spec['categories']:
+                cat_symptoms = [str(s) for s in cat['SymList']]
+                req_count = cat['Req']
+                req_type = str(cat['ReqType'])
+                present_in_cat = sum(1 for s in cat_symptoms if s in present_ids)
+
+                if req_type == 'at_least' and present_in_cat < req_count:
+                    # Add more symptoms to meet minimum
+                    needed = req_count - present_in_cat
+                    available = [s for s in cat_symptoms if s not in present_ids]
+                    random.shuffle(available)
+                    for sid in available[:needed]:
+                        present_ids.add(sid)
     else:
         meets = True
 
@@ -129,9 +157,24 @@ def generate_answers_single(spec: dict, difficulty: str) -> tuple[dict, bool]:
     base_days = days_from_duration(spec['duration'])
     answers['duration_days'] = base_days + (7 if meets else -3)
 
+    # Handle onset requirements with age-aware logic
     if spec['onset'] and str(spec['onset']['Type']) == 'before_age':
         threshold = spec['onset']['Val']
-        answers['onset_age'] = threshold - 2 if meets else threshold + 5
+        current_age = answers['age']
+
+        if meets:
+            # Onset must be before threshold AND before current age
+            max_onset = min(threshold - 1, current_age - 1)
+            answers['onset_age'] = random.randint(1, max(1, max_onset))
+        else:
+            # For not_met: onset after threshold (only possible if current_age > threshold)
+            if current_age > threshold:
+                # Can fail on onset - symptoms appeared after threshold
+                answers['onset_age'] = random.randint(threshold, current_age - 1)
+            else:
+                # Patient too young to fail onset requirement - use valid onset
+                # (failure comes from symptoms, not onset)
+                answers['onset_age'] = random.randint(1, max(1, current_age - 1))
 
     return answers, meets
 
@@ -140,6 +183,18 @@ def generate_answers_comorbid(specs: list[dict]) -> dict:
     """Generate answers for comorbid case with deduplication."""
     answers = {}
     seen_ids = set()
+
+    # Determine age range - use intersection of all disorders' age ranges
+    # For comorbid cases, we use adult ages (comorbid pairs don't include ptsd_preschool)
+    min_age, max_age = 18, 65
+    for spec in specs:
+        age_range = spec.get('age_range')
+        if age_range:
+            min_age = max(min_age, age_range['min'])
+            if age_range['max'] < 999:
+                max_age = min(max_age, age_range['max'])
+
+    answers['age'] = random.randint(min_age, max_age)
 
     for spec in specs:
         for s in spec['symptoms']:
@@ -154,9 +209,16 @@ def generate_answers_comorbid(specs: list[dict]) -> dict:
         base_days = days_from_duration(spec['duration'])
         answers['duration_days'] = max(answers.get('duration_days', 0), base_days + 14)
 
+        # Handle onset with age-aware logic
         if spec['onset'] and str(spec['onset']['Type']) == 'before_age':
+            threshold = spec['onset']['Val']
+            current_age = answers['age']
+            # Onset must be before threshold AND before current age
+            max_onset = min(threshold - 1, current_age - 1)
+            proposed_onset = random.randint(1, max(1, max_onset))
+            # Keep the earliest onset across all disorders
             current = answers.get('onset_age', float('inf'))
-            answers['onset_age'] = min(current, spec['onset']['Val'] - 3)
+            answers['onset_age'] = min(current, proposed_onset)
 
     if answers.get('onset_age') == float('inf'):
         answers.pop('onset_age', None)
@@ -187,8 +249,15 @@ def get_exclusion_instructions(specs: list[dict]) -> str:
     return '\n'.join(lines) if lines else "- Brief medical history and current medications"
 
 
-def get_mse_requirements(specs: list[dict]) -> str:
-    """Build MSE requirements based on disorder category."""
+def get_mse_requirements(specs: list[dict], is_child: bool = False) -> str:
+    """Build MSE requirements based on disorder category and patient age."""
+    if is_child:
+        return ("Appearance (grooming, dress), behaviour during play and with caregiver, "
+                "interaction quality (eye contact, engagement), affect (observed emotional responses), "
+                "play quality (spontaneous, constricted, repetitive, trauma-themed), "
+                "attachment behaviours (clinginess, separation response), startle response, "
+                "developmental observations (language, motor, social)")
+
     combined = ' '.join(s['desc'].lower() for spec in specs for s in spec['symptoms'])
 
     if any(x in combined for x in ['hallucination', 'delusion', 'disorganiz']):
@@ -202,6 +271,10 @@ def get_mse_requirements(specs: list[dict]) -> str:
 
 def build_prompt(specs: list[dict], answers: dict, difficulty: str) -> str:
     """Build comprehensive LLM prompt with all clinical requirements."""
+    # Detect child case (age <= 6)
+    patient_age = answers.get('age', 34)
+    is_child = patient_age <= 6
+
     # Deduplicated symptom collection
     present_symptoms, absent_symptoms = [], []
     seen_ids = set()
@@ -236,20 +309,96 @@ def build_prompt(specs: list[dict], answers: dict, difficulty: str) -> str:
 
     # Exclusion and MSE
     exclusion_text = get_exclusion_instructions(specs)
-    mse_text = get_mse_requirements(specs)
+    mse_text = get_mse_requirements(specs, is_child=is_child)
 
     # Pertinent negatives: scale with complexity (min 4, max 8)
     n_negatives = min(8, max(4, len(absent_symptoms) // 2))
     selected_negatives = absent_symptoms[:n_negatives]
 
-    # Style
-    style = {
-        'CLEAR': "Symptoms clearly evident. Patient describes experiences vividly with concrete examples.",
-        'MODERATE': "Symptoms present but subtly described. Patient uses hedging ('kind of', 'sometimes').",
-        'AMBIGUOUS': "Borderline presentation. Patient minimises or is uncertain about severity.",
-        'COMORBID': "Multiple distinct symptom clusters clearly present."
-    }.get(difficulty, "Symptoms present but require clinical inference.")
+    # Style - adapted for child cases
+    if is_child:
+        style = {
+            'CLEAR': "Symptoms clearly evident through caregiver report and observed behaviour.",
+            'MODERATE': "Symptoms present but require inference from play and caregiver observations.",
+            'AMBIGUOUS': "Borderline presentation. Caregiver uncertain about severity or developmental norms.",
+            'COMORBID': "Multiple distinct symptom clusters clearly present."
+        }.get(difficulty, "Symptoms present but require clinical inference.")
+    else:
+        style = {
+            'CLEAR': "Symptoms clearly evident. Patient describes experiences vividly with concrete examples.",
+            'MODERATE': "Symptoms present but subtly described. Patient uses hedging ('kind of', 'sometimes').",
+            'AMBIGUOUS': "Borderline presentation. Patient minimises or is uncertain about severity.",
+            'COMORBID': "Multiple distinct symptom clusters clearly present."
+        }.get(difficulty, "Symptoms present but require clinical inference.")
 
+    # Child-specific prompt
+    if is_child:
+        return f"""Write a realistic child psychiatric intake note (250-400 words).
+
+ABSOLUTE RULES:
+- NEVER name any psychiatric diagnosis, disorder, or syndrome
+- NEVER use clinical labels (e.g., "trauma", "PTSD", "anxiety")
+- Write as an intake note describing observations and caregiver reports only
+- This is a {patient_age}-year-old child - use developmentally appropriate language
+
+STYLE: {style}
+
+SYMPTOMS TO PORTRAY (describe through behaviour, play, and caregiver observations):
+{chr(10).join(f'- {s}' for s in present_symptoms)}
+
+PERTINENT NEGATIVES (explicitly deny these):
+{chr(10).join(f'- {s}' for s in selected_negatives)}
+
+DURATION: Symptoms present for approximately {duration_text}. State when they began.
+{onset_text}
+
+FUNCTIONAL IMPACT (required): Describe specific ways symptoms affect:
+- Relationships with caregivers and siblings
+- Peer interactions and play behaviour
+- Preschool/daycare functioning or home routines
+- Sleep, eating, toileting (note any regression)
+
+REQUIRED SECTIONS:
+
+1. DEMOGRAPHICS AND CHIEF COMPLAINT
+   "{patient_age}-year-old child brought by [caregiver relationship] who reports [chief concern in caregiver's words]"
+
+2. HISTORY OF PRESENT ILLNESS
+   Narrative from caregiver perspective with 2-3 direct quotes describing child's behaviour, clear timeline.
+   Include: changes in play, sleep, eating, attachment, emotional regulation, regression in milestones.
+
+3. DEVELOPMENTAL HISTORY
+   Brief milestones (walking, talking), any prior concerns or evaluations
+
+4. FAMILY HISTORY
+   One sentence - any mental health conditions in parents/siblings
+
+5. MEDICAL HISTORY
+   Birth history, medical conditions, current medications, recent illnesses
+{exclusion_text}
+
+6. BEHAVIOURAL OBSERVATIONS / MENTAL STATUS EXAMINATION
+   {mse_text}
+
+CHILD-SPECIFIC SYMPTOM PORTRAYAL:
+- Intrusive memories: may appear as repetitive play reenacting themes, not verbalised
+- Nightmares: "bad dreams" - caregiver may not know specific content
+- Avoidance: refusing activities, places, or people; fear responses
+- Emotional changes: increased tantrums, clinginess, fearfulness, withdrawal
+- Hyperarousal: exaggerated startle, hypervigilance, sleep difficulties
+
+FORBIDDEN PHRASES:
+- Any diagnostic terminology
+- "consistent with" or "suggestive of"
+
+PERTINENT NEGATIVE LANGUAGE:
+- "Caregiver denies [symptom]"
+- "No [behaviour] observed during session"
+- "[Domain] developmentally appropriate"
+
+Output ONLY the clinical vignette. No preamble."""
+
+    # Adult/adolescent prompt
     return f"""Write a realistic psychiatric intake note (250-400 words).
 
 ABSOLUTE RULES:
@@ -276,7 +425,7 @@ FUNCTIONAL IMPACT (required): Describe specific ways symptoms affect:
 REQUIRED SECTIONS:
 
 1. DEMOGRAPHICS AND CHIEF COMPLAINT
-   "[Age]-year-old [occupation] presents with [chief complaint in patient's words]"
+   "{patient_age}-year-old [occupation] presents with [chief complaint in patient's words]"
 
 2. HISTORY OF PRESENT ILLNESS
    Narrative with 2-3 direct quotes, clear timeline
@@ -487,10 +636,16 @@ def select_case_type() -> str:
     return 'MODERATE'
 
 
-def generate_vignettes(count: int = 50, output_dir: Path = None):
-    """Generate vignettes and save to JSON."""
+def generate_vignettes(count: int = 50, output_dir: Path = None, disorder: str = None):
+    """Generate vignettes and save to JSON.
+
+    Args:
+        count: Number of vignettes to generate
+        output_dir: Output directory for JSON file
+        disorder: Optional disorder ID to filter (e.g., 'ptsd_preschool')
+    """
     print(f"Log file: {LOG_FILE}", flush=True)
-    logger.info(f"Starting vignette generation: count={count}")
+    logger.info(f"Starting vignette generation: count={count}, disorder={disorder}")
 
     output_dir = output_dir or Path(__file__).parent.parent.parent / 'data' / 'vignettes'
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -500,6 +655,15 @@ def generate_vignettes(count: int = 50, output_dir: Path = None):
     engine.load_file('schema.pl')
     engine.load_file('gold_standard/loader.pl')
     specs = load_disorders(engine)
+
+    # Filter to specific disorder if requested
+    if disorder:
+        if disorder not in specs:
+            available = list(specs.keys())
+            print(f"Error: Unknown disorder '{disorder}'. Available: {available}")
+            return
+        specs = {disorder: specs[disorder]}
+
     disorder_ids = list(specs.keys())
 
     print(f"Loaded {len(specs)} disorders: {disorder_ids}", flush=True)
@@ -509,10 +673,17 @@ def generate_vignettes(count: int = 50, output_dir: Path = None):
     client = OpenAI(api_key=config.openai_api_key)
     logger.info(f"OpenAI client initialised")
 
+    # Skip comorbid cases when filtering to single disorder
+    skip_comorbid = len(disorder_ids) == 1
+
     vignettes = []
     pbar = tqdm(range(count), desc="Generating", unit="vignette")
     for i in pbar:
         case_type = select_case_type()
+
+        # Skip comorbid if filtering to single disorder
+        if case_type == 'COMORBID' and skip_comorbid:
+            case_type = random.choice(['CLEAR', 'MODERATE', 'AMBIGUOUS'])
 
         if case_type == 'COMORBID':
             pair = random.choice(COMORBID_PAIRS)
@@ -546,8 +717,10 @@ def generate_vignettes(count: int = 50, output_dir: Path = None):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--count', type=int, default=50)
-    parser.add_argument('--output', type=Path, default=None)
+    parser = argparse.ArgumentParser(description='Generate clinical vignettes for evaluation')
+    parser.add_argument('--count', type=int, default=50, help='Number of vignettes to generate')
+    parser.add_argument('--output', type=Path, default=None, help='Output directory')
+    parser.add_argument('--disorder', type=str, default=None,
+                        help='Generate vignettes for specific disorder only (e.g., ptsd_preschool)')
     args = parser.parse_args()
-    generate_vignettes(args.count, args.output)
+    generate_vignettes(args.count, args.output, args.disorder)

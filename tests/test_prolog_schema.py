@@ -248,3 +248,72 @@ class TestUtilities:
     def test_normalise_months_to_days(self):
         """6 months should normalise to 180 days."""
         assert self._run_query("normalise_to_days(6, months, 180)")
+
+
+class TestAgeBasedPruning:
+    """Test age-based disorder pruning (Rule 4)."""
+
+    def _run_query(self, query: str) -> bool:
+        """Run a Prolog query and return success."""
+        result = subprocess.run(
+            ["swipl", "-g",
+             f"[src/prolog/schema], ['src/prolog/gold_standard/loader'], ({query} -> halt(0) ; halt(1))",
+             "-t", "halt(1)"],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True
+        )
+        return result.returncode == 0
+
+    def test_ptsd_preschool_pruned_for_adults(self):
+        """Adult age (7+) should prune ptsd_preschool but not ptsd."""
+        # Assert adult age and check pruning
+        assert self._run_query(
+            "assertz(patient_context(test_pt, age, 34)), "
+            "disorder_pruned(test_pt, ptsd_preschool)"
+        )
+
+    def test_ptsd_not_pruned_for_adults(self):
+        """Adult age (7+) should NOT prune standard ptsd."""
+        assert self._run_query(
+            "assertz(patient_context(test_pt2, age, 34)), "
+            "\\+ disorder_pruned(test_pt2, ptsd)"
+        )
+
+    def test_ptsd_pruned_for_children(self):
+        """Child age (<=6) should prune standard ptsd but not ptsd_preschool."""
+        assert self._run_query(
+            "assertz(patient_context(test_pt3, age, 4)), "
+            "disorder_pruned(test_pt3, ptsd)"
+        )
+
+    def test_ptsd_preschool_not_pruned_for_children(self):
+        """Child age (<=6) should NOT prune ptsd_preschool."""
+        assert self._run_query(
+            "assertz(patient_context(test_pt4, age, 4)), "
+            "\\+ disorder_pruned(test_pt4, ptsd_preschool)"
+        )
+
+    def test_no_pruning_without_age(self):
+        """Missing age should not prune either PTSD variant."""
+        # Neither should be pruned without age context
+        assert self._run_query(
+            "\\+ disorder_pruned(test_pt5, ptsd_preschool), "
+            "\\+ disorder_pruned(test_pt5, ptsd)"
+        )
+
+    def test_boundary_age_6_uses_preschool(self):
+        """Age 6 (boundary) should use ptsd_preschool, prune ptsd."""
+        assert self._run_query(
+            "assertz(patient_context(test_pt6, age, 6)), "
+            "disorder_pruned(test_pt6, ptsd), "
+            "\\+ disorder_pruned(test_pt6, ptsd_preschool)"
+        )
+
+    def test_boundary_age_7_uses_ptsd(self):
+        """Age 7 (boundary) should use ptsd, prune ptsd_preschool."""
+        assert self._run_query(
+            "assertz(patient_context(test_pt7, age, 7)), "
+            "\\+ disorder_pruned(test_pt7, ptsd), "
+            "disorder_pruned(test_pt7, ptsd_preschool)"
+        )
