@@ -610,11 +610,11 @@ Shortliffe, E.H. (1976) *Computer-Based Medical Consultations: MYCIN*. New York:
 
 Wielemaker, J. et al. (2012) 'SWI-Prolog', *Theory and Practice of Logic Programming*, 12(1-2), pp. 67-96. Available from: https://doi.org/10.1017/S1471068411000494 [Accessed 4 December 2025].
 
-Huang, L. et al. (2024) 'A Survey on Hallucination in Large Language Models', *ACM Transactions on Information Systems*. Available from: https://doi.org/10.1145/3703155 [Accessed 4 December 2025].
+Huang, L. et al. (2024) 'A Survey on Hallucination in Large Language Models', *ACM Transactions on Information Systems*. Available from: https://doi.org/10.1145/3703155 [Accessed 14 December 2025].
 
-Chiang, C. et al. (2025) 'Human-AI collectives produce the most accurate differential diagnoses', *Proceedings of the National Academy of Sciences*, 122(2). Available from: https://doi.org/10.1073/pnas.2426153122 [Accessed 4 December 2025].
+Chiang, C. et al. (2025) 'Human–AI collectives most accurately diagnose clinical vignettes', *Proceedings of the National Academy of Sciences*, 122 (24) e2426153122. Available from: https://doi.org/10.1073/pnas.2426153122 [Accessed 2 January 2025].
 
-Goh, E. et al. (2025) 'Large language model influence on diagnostic reasoning: A systematic review', *npj Digital Medicine*, 8(8). Available from: https://doi.org/10.1038/s41746-025-01543-z [Accessed 2 January 2025].
+Goh, E. et al. (2025) 'A systematic review and meta-analysis of diagnostic performance comparison between generative AI and physicians', *npj Digital Medicine*, 8(8). Available from: https://doi.org/10.1038/s41746-025-01543-z [Accessed 2 January 2025].
 
 \newpage
 ## Appendices

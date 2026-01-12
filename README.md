@@ -90,7 +90,7 @@ python -m src.extraction.run_extraction \
 ```
 src/
 ├── prolog/                    # Core Diagnostic System
-│   ├── schema.pl             # Inference engine (~1,100 lines)
+│   ├── schema.pl             # Inference engine (~1,119 lines)
 │   ├── gold_standard/        # Hand-curated disorders (5)
 │   │   ├── mdd.pl, gad.pl, adhd.pl, ptsd.pl, asd.pl
 │   │   └── loader.pl
@@ -101,17 +101,35 @@ src/
 │   ├── providers/            # OpenAI, Anthropic, Ollama
 │   └── evaluate.py           # Validation pipeline
 │
-└── reasoning/                 # Python↔Prolog Interface
-    └── engine.py             # Thin pyswip wrapper
+├── diagnosis/                 # Diagnostic Driver
+│   └── driver.py             # Orchestrates Prolog reasoning
+│
+├── evaluation/                # Vignette Generation & Testing
+│   ├── generate_vignettes.py # Synthetic case generation
+│   ├── evaluate.py           # Vignette evaluation
+│   ├── compare_llm.py        # Hybrid vs Pure LLM comparison
+│   └── answer_modes.py       # Answer mode factories
+│
+├── reasoning/                 # Python↔Prolog Interface
+│   └── engine.py             # Thin pyswip wrapper
+│
+└── utils/                     # Formatting & Explanation
+    ├── formatting.py         # ANSI colours, tables
+    └── explain.py            # Proof tree formatter
 
 data/
 ├── dsm5_text/                # DSM-5-TR source text
-└── vignettes/                # Clinical test cases
+├── vignettes/                # Generated clinical test cases
+└── results/                  # Evaluation outputs and figures
+
+tests/                         # 80 tests across 5 files
 
 docs/
 ├── DSM_VERSION_NOTES.md      # DSM-5 vs DSM-5-TR differences
 ├── EXTRACTION_BENCHMARKS.md  # LLM provider comparison
 ├── IMPLEMENTATION_PLAN.md    # Simplified rebuild plan
+├── VIGNETTE_GENERATION.md    # Vignette generation architecture
+├── EVALUATION.md             # Evaluation system and answer modes
 └── LEGACY_SYSTEM.md          # Old architecture (archived)
 
 archive/                       # Previous over-engineered implementation
@@ -136,18 +154,33 @@ archive/                       # Previous over-engineered implementation
 - Clinician can accept, modify, or override suggestions
 - Handles "clinically significant", "excessive worry", etc.
 
+### Evaluation Pipeline
+- Synthetic clinical vignette generation with ground truth
+- Multiple answer modes: preextracted, interactive, LLM, hybrid
+- Comparative analysis: Hybrid vs Pure LLM approaches
+- Visualisation of evaluation metrics
+
+## Current Results
+
+| Metric | Value |
+|--------|-------|
+| Diagnostic accuracy | 100% (53/53 vignette evaluations) |
+| Hybrid vs Pure LLM | +22% advantage (100% vs 78%) |
+| Average questions | 133.4 per vignette |
+| Test coverage | 80 tests, all passing |
+
 ## Documentation
 
-- [DSM Version Notes](docs/DSM_VERSION_NOTES.md) - DSM-5 vs DSM-5-TR
-- [Extraction Benchmarks](docs/EXTRACTION_BENCHMARKS.md) - Provider comparison
+- [DSM Version Notes](docs/DSM_VERSION_NOTES.md) - DSM-5 vs DSM-5-TR differences
+- [Extraction Benchmarks](docs/EXTRACTION_BENCHMARKS.md) - LLM provider comparison
+- [Vignette Generation](docs/VIGNETTE_GENERATION.md) - Synthetic case generation
+- [Evaluation](docs/EVALUATION.md) - Evaluation system and answer modes
 - [Implementation Plan](docs/IMPLEMENTATION_PLAN.md) - Simplified architecture
-- [Legacy System](docs/LEGACY_SYSTEM.md) - Why we simplified
+- [Legacy System](docs/LEGACY_SYSTEM.md) - Previous architecture (archived)
 
 ## Academic Context
 
-Developed for **Foundations of AI** (MSc Applied AI) as a demonstration of hybrid AI combining symbolic and stochastic methods.
-
-**Deadline:** 5th January 2026
+Developed for **Foundations of AI** (MSc Applied AI, 7COSC013W.1) as a demonstration of hybrid AI combining symbolic and stochastic methods.
 
 ## Technical Stack
 

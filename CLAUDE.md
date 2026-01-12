@@ -47,7 +47,7 @@ Hybrid Category 3 AI system combining Prolog-based symbolic reasoning (Tier A: o
 
 **DSM Version**: DSM-5-TR (2022), not DSM-5 (2013). See `docs/DSM_VERSION_NOTES.md` for differences.
 
-**Current Status**: Fully functional with 100% accuracy on 50 synthetic vignettes, 73 passing tests.
+**Current Status**: Fully functional with 100% accuracy on 50 synthetic vignettes, 80 passing tests.
 
 ## Architecture
 
@@ -108,7 +108,7 @@ data/
         ├── evaluation_metrics.png
         └── hybrid_vs_pure_llm_comparison.png
 
-tests/                         # 73 tests across 5 files
+tests/                         # 80 tests across 5 files
 ├── conftest.py               # Shared fixtures
 ├── test_prolog_schema.py     # Schema validation (28 tests)
 ├── test_answer_modes.py      # Answer mode factories (18 tests)
@@ -155,7 +155,7 @@ cp .env.example .env  # Add API keys if using LLM extraction
 
 ## Common Commands
 
-**Testing** (pytest - 73 tests):
+**Testing** (pytest - 80 tests):
 ```bash
 # Run all tests
 pytest tests/ -v
@@ -369,12 +369,12 @@ See `docs/EVALUATION.md` Section 4 for full performance analysis.
 
 | Metric | Value |
 |--------|-------|
-| Diagnostic accuracy | 100% (59/59 vignettes) |
-| Hybrid vs Pure LLM | +5% advantage (100% vs 95%) |
-| Comorbid case advantage | +25% (100% vs 75%) |
-| Average questions | 136.6 per vignette |
+| Diagnostic accuracy | 100% (53/53 vignette evaluations) |
+| Hybrid vs Pure LLM | +22% advantage (100% vs 78%) |
+| Average questions | 133.4 per vignette |
+| Average confidence | 95.1% |
 | Inference time | 9.5s for 50 vignettes |
-| Test coverage | 73 tests, all passing |
+| Test coverage | 80 tests, all passing |
 
 Results exported to:
 - `data/results/evaluation/` - Full evaluation JSON
@@ -386,7 +386,7 @@ Results exported to:
 | Deliverable | Location | Status |
 |-------------|----------|--------|
 | Part A: Project Description | `specs/Part_A_DSM5_Diagnostic_System_v3.pdf` | Complete |
-| Technical Report (4,000-5,000 words) | `REPORT_TEMPLATE.md` → PDF | Template ready |
+| Technical Report (4,000-5,000 words) | `Cw1_w2171289_TechnicalReport.md` | Complete |
 | Jupyter Notebook | `notebook.ipynb` | Complete (26 cells) |
 | Demonstration Video (5-10 mins) | TBD | Not started |
 | Viva preparation | - | - |
