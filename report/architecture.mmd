@@ -1,0 +1,49 @@
+flowchart TB
+    subgraph INPUT[" "]
+        A["**CLINICAL VIGNETTE** (Patient Data)"]
+    end
+
+    subgraph PROLOG_ENGINE["PROLOG INFERENCE ENGINE"]
+        B["next_question/2: returns highest-priority unanswered question<br>disorder_pruned/2: eliminates ruled-out candidates<br><br>*Prolog decides WHAT to ask. Python decides HOW to answer.*"]
+    end
+
+    INPUT --> PROLOG_ENGINE
+    PROLOG_ENGINE --> C["**Question returned** (type, id, description)"]
+    C --> D{"**OBJECTIVE** or **SUBJECTIVE**?"}
+
+    subgraph TIER_A["TIER A: OBJECTIVE"]
+        direction TB
+        A1["Symptom, Duration, Onset, Exclusion"]
+        A2["Answer obtained via base mode:"]
+        A3["Pre-extracted dict"]
+        A4["Interactive (clinician)"]
+        A5["Returns: **present/absent** + evidence"]
+
+        A1 --> A2
+        A2 --> A3
+        A2 --> A4
+        A3 --> A5
+        A4 --> A5
+    end
+
+    subgraph TIER_B["TIER B: SUBJECTIVE"]
+        direction TB
+        B1["Clinical Significance, Excessiveness, Severity"]
+        B2["Always routed to LLM:"]
+        B3["**LLM** (Claude/GPT-5-mini)<br>Returns: met/not_met/unclear, confidence, reasoning"]
+        B4["Clinician override option (accept/modify/reject)"]
+
+        B1 --> B2
+        B2 --> B3
+        B3 --> B4
+    end
+
+    D -->|Objective| TIER_A
+    D -->|Subjective| TIER_B
+
+    subgraph TIER_C["TIER C: INTEGRATION"]
+        C1["**full_diagnosis/3**: combines Tier A + Tier B evidence<br>Returns: **diagnosis(met/not_met, confidence, explanation)**"]
+    end
+
+    TIER_A --> TIER_C
+    TIER_B --> TIER_C
