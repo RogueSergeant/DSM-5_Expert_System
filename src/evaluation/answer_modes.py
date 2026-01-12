@@ -261,12 +261,12 @@ Assess this subjective clinical criterion based on the clinical note.
 - Assess whether the criterion is MET, NOT_MET, or UNCLEAR
 - Consider clinical significance thresholds defined in DSM-5-TR
 - Provide confidence score (0.0-1.0) based on evidence strength
-- Quote supporting evidence from the clinical note
+- Summarise supporting evidence (do NOT use quotation marks in the evidence field)
 </instructions>
 
 <response_format>
-Respond with valid JSON only:
-{{"status": "met|not_met|unclear", "confidence": 0.0-1.0, "evidence": "quote or null"}}
+Respond with valid JSON only. Do not include quotation marks inside string values:
+{{"status": "met|not_met|unclear", "confidence": 0.0-1.0, "evidence": "brief summary or null"}}
 </response_format>"""
         else:
             prompt = f"""# Task
@@ -282,12 +282,12 @@ Assess this subjective clinical criterion based on the clinical note.
 - Assess whether the criterion is **MET**, **NOT_MET**, or **UNCLEAR**
 - Consider clinical significance thresholds defined in DSM-5-TR
 - Provide confidence score (0.0-1.0) based on evidence strength
-- Quote supporting evidence from the clinical note
+- Summarise supporting evidence (do NOT use quotation marks in the evidence field)
 
 ## Response Format
-Respond with valid JSON only:
+Respond with valid JSON only. Do not include quotation marks inside string values:
 ```json
-{{"status": "met|not_met|unclear", "confidence": 0.0-1.0, "evidence": "quote or null"}}
+{{"status": "met|not_met|unclear", "confidence": 0.0-1.0, "evidence": "brief summary or null"}}
 ```"""
 
         try:
