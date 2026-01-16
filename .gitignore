@@ -81,3 +81,9 @@ htmlcov/
 *.log
 
 *.mp4
+
+*.png
+
+report/*
+Cw*.md
+
